@@ -1,0 +1,15 @@
+export const routes = {
+  landing: '/',
+  login: '/login',
+  dashboard: '/dashboard',
+  tasks: '/tasks',
+  employees: '/employees',
+  teams: '/teams',
+  events: '/events',
+  analytics: '/analytics',
+  aiInsights: '/ai-insights',
+  attendance: '/attendance',
+  leave: '/leave',
+  notifications: '/notifications',
+  settings: '/settings',
+}
