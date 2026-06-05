@@ -1,20 +1,54 @@
-import { apiRequest, useMocks } from './apiClient.js'
+import { apiClient, asArray, useMocks } from './apiClient.js'
 import { mockData } from '../mocks/mockData.js'
 
-export async function getAnalyticsSummary() {
-  // GET /api/analytics/summary
+const workloadBase = '/api/v1/analytics/workload-history'
+
+export async function generateMockWorkloadHistory(employeeId) {
+  // POST /api/v1/analytics/workload-history/generate-mock/{employeeId}
+  return apiClient.post(`${workloadBase}/generate-mock/${employeeId}`)
+}
+
+export async function getWorkloadHistory(employeeId) {
+  // GET /api/v1/analytics/workload-history/{employeeId}
   if (useMocks) return mockData.analyticsSummary
-  return apiRequest('/api/analytics/summary')
+  return apiClient.get(`${workloadBase}/${employeeId}`)
+}
+
+export async function getTeamWorkloadHistory(teamId) {
+  // GET /api/v1/analytics/workload-history/team/{teamId}
+  if (useMocks) return mockData.analyticsSummary
+  return asArray(await apiClient.get(`${workloadBase}/team/${teamId}`))
+}
+
+export async function getOrganizationWorkloadHistory(organizationId) {
+  // GET /api/v1/analytics/workload-history/organization/{organizationId}
+  if (useMocks) return mockData.analyticsSummary
+  return asArray(await apiClient.get(`${workloadBase}/organization/${organizationId}`))
+}
+
+export async function getMyWorkloadHistory() {
+  // GET /api/v1/analytics/workload-history/my-history
+  if (useMocks) return mockData.analyticsSummary
+  return asArray(await apiClient.get(`${workloadBase}/my-history`))
+}
+
+export async function getManagedTeamsWorkloadHistory() {
+  // GET /api/v1/analytics/workload-history/managed-teams
+  if (useMocks) return mockData.analyticsSummary
+  return asArray(await apiClient.get(`${workloadBase}/managed-teams`))
+}
+
+export async function getAnalyticsSummary() {
+  if (useMocks) return mockData.analyticsSummary
+  return getOrganizationWorkloadHistory('current')
 }
 
 export async function getWorkloadAnalytics() {
-  // GET /api/analytics/workload
   if (useMocks) return { panels: mockData.analyticsSummary.overview }
-  return apiRequest('/api/analytics/workload')
+  return getOrganizationWorkloadHistory('current')
 }
 
 export async function getProductivityAnalytics() {
-  // GET /api/analytics/productivity
   if (useMocks) return { panels: mockData.analyticsSummary.overview }
-  return apiRequest('/api/analytics/productivity')
+  return getOrganizationWorkloadHistory('current')
 }

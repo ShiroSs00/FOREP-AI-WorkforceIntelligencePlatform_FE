@@ -6,48 +6,85 @@ import InsightConsole from './InsightConsole.jsx'
 const stages = [
   {
     eyebrow: 'Workflow Data',
-    title: 'Collect workflow data.',
-    description: 'FOREP gathers daily activity from tasks, attendance, leave records and collaboration tools.',
+    title: 'Collect workflow signals.',
+    description: 'FOREP gathers daily activity from internal tasks, GitHub, attendance, and leave records.',
     type: 'sources',
   },
   {
     eyebrow: 'Operational Events',
-    title: 'Transform activity into operational events.',
-    description: 'Important workflow actions become structured events that form the organization’s operational timeline.',
+    title: 'Transform actions into operational events.',
+    description: 'Important workflow activity becomes structured events that form a timeline of how the organization works.',
     type: 'events',
   },
   {
-    eyebrow: 'Analytics',
-    title: 'Analyze workload and productivity patterns.',
-    description: 'FOREP reads the event timeline to identify workload pressure, overdue patterns, team contribution and operational anomalies.',
+    eyebrow: 'Workload Analytics',
+    title: 'Analyze workload and contribution patterns.',
+    description: 'FOREP reads the event timeline to identify workload distribution, overdue patterns, contribution signals, and operational anomalies.',
     type: 'analytics',
   },
   {
-    eyebrow: 'AI Insights',
-    title: 'Generate AI insights.',
-    description: 'AI summarizes team status, detects overload signals and suggests workflow improvements using organizational context.',
+    eyebrow: 'Weekly AI Summary',
+    title: 'Generate weekly AI insights.',
+    description: 'AI summarizes team status, detects workload anomalies, and suggests workflow improvements while keeping humans in control.',
     type: 'insights',
   },
   {
     eyebrow: 'Manager Actions',
     title: 'Support better management decisions.',
-    description: 'Managers can use FOREP to understand operational reality, rebalance work and improve team health.',
+    description: 'Managers can understand operational reality, rebalance work, and improve team health without turning FOREP into surveillance.',
     type: 'actions',
   },
 ]
 
 function StageVisual({ type }) {
   if (type === 'sources') {
-    return <div className="grid grid-cols-2 gap-3 md:grid-cols-3">{['Internal Tasks', 'Attendance', 'Leave', 'Jira', 'GitHub', 'Gmail', 'Slack', 'Trello', 'Notion'].map((item, index) => <div key={item} className="stage-item rounded-lg border border-white/10 bg-white/10 p-4 text-sm font-semibold text-sky-100 backdrop-blur" style={{ transform: `translate(${(index % 3 - 1) * 12}px, ${(index % 2 ? 1 : -1) * 10}px)` }}>{item}</div>)}</div>
+    const primary = ['Internal Tasks', 'GitHub Commits', 'Pull Requests', 'Attendance', 'Leave Requests']
+    const future = ['Future: Jira', 'Future: Slack', 'Future: Gmail', 'Future: Trello', 'Future: Notion']
+    return (
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+        {[...primary, ...future].map((item, index) => (
+          <div
+            key={item}
+            className={`stage-item rounded-lg border border-white/20 bg-white/15 p-4 text-sm font-semibold backdrop-blur ${item.startsWith('Future') ? 'text-slate-200' : 'text-white'}`}
+            style={{ transform: `translate(${(index % 3 - 1) * 12}px, ${(index % 2 ? 1 : -1) * 10}px)` }}
+          >
+            {item}
+          </div>
+        ))}
+      </div>
+    )
   }
+
   if (type === 'events') {
-    return <div className="flex flex-wrap gap-3">{['TASK_CREATED', 'TASK_ASSIGNED', 'TASK_COMPLETED', 'TASK_OVERDUE', 'PR_MERGED', 'EMAIL_RESPONSE_DELAY', 'LEAVE_REQUESTED', 'ATTENDANCE_RECORDED'].map((item) => <EventChip key={item}>{item}</EventChip>)}</div>
+    return (
+      <div className="flex flex-wrap gap-3">
+        {['TASK_CREATED', 'TASK_ASSIGNED', 'TASK_COMPLETED', 'TASK_OVERDUE', 'PR_MERGED', 'LEAVE_REQUESTED', 'ATTENDANCE_RECORDED', 'Future: EMAIL_RESPONSE_DELAY'].map((item) => <EventChip key={item}>{item}</EventChip>)}
+      </div>
+    )
   }
+
   if (type === 'analytics') {
-    return <div className="grid gap-4 md:grid-cols-2">{['Workload Distribution', 'Productivity Pattern', 'Overdue Pattern', 'Team Contribution', 'Attendance Signal', 'Anomaly Signal'].map((item) => <div key={item} className="stage-item rounded-lg border border-white/10 bg-slate-950/70 p-5"><div className="mb-4 h-2 rounded-full bg-sky-400/70" /><p className="text-sm font-semibold text-slate-200">{item}</p></div>)}</div>
+    return (
+      <div className="grid gap-4 md:grid-cols-2">
+        {['Workload Distribution', 'Overdue Pattern', 'Team Contribution', 'Attendance Signal', 'Anomaly Signal'].map((item) => (
+          <div key={item} className="stage-item rounded-lg border border-white/20 bg-slate-950/80 p-5">
+            <div className="mb-4 h-2 rounded-full bg-sky-400/70" />
+            <p className="text-sm font-semibold text-white">{item}</p>
+          </div>
+        ))}
+      </div>
+    )
   }
+
   if (type === 'insights') return <InsightConsole />
-  return <div className="mx-auto grid max-w-xl gap-3">{['Reassign Tasks', 'Review Timeline', 'Monitor Workload', 'Support Team', 'Improve Workflow'].map((item) => <div key={item} className="stage-item rounded-lg border border-sky-400/20 bg-white/10 p-4 text-center text-sm font-semibold text-sky-100">{item}</div>)}</div>
+
+  return (
+    <div className="mx-auto grid max-w-xl gap-3">
+      {['Reassign Tasks', 'Review Timeline', 'Monitor Workload', 'Support Team', 'Improve Workflow', 'Share Transparent Feedback'].map((item) => (
+        <div key={item} className="stage-item rounded-lg border border-sky-400/30 bg-white/15 p-4 text-center text-sm font-semibold text-white">{item}</div>
+      ))}
+    </div>
+  )
 }
 
 function ParallaxWorkflow() {
@@ -103,10 +140,10 @@ function ParallaxWorkflow() {
           <div key={stage.title}>
             <p className="text-sm font-bold uppercase tracking-[0.24em] text-[#0ea5e9]">{stage.eyebrow}</p>
             <h2 className="mt-4 max-w-xl text-4xl font-bold tracking-normal sm:text-6xl">{stage.title}</h2>
-            <p className="mt-5 max-w-xl text-lg leading-8 text-slate-300">{stage.description}</p>
+            <p className="mt-5 max-w-xl text-lg leading-8 text-slate-100">{stage.description}</p>
             <div className="mt-8 flex gap-3">{stages.map((item, index) => <span key={item.title} className={`h-2.5 rounded-full transition-all ${index === stageIndex ? 'w-12 bg-[#0ea5e9]' : 'w-7 bg-white/20'}`} />)}</div>
           </div>
-          <div key={stage.type} className="workflow-scene rounded-lg border border-white/10 bg-white/[0.06] p-5 shadow-2xl shadow-slate-950/40 backdrop-blur">
+          <div key={stage.type} className="workflow-scene rounded-lg border border-white/20 bg-white/[0.10] p-5 shadow-2xl shadow-slate-950/40 backdrop-blur">
             <StageVisual type={stage.type} />
           </div>
         </div>

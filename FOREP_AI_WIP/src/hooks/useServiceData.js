@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { ApiNotConfiguredError } from '../services/apiClient.js'
 
 export function useServiceData(loader, dependencies = []) {
@@ -6,6 +6,9 @@ export function useServiceData(loader, dependencies = []) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [apiPending, setApiPending] = useState(false)
+  const [reloadKey, setReloadKey] = useState(0)
+
+  const retry = useCallback(() => setReloadKey((value) => value + 1), [])
 
   useEffect(() => {
     let mounted = true
@@ -37,7 +40,7 @@ export function useServiceData(loader, dependencies = []) {
     }
     // Service loaders are stable module functions in current pages; callers pass explicit reload keys here.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, dependencies)
+  }, [...dependencies, reloadKey])
 
-  return { data, loading, error, apiPending, setData }
+  return { data, loading, error, apiPending, setData, retry }
 }

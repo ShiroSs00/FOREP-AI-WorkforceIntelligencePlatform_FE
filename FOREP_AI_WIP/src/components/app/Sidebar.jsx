@@ -2,43 +2,56 @@ import { useEffect, useState } from 'react'
 import {
   BarChart3,
   Bell,
+  Building2,
   CalendarDays,
   ClipboardList,
+  FileText,
+  HeartPulse,
   LayoutDashboard,
-  LogOut,
+  Plug,
+  ShieldCheck,
   Settings,
   Sparkles,
   UserRound,
+  UserRoundPlus,
   UsersRound,
   Workflow,
 } from 'lucide-react'
-import { NavLink, useNavigate } from 'react-router-dom'
-import { routes } from '../../constants/routes.js'
-import { getNotifications } from '../../services/notificationService.js'
+import { NavLink } from 'react-router-dom'
+import { getUnreadCount } from '../../services/notificationService.js'
+import { useRole } from '../../context/role.js'
+import RoleSwitcher from './RoleSwitcher.jsx'
+import SidebarSearch from './SidebarSearch.jsx'
+import SidebarUserCard from './SidebarUserCard.jsx'
 
-const menuItems = [
-  { label: 'Dashboard', icon: LayoutDashboard, path: routes.dashboard },
-  { label: 'Tasks', icon: ClipboardList, path: routes.tasks },
-  { label: 'Team', icon: UsersRound, path: routes.teams },
-  { label: 'Employees', icon: UserRound, path: routes.employees },
-  { label: 'Analytics', icon: BarChart3, path: routes.analytics },
-  { label: 'AI Insights', icon: Sparkles, path: routes.aiInsights },
-  { label: 'Attendance', icon: CalendarDays, path: routes.attendance },
-  { label: 'Leave Requests', icon: UserRound, path: routes.leave },
-  { label: 'Events Timeline', icon: Workflow, path: routes.events },
-  { label: 'Notifications', icon: Bell, path: routes.notifications, notificationBadge: true },
-  { label: 'Settings', icon: Settings, path: routes.settings },
-]
+const iconMap = {
+  ai: Sparkles,
+  analytics: BarChart3,
+  attendance: CalendarDays,
+  building: Building2,
+  dashboard: LayoutDashboard,
+  events: Workflow,
+  integration: Plug,
+  leave: UserRound,
+  monitoring: HeartPulse,
+  notifications: Bell,
+  profile: UserRound,
+  recruitment: UserRoundPlus,
+  reports: FileText,
+  settings: Settings,
+  tasks: ClipboardList,
+  users: UsersRound,
+}
 
 function Sidebar() {
-  const navigate = useNavigate()
+  const { roleConfig, menuGroups } = useRole()
   const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
     let mounted = true
-    getNotifications()
-      .then((items) => {
-        if (mounted) setUnreadCount(items.filter((item) => !item.read).length)
+    getUnreadCount()
+      .then((count) => {
+        if (mounted) setUnreadCount(count)
       })
       .catch(() => {
         if (mounted) setUnreadCount(0)
@@ -49,42 +62,45 @@ function Sidebar() {
   }, [])
 
   return (
-    <aside className="sidebar-panel fixed inset-y-0 left-0 z-30 hidden w-[260px] flex-col border-r border-[var(--border)] bg-[var(--surface)] p-5 shadow-sm lg:flex">
-      <div className="flex items-center gap-3">
-        <span className="grid h-11 w-11 place-items-center rounded-lg bg-[#0ea5e9] text-sm font-bold text-white">F</span>
-        <div>
-          <p className="font-bold text-[var(--text)]">FOREP</p>
-          <p className="text-xs text-[var(--muted)]">Workforce Intelligence</p>
-        </div>
-      </div>
+    <aside className="sidebar-panel fixed inset-y-0 left-0 z-30 hidden w-[260px] flex-col border-r border-[var(--border)] bg-slate-50/95 p-4 shadow-sm dark:bg-slate-950/95 lg:flex">
+      <RoleSwitcher />
+      <SidebarSearch placeholder={roleConfig.sidebarSearchPlaceholder} />
 
-      <nav className="mt-8 space-y-1">
-        {menuItems.map(({ label, icon: Icon, path, notificationBadge }) => (
-          <NavLink
-            key={label}
-            to={path}
-            className={({ isActive }) =>
-              `flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition ${
-                isActive ? 'bg-sky-50 text-[#0ea5e9] dark:bg-sky-950/40 dark:text-[#38bdf8]' : 'text-[var(--muted)] hover:bg-slate-50 hover:text-[var(--text)] dark:hover:bg-slate-900'
-              }`
-            }
-          >
-            <Icon size={18} />
-            <span className="min-w-0 flex-1 truncate">{label}</span>
-            {notificationBadge && unreadCount > 0 ? <span className="rounded-full bg-[#ef4444] px-2 py-0.5 text-xs font-bold text-white">{unreadCount}</span> : null}
-          </NavLink>
+      <nav className="mt-6 flex-1 space-y-5 overflow-y-auto pr-1">
+        {menuGroups.map((section) => (
+          <div key={section.title}>
+            <p className="px-3 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--muted)]">{section.title}</p>
+            <div className="mt-2 space-y-1">
+              {section.items.map(({ label, icon, path, notificationBadge }) => {
+                const Icon = iconMap[icon] ?? ShieldCheck
+                return (
+                  <NavLink
+                    key={label}
+                    to={path}
+                    className={({ isActive }) =>
+                      `relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors ${
+                        isActive ? 'bg-[#e0f2fe] text-[#0284c7] shadow-sm dark:bg-sky-400/10 dark:text-[#38bdf8]' : 'text-[var(--muted)] hover:bg-white hover:text-[var(--text)] dark:hover:bg-slate-900'
+                      }`
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <span className={`absolute right-0 top-2 bottom-2 w-1 rounded-full transition-colors ${isActive ? 'bg-[#0ea5e9] dark:bg-[#38bdf8]' : 'bg-transparent'}`} />
+                        <Icon size={18} />
+                        <span className="min-w-0 flex-1 truncate">{label}</span>
+                        {notificationBadge && unreadCount > 0 ? <span className="grid min-h-5 min-w-5 place-items-center rounded-full bg-[#ef4444] px-1.5 text-xs font-bold leading-none text-white">{unreadCount}</span> : null}
+                      </>
+                    )}
+                  </NavLink>
+                )
+              })}
+            </div>
+          </div>
         ))}
       </nav>
 
-      <div className="mt-auto border-t border-[var(--border)] pt-5">
-        <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-900">
-          <p className="text-sm font-semibold text-[var(--text)]">Organization</p>
-          <p className="mt-1 text-sm text-[var(--muted)]">Backend-ready workspace</p>
-        </div>
-        <button type="button" onClick={() => navigate(routes.login)} className="mt-3 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-[var(--muted)] hover:bg-slate-50 dark:hover:bg-slate-900">
-          <LogOut size={18} />
-          Sign out
-        </button>
+      <div className="mt-4 border-t border-[var(--border)] pt-4">
+        <SidebarUserCard />
       </div>
     </aside>
   )

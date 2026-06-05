@@ -1,0 +1,180 @@
+import { routes } from './routes.js'
+
+export const roles = {
+  admin: {
+    id: 'admin',
+    label: 'Platform Admin',
+    shortLabel: 'Admin',
+    accent: 'purple',
+    subtitle: 'Platform · System',
+    switchDescription: 'System control',
+    headerBadge: 'PLATFORM ADMIN',
+    user: {
+      name: 'Sara Lindqvist',
+      title: 'Platform Administrator',
+      initials: 'SL',
+    },
+    badgeClass: 'bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-950/40 dark:text-purple-200 dark:border-purple-900',
+    breadcrumb: 'Platform Admin',
+    searchPlaceholder: 'Search organizations, users, integrations...',
+    sidebarSearchPlaceholder: 'Search platform...',
+    createActions: ['Create Organization', 'Invite User', 'Configure Integration'],
+    allowedRoutes: [routes.dashboard, routes.settings, routes.organizations, routes.users, routes.teams, routes.employees, routes.tasks, routes.attendance, routes.analytics, routes.aiInsights, routes.integrations, routes.monitoring, routes.notifications],
+    menuSections: [
+      {
+        title: 'PLATFORM INTELLIGENCE',
+        items: [
+          { label: 'Dashboard', path: routes.dashboard, icon: 'dashboard' },
+          { label: 'Organizations', path: routes.organizations, icon: 'building' },
+          { label: 'Users', path: routes.users, icon: 'users' },
+          { label: 'Teams', path: routes.teams, icon: 'users' },
+          { label: 'Employees', path: routes.employees, icon: 'users' },
+          { label: 'Tasks', path: routes.tasks, icon: 'tasks' },
+          { label: 'Analytics', path: routes.analytics, icon: 'analytics' },
+          { label: 'AI Insights', path: routes.aiInsights, icon: 'ai' },
+        ],
+      },
+      {
+        title: 'SYSTEM',
+        items: [
+          { label: 'Integrations', path: routes.integrations, icon: 'integration' },
+          { label: 'System Monitoring', path: routes.monitoring, icon: 'monitoring' },
+          { label: 'Attendance', path: routes.attendance, icon: 'attendance' },
+          { label: 'Notifications', path: routes.notifications, icon: 'notifications', notificationBadge: true },
+        ],
+      },
+    ],
+  },
+  manager: {
+    id: 'manager',
+    label: 'Manager',
+    shortLabel: 'Manager',
+    accent: 'blue',
+    subtitle: 'Engineering · Ops',
+    switchDescription: 'Team operations',
+    headerBadge: 'MANAGER',
+    user: {
+      name: 'Marcus Chen',
+      title: 'Operations Director',
+      initials: 'MC',
+    },
+    badgeClass: 'bg-sky-50 text-sky-700 border-sky-100 dark:bg-sky-950/40 dark:text-sky-200 dark:border-sky-900',
+    breadcrumb: 'Manager',
+    searchPlaceholder: 'Search tasks, employees, events...',
+    sidebarSearchPlaceholder: 'Search team...',
+    createActions: ['Create Team', 'Create Task', 'Assign Task'],
+    allowedRoutes: [routes.dashboard, routes.settings, routes.teams, routes.tasks, routes.sprints, routes.employees, routes.analytics, routes.aiInsights, routes.events, routes.attendance, routes.notifications],
+    menuSections: [
+      {
+        title: 'OPERATIONAL INTELLIGENCE',
+        items: [
+          { label: 'Dashboard', path: routes.dashboard, icon: 'dashboard' },
+          { label: 'Teams', path: routes.teams, icon: 'users' },
+          { label: 'Team Tasks', path: routes.tasks, icon: 'tasks' },
+          { label: 'Sprints', path: routes.sprints, icon: 'tasks' },
+          { label: 'Employees', path: routes.employees, icon: 'users' },
+          { label: 'Team Analytics', path: routes.analytics, icon: 'analytics' },
+          { label: 'AI Insights', path: routes.aiInsights, icon: 'ai' },
+        ],
+      },
+      {
+        title: 'WORKFORCE',
+        items: [
+          { label: 'Event Timeline', path: routes.events, icon: 'events' },
+          { label: 'Attendance', path: routes.attendance, icon: 'attendance' },
+          { label: 'Notifications', path: routes.notifications, icon: 'notifications', notificationBadge: true },
+        ],
+      },
+    ],
+  },
+  hr: {
+    id: 'hr',
+    label: 'People Ops',
+    shortLabel: 'HR',
+    accent: 'green',
+    subtitle: 'Workforce · People',
+    switchDescription: 'Workforce & people',
+    headerBadge: 'PEOPLE OPS',
+    user: {
+      name: 'Amara Okafor',
+      title: 'Head of People Ops',
+      initials: 'AO',
+    },
+    badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-900',
+    breadcrumb: 'People Ops',
+    searchPlaceholder: 'Search employees, leave requests, attendance...',
+    sidebarSearchPlaceholder: 'Search people...',
+    createActions: ['Add Employee', 'Create Leave Request', 'Add Candidate'],
+    allowedRoutes: [routes.dashboard, routes.settings, routes.users, routes.employees, routes.tasks, routes.attendance, routes.leave, routes.recruitment, routes.analytics, routes.aiInsights, routes.reports, routes.notifications],
+    menuSections: [
+      {
+        title: 'WORKFORCE',
+        items: [
+          { label: 'Dashboard', path: routes.dashboard, icon: 'dashboard' },
+          { label: 'Users', path: routes.users, icon: 'users' },
+          { label: 'Employees', path: routes.employees, icon: 'users' },
+          { label: 'Attendance', path: routes.attendance, icon: 'attendance' },
+          { label: 'Leave Requests', path: routes.leave, icon: 'leave' },
+          { label: 'Recruitment', path: routes.recruitment, icon: 'recruitment' },
+        ],
+      },
+      {
+        title: 'INTELLIGENCE',
+        items: [
+          { label: 'People Analytics', path: routes.analytics, icon: 'analytics' },
+          { label: 'AI Insights', path: routes.aiInsights, icon: 'ai' },
+          { label: 'Reports', path: routes.reports, icon: 'reports' },
+          { label: 'Notifications', path: routes.notifications, icon: 'notifications', notificationBadge: true },
+        ],
+      },
+    ],
+  },
+  employee: {
+    id: 'employee',
+    label: 'Employee',
+    shortLabel: 'Employee',
+    accent: 'cyan',
+    subtitle: 'Engineering · Platform',
+    switchDescription: 'Personal workspace',
+    headerBadge: 'EMPLOYEE',
+    user: {
+      name: 'Jordan Park',
+      title: 'Senior Engineer',
+      initials: 'JP',
+    },
+    badgeClass: 'bg-cyan-50 text-cyan-700 border-cyan-100 dark:bg-cyan-950/40 dark:text-cyan-200 dark:border-cyan-900',
+    breadcrumb: 'Employee',
+    searchPlaceholder: 'Search my tasks, activity, leave...',
+    sidebarSearchPlaceholder: 'Search workspace...',
+    createActions: ['Create Personal Task', 'Request Leave', 'Check In'],
+    allowedRoutes: [routes.dashboard, routes.settings, routes.tasks, routes.attendance, routes.leave, routes.analytics, routes.events, routes.aiInsights, routes.notifications, routes.profile],
+    menuSections: [
+      {
+        title: 'MY WORKSPACE',
+        items: [
+          { label: 'Dashboard', path: routes.dashboard, icon: 'dashboard' },
+          { label: 'My Tasks', path: routes.tasks, icon: 'tasks' },
+          { label: 'Attendance', path: routes.attendance, icon: 'attendance' },
+          { label: 'Leave Requests', path: routes.leave, icon: 'leave' },
+          { label: 'Personal Analytics', path: routes.analytics, icon: 'analytics' },
+          { label: 'Event Timeline', path: routes.events, icon: 'events' },
+          { label: 'AI Insights', path: routes.aiInsights, icon: 'ai' },
+        ],
+      },
+      {
+        title: 'PERSONAL',
+        items: [
+          { label: 'Notifications', path: routes.notifications, icon: 'notifications', notificationBadge: true },
+          { label: 'Profile', path: routes.profile, icon: 'profile' },
+        ],
+      },
+    ],
+  },
+}
+
+export const roleOptions = Object.entries(roles).map(([value, config]) => ({
+  value,
+  label: config.label,
+  shortLabel: config.shortLabel,
+  description: config.switchDescription,
+}))

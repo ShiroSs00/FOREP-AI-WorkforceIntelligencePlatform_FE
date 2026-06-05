@@ -1,14 +1,14 @@
-import { apiRequest, useMocks } from './apiClient.js'
+import { apiClient, asArray, useMocks } from './apiClient.js'
 import { mockData } from '../mocks/mockData.js'
 
 export async function getEvents() {
-  // GET /api/events
+  // GET /api/v1/events
   if (useMocks) return mockData.events
-  return apiRequest('/api/events')
+  return asArray(await apiClient.get('/api/v1/events'))
 }
 
 export async function getEventById(id) {
-  // GET /api/events/{id}
+  // GET /api/v1/events/{id}
   if (useMocks) return mockData.events.find((event) => event.id === id) ?? null
-  return apiRequest(`/api/events/${id}`)
+  return apiClient.get(`/api/v1/events/${id}`)
 }

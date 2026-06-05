@@ -1,34 +1,44 @@
-import { apiRequest, useMocks } from './apiClient.js'
+import { apiClient, asArray, useMocks } from './apiClient.js'
 import { mockData } from '../mocks/mockData.js'
+
+const base = '/api/v1/notifications'
 
 // Notification creation should be handled by backend event processing later.
 
 export async function getNotifications() {
-  // GET /api/notifications
+  // GET /api/v1/notifications
   if (useMocks) return mockData.notifications
-  return apiRequest('/api/notifications')
+  return asArray(await apiClient.get(base))
+}
+
+export async function getUnreadNotifications() {
+  // GET /api/v1/notifications/unread
+  if (useMocks) return mockData.notifications.filter((item) => !item.read)
+  return asArray(await apiClient.get(`${base}/unread`))
+}
+
+export async function getUnreadCount() {
+  // GET /api/v1/notifications/unread-count
+  if (useMocks) return mockData.notifications.filter((item) => !item.read).length
+  const payload = await apiClient.get(`${base}/unread-count`)
+  if (typeof payload === 'number') return payload
+  return payload?.count ?? payload?.data?.count ?? 0
 }
 
 export async function markAsRead(id) {
-  // PATCH /api/notifications/{id}/read
+  // PUT /api/v1/notifications/{id}/read
   if (useMocks) return { id, read: true }
-  return apiRequest(`/api/notifications/${id}/read`, { method: 'PATCH' })
+  return apiClient.put(`${base}/${id}/read`)
 }
 
 export async function markAllAsRead() {
-  // PATCH /api/notifications/read-all
+  // PUT /api/v1/notifications/read-all
   if (useMocks) return { read: true }
-  return apiRequest('/api/notifications/read-all', { method: 'PATCH' })
+  return apiClient.put(`${base}/read-all`)
 }
 
 export async function deleteNotification(id) {
-  // DELETE /api/notifications/{id}
+  // DELETE /api/v1/notifications/{id}
   if (useMocks) return { id }
-  return apiRequest(`/api/notifications/${id}`, { method: 'DELETE' })
-}
-
-export async function clearNotifications() {
-  // DELETE /api/notifications
-  if (useMocks) return []
-  return apiRequest('/api/notifications', { method: 'DELETE' })
+  return apiClient.delete(`${base}/${id}`)
 }

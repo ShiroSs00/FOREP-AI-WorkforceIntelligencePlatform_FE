@@ -1,7 +1,7 @@
 import { Monitor, Moon, Sun } from 'lucide-react'
 import { useTheme } from '../../context/theme.js'
 
-function ThemeToggle({ mode = 'button' }) {
+function ThemeToggle({ mode = 'button', className = '' }) {
   const { theme, resolvedTheme, setTheme, toggleTheme } = useTheme()
   const Icon = resolvedTheme === 'dark' ? Moon : Sun
 
@@ -36,7 +36,7 @@ function ThemeToggle({ mode = 'button' }) {
       type="button"
       aria-label={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
       onClick={toggleTheme}
-      className="grid h-10 w-10 place-items-center rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--muted)] transition hover:text-[var(--text)]"
+      className={`grid h-10 w-10 place-items-center rounded-lg border border-slate-300 bg-white text-slate-800 transition hover:bg-slate-50 hover:text-slate-950 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800 ${className}`}
     >
       <Icon size={18} />
     </button>

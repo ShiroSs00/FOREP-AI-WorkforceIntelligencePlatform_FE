@@ -19,9 +19,9 @@ function FinalCTASection() {
   return (
     <section ref={ref} className="relative flex min-h-screen items-center overflow-hidden bg-[#020617] px-4 py-24 text-white sm:px-6 lg:px-8">
       <div aria-hidden="true" className="absolute inset-0 landing-grid opacity-35" />
-      <div className="cta-card relative mx-auto max-w-4xl rounded-lg border border-sky-400/25 bg-white/[0.06] p-10 text-center opacity-0 shadow-[0_0_80px_rgba(14,165,233,0.16)] backdrop-blur">
+      <div className="cta-card relative mx-auto max-w-4xl rounded-lg border border-sky-400/35 bg-white/[0.10] p-10 text-center opacity-0 shadow-[0_0_80px_rgba(14,165,233,0.16)] backdrop-blur">
         <h2 className="text-5xl font-bold tracking-normal">Ready to explore FOREP?</h2>
-        <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-slate-300">Enter the platform interface and review the AI Workforce Intelligence workflow.</p>
+        <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-slate-100">Enter the platform interface and review the AI Workforce Intelligence workflow.</p>
         <Link to="/login" className="mt-10 inline-flex rounded-lg bg-[#0ea5e9] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-500">Go to Login</Link>
       </div>
     </section>

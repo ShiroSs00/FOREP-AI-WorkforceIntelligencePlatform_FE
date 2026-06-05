@@ -1,8 +1,21 @@
-function ErrorState({ title = 'Backend API is not connected yet.', description = 'Connect the backend service or enable VITE_USE_MOCKS for visual development.' }) {
+import Button from './Button.jsx'
+
+function ErrorState({ title = 'Backend API is not connected yet.', message, description = 'Connect the backend service or enable VITE_DATA_MODE=api.', status, details, onRetry }) {
+  const body = message ?? description
+  const detailsText = typeof details === 'string' ? details : details ? JSON.stringify(details, null, 2) : ''
+  const hasTechnicalDetails = Boolean(detailsText)
   return (
-    <div className="rounded-lg border border-amber-200 bg-amber-50 p-6">
-      <p className="font-semibold text-amber-900">{title}</p>
-      <p className="mt-2 text-sm leading-6 text-amber-800">{description}</p>
+    <div className="rounded-lg border border-amber-200 bg-amber-50 p-6 dark:border-amber-900/70 dark:bg-amber-950/30">
+      <p className="font-semibold text-amber-900 dark:text-amber-100">{title}</p>
+      <p className="mt-2 text-sm leading-6 text-amber-800 dark:text-amber-200">{body}</p>
+      {status ? <p className="mt-1 text-xs font-semibold text-amber-700 dark:text-amber-300">Status {status}</p> : null}
+      {hasTechnicalDetails ? (
+        <details className="mt-3 text-xs text-amber-800 dark:text-amber-200">
+          <summary className="cursor-pointer font-semibold">Technical details</summary>
+          <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap rounded-md bg-white/70 p-3 dark:bg-slate-950/50">{detailsText}</pre>
+        </details>
+      ) : null}
+      {onRetry ? <div className="mt-4"><Button variant="secondary" onClick={onRetry}>Retry</Button></div> : null}
     </div>
   )
 }
