@@ -1,6 +1,7 @@
 import { getApiErrorMessage, normalizeArray, normalizeObject } from './responseNormalizer.js'
 
-const baseURL = import.meta.env.VITE_API_BASE_URL
+const defaultApiBaseURL = 'https://forep-ai-workforceintelligenceplatform.onrender.com'
+const baseURL = import.meta.env.VITE_API_BASE_URL || defaultApiBaseURL
 export const dataMode = import.meta.env.VITE_DATA_MODE ?? (import.meta.env.VITE_USE_MOCKS === 'true' ? 'mock' : 'api')
 export const useMocks = dataMode === 'mock'
 export const tokenStorageKey = 'forep_auth_token'
