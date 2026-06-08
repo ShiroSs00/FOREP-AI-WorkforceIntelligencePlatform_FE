@@ -55,7 +55,8 @@ function AppLayout() {
   }, [navigate])
 
   return (
-    <div ref={layoutRef} className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
+    <div ref={layoutRef} className="relative min-h-screen overflow-hidden bg-[var(--bg)] text-[var(--text)]">
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_80%_0%,rgba(14,165,233,0.13),transparent_32%),radial-gradient(circle_at_12%_24%,rgba(79,70,229,0.08),transparent_28%)] dark:bg-[radial-gradient(circle_at_80%_0%,rgba(56,189,248,0.12),transparent_32%),radial-gradient(circle_at_12%_24%,rgba(79,70,229,0.16),transparent_28%)]" />
       <Sidebar />
       <main className="min-h-screen lg:pl-[260px]">
         <TopHeader title={title} />

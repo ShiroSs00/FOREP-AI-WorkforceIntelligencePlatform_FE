@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { animate } from 'animejs'
 import { useRole } from '../context/role.js'
-import { register } from '../services/authService.js'
+import { getCurrentUser, register } from '../services/authService.js'
 
 const initialForm = {
   firstName: '',
@@ -75,7 +75,8 @@ function RegisterPage() {
       }
       const response = await register(payload)
       if (response?.token) {
-        syncRoleFromAccount(response?.user ?? response)
+        const currentUser = await getCurrentUser().catch(() => response?.user ?? null)
+        syncRoleFromAccount(currentUser ?? response?.user ?? response)
         navigate('/dashboard', { replace: true })
       }
       else navigate('/login', { state: { message: 'Account created. Please sign in.' } })

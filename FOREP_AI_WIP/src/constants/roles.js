@@ -19,7 +19,7 @@ export const roles = {
     searchPlaceholder: 'Search organizations, users, integrations...',
     sidebarSearchPlaceholder: 'Search platform...',
     createActions: ['Create Organization', 'Invite User', 'Configure Integration'],
-    allowedRoutes: [routes.dashboard, routes.settings, routes.organizations, routes.users, routes.teams, routes.employees, routes.tasks, routes.attendance, routes.analytics, routes.aiInsights, routes.integrations, routes.monitoring, routes.notifications],
+    allowedRoutes: [routes.dashboard, routes.settings, routes.organizations, routes.users, routes.teams, routes.employees, routes.tasks, routes.sprints, routes.attendance, routes.leave, routes.events, routes.analytics, routes.aiInsights, routes.integrations, routes.monitoring, routes.notifications],
     menuSections: [
       {
         title: 'PLATFORM INTELLIGENCE',
@@ -30,6 +30,8 @@ export const roles = {
           { label: 'Teams', path: routes.teams, icon: 'users' },
           { label: 'Employees', path: routes.employees, icon: 'users' },
           { label: 'Tasks', path: routes.tasks, icon: 'tasks' },
+          { label: 'Sprints', path: routes.sprints, icon: 'tasks' },
+          { label: 'Event Timeline', path: routes.events, icon: 'events' },
           { label: 'Analytics', path: routes.analytics, icon: 'analytics' },
           { label: 'AI Insights', path: routes.aiInsights, icon: 'ai' },
         ],
@@ -40,7 +42,9 @@ export const roles = {
           { label: 'Integrations', path: routes.integrations, icon: 'integration' },
           { label: 'System Monitoring', path: routes.monitoring, icon: 'monitoring' },
           { label: 'Attendance', path: routes.attendance, icon: 'attendance' },
+          { label: 'Leave Requests', path: routes.leave, icon: 'leave' },
           { label: 'Notifications', path: routes.notifications, icon: 'notifications', notificationBadge: true },
+          { label: 'Settings', path: routes.settings, icon: 'settings' },
         ],
       },
     ],
@@ -63,12 +67,13 @@ export const roles = {
     searchPlaceholder: 'Search tasks, employees, events...',
     sidebarSearchPlaceholder: 'Search team...',
     createActions: ['Create Team', 'Create Task', 'Assign Task'],
-    allowedRoutes: [routes.dashboard, routes.settings, routes.teams, routes.tasks, routes.sprints, routes.employees, routes.analytics, routes.aiInsights, routes.events, routes.attendance, routes.notifications],
+    allowedRoutes: [routes.dashboard, routes.settings, routes.organizations, routes.teams, routes.tasks, routes.sprints, routes.employees, routes.analytics, routes.aiInsights, routes.events, routes.attendance, routes.leave, routes.integrations, routes.reports, routes.notifications],
     menuSections: [
       {
         title: 'OPERATIONAL INTELLIGENCE',
         items: [
           { label: 'Dashboard', path: routes.dashboard, icon: 'dashboard' },
+          { label: 'Organization', path: routes.organizations, icon: 'building' },
           { label: 'Teams', path: routes.teams, icon: 'users' },
           { label: 'Team Tasks', path: routes.tasks, icon: 'tasks' },
           { label: 'Sprints', path: routes.sprints, icon: 'tasks' },
@@ -82,7 +87,11 @@ export const roles = {
         items: [
           { label: 'Event Timeline', path: routes.events, icon: 'events' },
           { label: 'Attendance', path: routes.attendance, icon: 'attendance' },
+          { label: 'Leave Requests', path: routes.leave, icon: 'leave' },
+          { label: 'Integrations', path: routes.integrations, icon: 'integration' },
+          { label: 'Reports', path: routes.reports, icon: 'reports' },
           { label: 'Notifications', path: routes.notifications, icon: 'notifications', notificationBadge: true },
+          { label: 'Settings', path: routes.settings, icon: 'settings' },
         ],
       },
     ],
@@ -105,14 +114,15 @@ export const roles = {
     searchPlaceholder: 'Search employees, leave requests, attendance...',
     sidebarSearchPlaceholder: 'Search people...',
     createActions: ['Add Employee', 'Create Leave Request', 'Add Candidate'],
-    allowedRoutes: [routes.dashboard, routes.settings, routes.users, routes.employees, routes.tasks, routes.attendance, routes.leave, routes.recruitment, routes.analytics, routes.aiInsights, routes.reports, routes.notifications],
+    allowedRoutes: [routes.dashboard, routes.settings, routes.teams, routes.employees, routes.tasks, routes.attendance, routes.leave, routes.recruitment, routes.analytics, routes.aiInsights, routes.reports, routes.notifications],
     menuSections: [
       {
         title: 'WORKFORCE',
         items: [
           { label: 'Dashboard', path: routes.dashboard, icon: 'dashboard' },
-          { label: 'Users', path: routes.users, icon: 'users' },
           { label: 'Employees', path: routes.employees, icon: 'users' },
+          { label: 'Teams', path: routes.teams, icon: 'users' },
+          { label: 'Task Overview', path: routes.tasks, icon: 'tasks' },
           { label: 'Attendance', path: routes.attendance, icon: 'attendance' },
           { label: 'Leave Requests', path: routes.leave, icon: 'leave' },
           { label: 'Recruitment', path: routes.recruitment, icon: 'recruitment' },
@@ -125,6 +135,7 @@ export const roles = {
           { label: 'AI Insights', path: routes.aiInsights, icon: 'ai' },
           { label: 'Reports', path: routes.reports, icon: 'reports' },
           { label: 'Notifications', path: routes.notifications, icon: 'notifications', notificationBadge: true },
+          { label: 'Settings', path: routes.settings, icon: 'settings' },
         ],
       },
     ],
@@ -166,6 +177,7 @@ export const roles = {
         items: [
           { label: 'Notifications', path: routes.notifications, icon: 'notifications', notificationBadge: true },
           { label: 'Profile', path: routes.profile, icon: 'profile' },
+          { label: 'Settings', path: routes.settings, icon: 'settings' },
         ],
       },
     ],

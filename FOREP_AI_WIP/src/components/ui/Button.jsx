@@ -9,7 +9,7 @@ function Button({ children, variant = 'primary', className = '', type = 'button'
   return (
     <button
       type={type}
-      className={`inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold shadow-sm transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-200 disabled:cursor-not-allowed disabled:opacity-75 dark:focus-visible:ring-sky-900 ${variants[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold shadow-sm transition hover:-translate-y-px focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-200 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-75 dark:focus-visible:ring-sky-900 ${variants[variant]} ${className}`}
       {...props}
     >
       {children}

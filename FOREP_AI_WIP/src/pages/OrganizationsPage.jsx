@@ -9,6 +9,7 @@ import Input from '../components/ui/Input.jsx'
 import LoadingState from '../components/ui/LoadingState.jsx'
 import Modal from '../components/ui/Modal.jsx'
 import Table from '../components/ui/Table.jsx'
+import { useRole } from '../context/role.js'
 import { useServiceData } from '../hooks/useServiceData.js'
 import { createOrganization, deleteOrganization, getOrganizations, updateOrganization } from '../services/organizationService.js'
 import { getDate, getId, getName, valueOf } from '../services/responseNormalizer.js'
@@ -45,6 +46,8 @@ function buildOrganizationPayload(form) {
 }
 
 function OrganizationsPage() {
+  const { selectedRole } = useRole()
+  const canManageOrganization = selectedRole === 'admin'
   const { data: organizations, loading, error, apiPending, retry } = useServiceData(getOrganizations, [])
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState(null)
@@ -106,13 +109,13 @@ function OrganizationsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Platform Admin / Organizations"
+        eyebrow={`${selectedRole === 'manager' ? 'Manager' : 'Platform Admin'} / Organizations`}
         title="Organizations"
-        description="Manage tenant workspaces, domains and attendance location policy."
+        description={canManageOrganization ? 'Manage tenant workspaces, domains and attendance location policy.' : 'View organization workspace information allowed for your account role.'}
         action={(
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" onClick={retry}><RefreshCw size={16} />Refresh</Button>
-            <Button onClick={openCreate}><Plus size={16} />Create Organization</Button>
+            {canManageOrganization ? <Button onClick={openCreate}><Plus size={16} />Create Organization</Button> : null}
           </div>
         )}
       />
@@ -165,7 +168,7 @@ function OrganizationsPage() {
       {!loading && !error && !apiPending ? (
         <div className="grid gap-5 xl:grid-cols-[1fr_360px]">
           <Table
-            columns={['Organization', 'Domain', 'Check-in policy', 'Created', 'Actions']}
+            columns={canManageOrganization ? ['Organization', 'Domain', 'Check-in policy', 'Created', 'Actions'] : ['Organization', 'Domain', 'Check-in policy', 'Created']}
             rows={filtered}
             empty={<EmptyState title="No organizations from the backend yet." description="Create an organization or check that your admin account has organization access." />}
             renderRow={(organization, index) => (
@@ -177,12 +180,12 @@ function OrganizationsPage() {
                 <td className="px-4 py-4 text-[var(--muted)]">{valueOf(organization, ['domain'], '-')}</td>
                 <td className="px-4 py-4 text-[var(--muted)]">{valueOf(organization, ['allowedRadiusMeters'], '-')} m</td>
                 <td className="px-4 py-4 text-[var(--muted)]">{getDate(organization)}</td>
-                <td className="px-4 py-4">
+                {canManageOrganization ? <td className="px-4 py-4">
                   <div className="flex gap-2">
                     <Button variant="secondary" onClick={(event) => { event.stopPropagation(); openEdit(organization) }}>Edit</Button>
                     <Button variant="ghost" onClick={(event) => { event.stopPropagation(); removeOrganization(organization) }}>Delete</Button>
                   </div>
-                </td>
+                </td> : null}
               </tr>
             )}
           />

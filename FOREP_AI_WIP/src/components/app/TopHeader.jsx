@@ -53,17 +53,20 @@ function TopHeader({ title }) {
   }, [])
 
   return (
-    <header className="sticky top-0 z-20 min-h-[73px] border-b border-[var(--border)] bg-[var(--surface)]/90 px-4 py-4 backdrop-blur-xl sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-20 min-h-[76px] border-b border-[var(--border)] bg-[var(--surface)]/82 px-4 py-4 shadow-sm shadow-slate-200/40 backdrop-blur-xl dark:shadow-none sm:px-6 lg:px-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <p className="text-sm text-[var(--muted)] lg:hidden">FOREP AI Workforce</p>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">{roleConfig.breadcrumb} / {title}</p>
-          <h1 className="mt-1 text-2xl font-bold tracking-normal text-[var(--text)]">{title}</h1>
+        <div className="min-w-0">
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">{roleConfig.breadcrumb} / {title}</p>
+          <div className="mt-1 flex min-w-0 items-center gap-3">
+            <h1 className="truncate text-2xl font-bold tracking-normal text-[var(--text)]">{title}</h1>
+            <span className={`hidden rounded-full border px-2.5 py-1 text-[10px] font-bold tracking-[0.12em] lg:inline-flex ${roleConfig.badgeClass}`}>{roleConfig.headerBadge}</span>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <label className="relative min-w-0 flex-1 sm:w-80 sm:flex-none">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]" size={18} />
-            <input type="search" placeholder={roleConfig.searchPlaceholder} className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] py-2.5 pl-10 pr-4 text-sm text-[var(--text)] outline-none transition placeholder:text-slate-400 focus:border-[var(--accent)] focus:ring-4 focus:ring-sky-100 dark:placeholder:text-slate-500 dark:focus:ring-sky-950" />
+            <input type="search" placeholder={roleConfig.searchPlaceholder} className="w-full rounded-xl border border-[var(--border)] bg-slate-50/80 py-2.5 pl-10 pr-14 text-sm text-[var(--text)] outline-none transition placeholder:text-slate-400 focus:border-[var(--accent)] focus:bg-[var(--surface)] focus:ring-4 focus:ring-sky-100 dark:bg-slate-950/70 dark:placeholder:text-slate-500 dark:focus:bg-slate-950 dark:focus:ring-sky-950" />
+            <span className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded-md border border-[var(--border)] bg-[var(--surface)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--muted)] sm:inline">⌘K</span>
           </label>
           <div className="relative">
             <Button variant="secondary" onClick={() => setCreateOpen((value) => !value)}><Plus size={16} /> Create</Button>
@@ -78,16 +81,15 @@ function TopHeader({ title }) {
               </div>
             ) : null}
           </div>
-          <span className={`hidden rounded-full border px-3 py-2 text-xs font-semibold lg:inline-flex ${roleConfig.badgeClass}`}>{roleConfig.headerBadge}</span>
           <div className="relative">
-            <button type="button" aria-label="Notifications" onClick={() => setOpen((value) => !value)} className="relative grid h-10 w-10 place-items-center rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--text)]">
+            <button type="button" aria-label="Notifications" onClick={() => setOpen((value) => !value)} className="relative grid h-10 w-10 place-items-center rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--muted)] transition hover:bg-slate-50 hover:text-[var(--text)] dark:hover:bg-slate-900">
               <Bell size={18} />
               {unreadCount > 0 ? <span className="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full bg-[#ef4444] px-1 text-[11px] font-bold text-white">{unreadCount}</span> : null}
             </button>
             {open ? <NotificationDropdown notifications={notifications} onRefresh={refresh} /> : null}
           </div>
           <ThemeToggle />
-          <button type="button" aria-label="Settings" onClick={() => navigate(routes.settings)} className="grid h-10 w-10 place-items-center rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--text)]">
+          <button type="button" aria-label="Settings" onClick={() => navigate(routes.settings)} className="grid h-10 w-10 place-items-center rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--muted)] transition hover:bg-slate-50 hover:text-[var(--text)] dark:hover:bg-slate-900">
             <Settings size={18} />
           </button>
         </div>

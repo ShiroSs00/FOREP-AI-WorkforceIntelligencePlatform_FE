@@ -77,8 +77,8 @@ function buildTaskPayload(form) {
 
 function TaskPage() {
   const { selectedRole } = useRole()
-  const canCreateTask = ['admin', 'manager', 'employee'].includes(selectedRole)
-  const canEditTask = ['admin', 'manager', 'employee'].includes(selectedRole)
+  const canCreateTask = ['admin', 'manager'].includes(selectedRole)
+  const canEditTask = ['admin', 'manager'].includes(selectedRole)
   const canDeleteTask = ['admin', 'manager'].includes(selectedRole)
   const canChangeStatus = ['admin', 'manager', 'employee'].includes(selectedRole)
   const loadTasks = () => {
