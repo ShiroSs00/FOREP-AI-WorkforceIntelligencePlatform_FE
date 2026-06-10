@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { animate } from 'animejs'
 import { useRole } from '../context/role.js'
 import { getCurrentUser, register } from '../services/authService.js'
+import { extractBackendMessage } from '../services/responseNormalizer.js'
 
 const initialForm = {
   firstName: '',
@@ -79,7 +80,7 @@ function RegisterPage() {
         syncRoleFromAccount(currentUser ?? response?.user ?? response)
         navigate('/dashboard', { replace: true })
       }
-      else navigate('/login', { state: { message: 'Account created. Please sign in.' } })
+      else navigate('/login', { state: { message: extractBackendMessage(response, 'Account created. Please sign in.') } })
     } catch (err) {
       setError(getRegisterMessage(err))
     } finally {

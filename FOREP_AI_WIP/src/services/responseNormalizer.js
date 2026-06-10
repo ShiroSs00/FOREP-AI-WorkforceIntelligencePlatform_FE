@@ -76,7 +76,10 @@ export function extractBackendMessage(response, fallback = '') {
 
   const errorList = source?.errors ?? source?.data?.errors ?? source?.result?.errors ?? source?.payload?.errors
   if (Array.isArray(errorList) && errorList.length) {
-    const details = errorList.map((item) => (typeof item === 'string' ? item : formatApiValue(item))).filter(Boolean).join(' ')
+    const details = errorList.map((item) => {
+      if (typeof item === 'string') return item
+      return item?.message ?? item?.defaultMessage ?? item?.detail ?? item?.reason ?? formatApiValue(item)
+    }).filter(Boolean).join(' ')
     return [messages[0], details].filter(Boolean).join(': ') || fallback
   }
   if (errorList && typeof errorList === 'object') {

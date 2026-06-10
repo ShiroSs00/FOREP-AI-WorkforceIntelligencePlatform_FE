@@ -9,7 +9,7 @@ import LoadingState from '../components/ui/LoadingState.jsx'
 import ThemeToggle from '../components/app/ThemeToggle.jsx'
 import { useServiceData } from '../hooks/useServiceData.js'
 import { getProfile, updateProfile } from '../services/employeeService.js'
-import { getName, valueOf } from '../services/responseNormalizer.js'
+import { extractBackendMessage, getName, valueOf } from '../services/responseNormalizer.js'
 
 const sections = ['Organization profile', 'API configuration', 'GitHub integration settings', 'Google OAuth settings', 'Notification preferences', 'AI model settings', 'Security settings']
 
@@ -56,8 +56,8 @@ function ProfileSettingsForm({ profile, onSaved }) {
     setActionError('')
     setSavedMessage('')
     try {
-      await updateProfile(buildProfilePayload(form))
-      setSavedMessage('Profile updated from backend API.')
+      const response = await updateProfile(buildProfilePayload(form))
+      setSavedMessage(extractBackendMessage(response, 'Profile updated.'))
       onSaved()
     } catch (err) {
       setActionError(err.message)

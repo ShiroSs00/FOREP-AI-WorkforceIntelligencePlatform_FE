@@ -12,7 +12,7 @@ import Table from '../components/ui/Table.jsx'
 import { useRole } from '../context/role.js'
 import { useServiceData } from '../hooks/useServiceData.js'
 import { createSprint, deleteSprint, getActiveSprints, getSprints, updateSprint } from '../services/sprintService.js'
-import { getId, getName, getStatus, valueOf } from '../services/responseNormalizer.js'
+import { extractBackendMessage, getId, getName, getStatus, valueOf } from '../services/responseNormalizer.js'
 
 const emptySprint = {
   sprintNumber: '',
@@ -63,12 +63,14 @@ function SprintPage() {
   const [editingSprint, setEditingSprint] = useState(null)
   const [form, setForm] = useState(emptySprint)
   const [actionError, setActionError] = useState('')
+  const [actionMessage, setActionMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   const openCreate = () => {
     setEditingSprint(null)
     setForm(emptySprint)
     setActionError('')
+    setActionMessage('')
     setModalOpen(true)
   }
 
@@ -76,6 +78,7 @@ function SprintPage() {
     setEditingSprint(sprint)
     setForm(toSprintForm(sprint))
     setActionError('')
+    setActionMessage('')
     setModalOpen(true)
   }
 
@@ -83,10 +86,11 @@ function SprintPage() {
     event.preventDefault()
     setSubmitting(true)
     setActionError('')
+    setActionMessage('')
     try {
       const payload = buildSprintPayload(form)
-      if (editingSprint) await updateSprint(getId(editingSprint), payload)
-      else await createSprint(payload)
+      const response = editingSprint ? await updateSprint(getId(editingSprint), payload) : await createSprint(payload)
+      setActionMessage(extractBackendMessage(response, editingSprint ? 'Sprint updated.' : 'Sprint created.'))
       setModalOpen(false)
       setForm(emptySprint)
       retry()
@@ -99,8 +103,10 @@ function SprintPage() {
 
   const removeSprint = async (sprint) => {
     setActionError('')
+    setActionMessage('')
     try {
-      await deleteSprint(getId(sprint))
+      const response = await deleteSprint(getId(sprint))
+      setActionMessage(extractBackendMessage(response, 'Sprint deleted.'))
       retry()
     } catch (err) {
       setActionError(err.message)
@@ -115,6 +121,7 @@ function SprintPage() {
       {loading ? <LoadingState /> : null}
       {error ? <ErrorState title="Unable to load sprints" description={error.message} status={error.status} details={error.details} onRetry={retry} /> : null}
       {apiPending ? <ErrorState description="Connect sprint APIs to display sprint records." onRetry={retry} /> : null}
+      {actionMessage ? <p className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">{actionMessage}</p> : null}
       {actionError ? <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{actionError}</p> : null}
       {!loading && !error && !apiPending ? (
         <>

@@ -11,7 +11,7 @@ import { useRole } from '../context/role.js'
 import { useServiceData } from '../hooks/useServiceData.js'
 import { checkIn, checkOut, getAttendanceByOrganization, getManagedTeamAttendance, getMyAttendanceHistory } from '../services/attendanceService.js'
 import Button from '../components/ui/Button.jsx'
-import { getDate, getId, getStatus, valueOf } from '../services/responseNormalizer.js'
+import { extractBackendMessage, getDate, getId, getStatus, valueOf } from '../services/responseNormalizer.js'
 
 const pageCopy = {
   admin: ['Attendance Overview', 'Organization attendance records for the current account context.'],
@@ -35,6 +35,7 @@ function AttendancePage() {
   const [status, setStatus] = useState('')
   const [date, setDate] = useState('')
   const [actionError, setActionError] = useState('')
+  const [actionMessage, setActionMessage] = useState('')
   const [location, setLocation] = useState({ latitude: '', longitude: '' })
   const filtered = useMemo(() => records.filter((record) => {
     const employeeName = valueOf(record, ['employeeName', 'employee'], 'Unknown')
@@ -45,6 +46,7 @@ function AttendancePage() {
 
   const submitAttendanceAction = async (action) => {
     setActionError('')
+    setActionMessage('')
     const latitude = Number(location.latitude)
     const longitude = Number(location.longitude)
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
@@ -52,7 +54,8 @@ function AttendancePage() {
       return
     }
     try {
-      await action({ latitude, longitude })
+      const response = await action({ latitude, longitude })
+      setActionMessage(extractBackendMessage(response, action === checkIn ? 'Check-in completed.' : 'Check-out completed.'))
       retry()
     } catch (err) {
       setActionError(err.message)
@@ -61,6 +64,7 @@ function AttendancePage() {
 
   const useBrowserLocation = () => {
     setActionError('')
+    setActionMessage('')
     if (!navigator.geolocation) {
       setActionError('Browser location is not available. Enter latitude and longitude manually.')
       return
@@ -100,6 +104,7 @@ function AttendancePage() {
           <p className="mt-2 text-xs text-[var(--muted)]">Latitude and longitude are required for check-in and check-out.</p>
         </div>
       ) : null}
+      {actionMessage ? <p className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">{actionMessage}</p> : null}
       {actionError ? <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{actionError}</p> : null}
       {loading ? <LoadingState /> : null}
       {error ? <ErrorState title="Unable to load attendance" description={error.message} status={error.status} details={error.details} onRetry={retry} /> : null}

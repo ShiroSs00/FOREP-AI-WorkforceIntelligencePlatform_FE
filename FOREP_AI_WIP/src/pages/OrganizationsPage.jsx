@@ -12,7 +12,7 @@ import Table from '../components/ui/Table.jsx'
 import { useRole } from '../context/role.js'
 import { useServiceData } from '../hooks/useServiceData.js'
 import { createOrganization, deleteOrganization, getOrganizations, updateOrganization } from '../services/organizationService.js'
-import { getDate, getId, getName, valueOf } from '../services/responseNormalizer.js'
+import { extractBackendMessage, getDate, getId, getName, valueOf } from '../services/responseNormalizer.js'
 
 const emptyOrganization = {
   name: '',
@@ -55,6 +55,7 @@ function OrganizationsPage() {
   const [editingOrganization, setEditingOrganization] = useState(null)
   const [form, setForm] = useState(emptyOrganization)
   const [actionError, setActionError] = useState('')
+  const [actionMessage, setActionMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   const filtered = useMemo(() => organizations.filter((organization) => {
@@ -66,6 +67,7 @@ function OrganizationsPage() {
     setEditingOrganization(null)
     setForm(emptyOrganization)
     setActionError('')
+    setActionMessage('')
     setModalOpen(true)
   }
 
@@ -73,6 +75,7 @@ function OrganizationsPage() {
     setEditingOrganization(organization)
     setForm(toOrganizationForm(organization))
     setActionError('')
+    setActionMessage('')
     setModalOpen(true)
   }
 
@@ -80,11 +83,12 @@ function OrganizationsPage() {
     event.preventDefault()
     setSubmitting(true)
     setActionError('')
+    setActionMessage('')
     try {
       const payload = buildOrganizationPayload(form)
       if (!payload.name) throw new Error('Organization name is required.')
-      if (editingOrganization) await updateOrganization(getId(editingOrganization), payload)
-      else await createOrganization(payload)
+      const response = editingOrganization ? await updateOrganization(getId(editingOrganization), payload) : await createOrganization(payload)
+      setActionMessage(extractBackendMessage(response, editingOrganization ? 'Organization updated.' : 'Organization created.'))
       setForm(emptyOrganization)
       setModalOpen(false)
       retry()
@@ -97,8 +101,10 @@ function OrganizationsPage() {
 
   const removeOrganization = async (organization) => {
     setActionError('')
+    setActionMessage('')
     try {
-      await deleteOrganization(getId(organization))
+      const response = await deleteOrganization(getId(organization))
+      setActionMessage(extractBackendMessage(response, 'Organization deleted.'))
       if (getId(selected) === getId(organization)) setSelected(null)
       retry()
     } catch (err) {
@@ -163,6 +169,7 @@ function OrganizationsPage() {
       {loading ? <LoadingState message="Loading organizations..." /> : null}
       {error ? <ErrorState title="Unable to load organizations" description={error.message} status={error.status} details={error.details} onRetry={retry} /> : null}
       {apiPending ? <ErrorState description="Connect organization APIs to manage organizations." onRetry={retry} /> : null}
+      {actionMessage ? <p className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">{actionMessage}</p> : null}
       {actionError ? <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{actionError}</p> : null}
 
       {!loading && !error && !apiPending ? (

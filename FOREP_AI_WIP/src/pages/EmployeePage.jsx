@@ -14,7 +14,7 @@ import Table from '../components/ui/Table.jsx'
 import { useRole } from '../context/role.js'
 import { useServiceData } from '../hooks/useServiceData.js'
 import { deleteEmployee, getEmployees, getEmployeesByOrganization, getEmployeesByTeam, getProfile, updateEmployee } from '../services/employeeService.js'
-import { getId, getName, valueOf } from '../services/responseNormalizer.js'
+import { extractBackendMessage, getId, getName, valueOf } from '../services/responseNormalizer.js'
 
 const pageCopy = {
   admin: ['Users / Employees Directory', 'Manage account-linked employee profiles.'],
@@ -87,6 +87,7 @@ function EmployeePage() {
   const [editingEmployee, setEditingEmployee] = useState(null)
   const [form, setForm] = useState(emptyForm)
   const [actionError, setActionError] = useState('')
+  const [actionMessage, setActionMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   const filtered = useMemo(() => employees.filter((employee) => {
@@ -105,6 +106,7 @@ function EmployeePage() {
     setEditingEmployee(employee)
     setForm(toEmployeeForm(employee))
     setActionError('')
+    setActionMessage('')
   }
 
   const submitEmployee = async (event) => {
@@ -112,8 +114,10 @@ function EmployeePage() {
     if (!editingEmployee) return
     setSubmitting(true)
     setActionError('')
+    setActionMessage('')
     try {
-      await updateEmployee(getId(editingEmployee), buildEmployeePayload(form))
+      const response = await updateEmployee(getId(editingEmployee), buildEmployeePayload(form))
+      setActionMessage(extractBackendMessage(response, 'Employee updated.'))
       setEditingEmployee(null)
       retry()
     } catch (err) {
@@ -125,8 +129,10 @@ function EmployeePage() {
 
   const removeEmployee = async (employee) => {
     setActionError('')
+    setActionMessage('')
     try {
-      await deleteEmployee(getId(employee))
+      const response = await deleteEmployee(getId(employee))
+      setActionMessage(extractBackendMessage(response, 'Employee deleted.'))
       if (getId(selected) === getId(employee)) setSelected(null)
       retry()
     } catch (err) {
@@ -193,6 +199,7 @@ function EmployeePage() {
       {loading ? <LoadingState message="Loading employees..." /> : null}
       {error ? <ErrorState title="Unable to load employees" description={error.message} status={error.status} details={error.details} onRetry={retry} /> : null}
       {apiPending ? <ErrorState description="Connect employee APIs to display employee records." onRetry={retry} /> : null}
+      {actionMessage ? <p className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">{actionMessage}</p> : null}
       {actionError ? <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{actionError}</p> : null}
 
       {!loading && !error && !apiPending ? (

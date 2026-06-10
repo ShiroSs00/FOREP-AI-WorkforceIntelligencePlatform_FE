@@ -15,7 +15,7 @@ import { useRole } from '../context/role.js'
 import { useServiceData } from '../hooks/useServiceData.js'
 import { createTask, deleteTask, getManagedTeamTasks, getMyTasks, getTasks, updateTask, updateTaskStatus } from '../services/taskService.js'
 import { createTaskComment, deleteTaskComment, getTaskComments } from '../services/taskCommentService.js'
-import { getDate, getId, getName, getStatus, valueOf } from '../services/responseNormalizer.js'
+import { extractBackendMessage, getDate, getId, getName, getStatus, valueOf } from '../services/responseNormalizer.js'
 
 const statusOptions = ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE', 'OVERDUE']
 const priorityOptions = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
@@ -99,6 +99,7 @@ function TaskPage() {
   const [commentForm, setCommentForm] = useState({ content: '', authorId: '' })
   const [form, setForm] = useState(emptyTask)
   const [actionError, setActionError] = useState('')
+  const [actionMessage, setActionMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   const filteredTasks = useMemo(
@@ -116,10 +117,11 @@ function TaskPage() {
     event.preventDefault()
     setSubmitting(true)
     setActionError('')
+    setActionMessage('')
     try {
       const payload = buildTaskPayload(form)
-      if (editingTask) await updateTask(getId(editingTask), payload)
-      else await createTask(payload)
+      const response = editingTask ? await updateTask(getId(editingTask), payload) : await createTask(payload)
+      setActionMessage(extractBackendMessage(response, editingTask ? 'Task updated.' : 'Task created.'))
       setForm(emptyTask)
       setEditingTask(null)
       setModalOpen(false)
@@ -135,6 +137,7 @@ function TaskPage() {
     setEditingTask(null)
     setForm(emptyTask)
     setActionError('')
+    setActionMessage('')
     setModalOpen(true)
   }
 
@@ -142,12 +145,14 @@ function TaskPage() {
     setEditingTask(task)
     setForm(toTaskForm(task))
     setActionError('')
+    setActionMessage('')
     setModalOpen(true)
   }
 
   const openComments = async (task) => {
     setCommentsTask(task)
     setActionError('')
+    setActionMessage('')
     try {
       setComments(await getTaskComments(getId(task)))
     } catch (err) {
@@ -160,11 +165,13 @@ function TaskPage() {
     event.preventDefault()
     if (!commentsTask) return
     setActionError('')
+    setActionMessage('')
     try {
-      await createTaskComment(getId(commentsTask), {
+      const response = await createTaskComment(getId(commentsTask), {
         content: commentForm.content,
         authorId: commentForm.authorId,
       })
+      setActionMessage(extractBackendMessage(response, 'Comment added.'))
       setCommentForm({ content: '', authorId: '' })
       setComments(await getTaskComments(getId(commentsTask)))
     } catch (err) {
@@ -175,8 +182,10 @@ function TaskPage() {
   const removeComment = async (comment) => {
     if (!commentsTask) return
     setActionError('')
+    setActionMessage('')
     try {
-      await deleteTaskComment(getId(commentsTask), getId(comment))
+      const response = await deleteTaskComment(getId(commentsTask), getId(comment))
+      setActionMessage(extractBackendMessage(response, 'Comment deleted.'))
       setComments(await getTaskComments(getId(commentsTask)))
     } catch (err) {
       setActionError(err.message)
@@ -185,8 +194,10 @@ function TaskPage() {
 
   const changeStatus = async (task, nextStatus) => {
     setActionError('')
+    setActionMessage('')
     try {
-      await updateTaskStatus(getId(task), nextStatus)
+      const response = await updateTaskStatus(getId(task), nextStatus)
+      setActionMessage(extractBackendMessage(response, 'Task status updated.'))
       retry()
     } catch (err) {
       setActionError(err.message)
@@ -195,8 +206,10 @@ function TaskPage() {
 
   const removeTask = async (task) => {
     setActionError('')
+    setActionMessage('')
     try {
-      await deleteTask(getId(task))
+      const response = await deleteTask(getId(task))
+      setActionMessage(extractBackendMessage(response, 'Task deleted.'))
       retry()
     } catch (err) {
       setActionError(err.message)
@@ -209,6 +222,7 @@ function TaskPage() {
       {loading ? <LoadingState /> : null}
       {error ? <ErrorState title="Unable to load tasks" description={error.message} onRetry={retry} /> : null}
       {apiPending ? <ErrorState description="Connect task APIs to display operational tasks." onRetry={retry} /> : null}
+      {actionMessage ? <p className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">{actionMessage}</p> : null}
       {actionError ? <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{actionError}</p> : null}
       {!loading && !error && !apiPending ? (
         <>

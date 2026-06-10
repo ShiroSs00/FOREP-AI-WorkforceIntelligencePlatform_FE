@@ -12,7 +12,7 @@ import Table from '../components/ui/Table.jsx'
 import { useRole } from '../context/role.js'
 import { useServiceData } from '../hooks/useServiceData.js'
 import { approveLeaveRequest, createLeaveRequest, getLeaveRequests, getManagedTeamLeaves, getMyLeaveHistory, rejectLeaveRequest } from '../services/leaveService.js'
-import { getId, getStatus, valueOf } from '../services/responseNormalizer.js'
+import { extractBackendMessage, getId, getStatus, valueOf } from '../services/responseNormalizer.js'
 
 const pageCopy = {
   admin: ['Leave Policy / Overview', 'Review leave requests across the platform scope.'],
@@ -35,6 +35,7 @@ function LeavePage() {
   const [status, setStatus] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [actionError, setActionError] = useState('')
+  const [actionMessage, setActionMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [form, setForm] = useState({ startDate: '', endDate: '', reason: '' })
   const filtered = useMemo(() => requests.filter((request) => {
@@ -45,9 +46,10 @@ function LeavePage() {
 
   const updateStatus = async (request, nextStatus) => {
     setActionError('')
+    setActionMessage('')
     try {
-      if (nextStatus === 'APPROVED') await approveLeaveRequest(getId(request))
-      else await rejectLeaveRequest(getId(request))
+      const response = nextStatus === 'APPROVED' ? await approveLeaveRequest(getId(request)) : await rejectLeaveRequest(getId(request))
+      setActionMessage(extractBackendMessage(response, nextStatus === 'APPROVED' ? 'Leave request approved.' : 'Leave request rejected.'))
       retry()
     } catch (err) {
       setActionError(err.message)
@@ -58,12 +60,14 @@ function LeavePage() {
     event.preventDefault()
     setSubmitting(true)
     setActionError('')
+    setActionMessage('')
     try {
-      await createLeaveRequest({
+      const response = await createLeaveRequest({
         reason: form.reason,
         startDate: form.startDate,
         endDate: form.endDate,
       })
+      setActionMessage(extractBackendMessage(response, 'Leave request submitted.'))
       setForm({ startDate: '', endDate: '', reason: '' })
       setModalOpen(false)
       retry()
@@ -80,6 +84,7 @@ function LeavePage() {
       {loading ? <LoadingState /> : null}
       {error ? <ErrorState title="Unable to load leave requests" description={error.message} status={error.status} details={error.details} onRetry={retry} /> : null}
       {apiPending ? <ErrorState description="Connect leave APIs to display leave workflows." onRetry={retry} /> : null}
+      {actionMessage ? <p className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">{actionMessage}</p> : null}
       {actionError ? <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{actionError}</p> : null}
       {!loading && !error && !apiPending ? (
         <>

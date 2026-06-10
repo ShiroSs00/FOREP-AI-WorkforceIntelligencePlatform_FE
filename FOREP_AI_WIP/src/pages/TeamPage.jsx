@@ -13,7 +13,7 @@ import Table from '../components/ui/Table.jsx'
 import { useRole } from '../context/role.js'
 import { useServiceData } from '../hooks/useServiceData.js'
 import { assignEmployee, createTeam, deleteTeam, getMyManagedTeams, getTeamMembers, getTeams, getTeamsByOrganization, getTeamsManagedBy, updateTeam } from '../services/teamService.js'
-import { getId, getName, valueOf } from '../services/responseNormalizer.js'
+import { extractBackendMessage, getId, getName, valueOf } from '../services/responseNormalizer.js'
 
 const emptyTeam = { name: '', description: '', organizationId: '', managerId: '' }
 
@@ -69,6 +69,7 @@ function TeamPage() {
   const [form, setForm] = useState(emptyTeam)
   const [employeeId, setEmployeeId] = useState('')
   const [actionError, setActionError] = useState('')
+  const [actionMessage, setActionMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   const filtered = useMemo(() => teams.filter((team) => {
@@ -98,6 +99,7 @@ function TeamPage() {
     setEditingTeam(null)
     setForm(emptyTeam)
     setActionError('')
+    setActionMessage('')
     setModalOpen(true)
   }
 
@@ -105,6 +107,7 @@ function TeamPage() {
     setEditingTeam(team)
     setForm(toTeamForm(team))
     setActionError('')
+    setActionMessage('')
     setModalOpen(true)
   }
 
@@ -112,11 +115,12 @@ function TeamPage() {
     event.preventDefault()
     setSubmitting(true)
     setActionError('')
+    setActionMessage('')
     try {
       const payload = buildTeamPayload(form)
       if (!payload.name) throw new Error('Team name is required.')
-      if (editingTeam) await updateTeam(getId(editingTeam), payload)
-      else await createTeam(payload)
+      const response = editingTeam ? await updateTeam(getId(editingTeam), payload) : await createTeam(payload)
+      setActionMessage(extractBackendMessage(response, editingTeam ? 'Team updated.' : 'Team created.'))
       setModalOpen(false)
       setForm(emptyTeam)
       retry()
@@ -129,8 +133,10 @@ function TeamPage() {
 
   const removeTeam = async (team) => {
     setActionError('')
+    setActionMessage('')
     try {
-      await deleteTeam(getId(team))
+      const response = await deleteTeam(getId(team))
+      setActionMessage(extractBackendMessage(response, 'Team deleted.'))
       if (getId(selected) === getId(team)) setSelected(null)
       retry()
     } catch (err) {
@@ -141,9 +147,11 @@ function TeamPage() {
   const submitAssignEmployee = async () => {
     if (!selected || !employeeId) return
     setActionError('')
+    setActionMessage('')
     setSubmitting(true)
     try {
-      await assignEmployee(getId(selected), { employeeId })
+      const response = await assignEmployee(getId(selected), { employeeId })
+      setActionMessage(extractBackendMessage(response, 'Employee assigned to team.'))
       setEmployeeId('')
       setSelected({ ...selected })
       retry()
@@ -218,6 +226,7 @@ function TeamPage() {
       {loading ? <LoadingState message="Loading teams..." /> : null}
       {error ? <ErrorState title="Unable to load teams" description={error.message} status={error.status} onRetry={retry} /> : null}
       {apiPending ? <ErrorState description="Connect team APIs to display team records." onRetry={retry} /> : null}
+      {actionMessage ? <p className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">{actionMessage}</p> : null}
       {actionError ? <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{actionError}</p> : null}
 
       {!loading && !error && !apiPending ? (
