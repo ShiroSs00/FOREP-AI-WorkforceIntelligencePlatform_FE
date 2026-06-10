@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { animate } from 'animejs'
 import { useRole } from '../context/role.js'
-import { getCurrentUser, isAuthenticated, login } from '../services/authService.js'
+import { getCurrentUser, getOAuth2LoginLinks, isAuthenticated, login } from '../services/authService.js'
 
 function getLoginMessage(error) {
   if (error?.status === 0) return 'Backend API is unavailable or waking up. Please retry in a moment.'
@@ -16,6 +16,7 @@ function LoginPage() {
   const cardRef = useRef(null)
   const [credentials, setCredentials] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
+  const [oauthLinks, setOauthLinks] = useState({})
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
@@ -28,6 +29,20 @@ function LoginPage() {
       ease: 'outCubic',
     })
     return () => animation.pause()
+  }, [])
+
+  useEffect(() => {
+    let active = true
+    getOAuth2LoginLinks()
+      .then((links) => {
+        if (active) setOauthLinks(links ?? {})
+      })
+      .catch(() => {
+        if (active) setOauthLinks({})
+      })
+    return () => {
+      active = false
+    }
   }, [])
 
   const handleSubmit = async (event) => {
@@ -62,6 +77,12 @@ function LoginPage() {
         <h1 className="text-3xl font-bold tracking-normal text-[var(--text)]">Welcome back</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">Sign in to continue to your workforce intelligence workspace.</p>
         {location.state?.message ? <p className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">{location.state.message}</p> : null}
+        {oauthLinks.google || oauthLinks.github ? (
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            {oauthLinks.google ? <a href={oauthLinks.google} className="rounded-lg border border-[var(--border)] px-4 py-3 text-center text-sm font-semibold text-[var(--text)] transition hover:border-[var(--accent)]">Continue with Google</a> : null}
+            {oauthLinks.github ? <a href={oauthLinks.github} className="rounded-lg border border-[var(--border)] px-4 py-3 text-center text-sm font-semibold text-[var(--text)] transition hover:border-[var(--accent)]">Continue with GitHub</a> : null}
+          </div>
+        ) : null}
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
           <label className="block">
             <span className="text-sm font-medium text-[var(--text)]">Email</span>

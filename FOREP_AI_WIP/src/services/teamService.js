@@ -35,8 +35,9 @@ export async function deleteTeam(id) {
 
 export async function assignEmployee(teamId, payload) {
   // PUT /api/v1/teams/{id}/assign-employee?employeeId={employeeId}
-  if (useMocks) return { teamId, ...payload }
-  return unwrapData(await apiClient.put(withQuery(`${base}/${teamId}/assign-employee`, { employeeId: payload?.employeeId })))
+  const employeeId = typeof payload === 'string' ? payload : payload?.employeeId
+  if (useMocks) return { teamId, employeeId }
+  return unwrapData(await apiClient.put(withQuery(`${base}/${teamId}/assign-employee`, { employeeId })))
 }
 
 export async function getTeamMembers(teamId) {

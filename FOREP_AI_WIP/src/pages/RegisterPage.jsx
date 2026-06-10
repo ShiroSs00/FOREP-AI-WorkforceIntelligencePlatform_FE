@@ -129,10 +129,10 @@ function RegisterPage() {
                 <option value="">Select role</option>
                 <option value="ADMIN">Admin</option>
                 <option value="MANAGER">Manager</option>
-                <option value="HR" disabled>People Ops (not enabled yet)</option>
+                <option value="HR">People Ops</option>
                 <option value="EMPLOYEE">Employee</option>
               </select>
-              <span className="mt-2 block text-xs text-[var(--muted)]">People Ops access is provisioned by an administrator when backend HR role support is enabled.</span>
+              <span className="mt-2 block text-xs text-[var(--muted)]">Your selected role determines which FOREP workspace opens after sign in.</span>
             </label>
           </div>
 
