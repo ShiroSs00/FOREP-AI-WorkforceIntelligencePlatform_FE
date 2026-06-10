@@ -4,13 +4,16 @@ import './styles/global.css'
 import App from './App.jsx'
 import { ThemeProvider } from './context/ThemeContext.jsx'
 import { RoleProvider } from './context/RoleContext.jsx'
+import { LanguageProvider } from './context/LanguageContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ThemeProvider>
-      <RoleProvider>
-        <App />
-      </RoleProvider>
+      <LanguageProvider>
+        <RoleProvider>
+          <App />
+        </RoleProvider>
+      </LanguageProvider>
     </ThemeProvider>
   </StrictMode>,
 )

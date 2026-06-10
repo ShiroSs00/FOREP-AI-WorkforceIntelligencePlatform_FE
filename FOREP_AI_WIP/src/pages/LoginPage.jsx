@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { animate } from 'animejs'
 import { useRole } from '../context/role.js'
+import { useLanguage } from '../context/language.js'
 import { getCurrentUser, getOAuth2LoginLinks, isAuthenticated, login } from '../services/authService.js'
+import LanguageToggle from '../components/app/LanguageToggle.jsx'
 
 function getLoginMessage(error) {
   if (error?.status === 0) return 'Backend API is unavailable or waking up. Please retry in a moment.'
@@ -13,6 +15,7 @@ function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { syncRoleFromAccount } = useRole()
+  const { t } = useLanguage()
   const cardRef = useRef(null)
   const [credentials, setCredentials] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
@@ -67,25 +70,28 @@ function LoginPage() {
   return (
     <main className="grid min-h-screen place-items-center bg-[var(--bg)] px-4 py-12 text-[var(--text)]">
       <div ref={cardRef} className="w-full max-w-md rounded-lg border border-[var(--border)] bg-[var(--surface)] p-8 opacity-0 shadow-xl shadow-slate-200/70 dark:shadow-slate-950/40">
-        <Link to="/" className="mb-8 flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-lg bg-[#0ea5e9] text-sm font-bold text-white">F</span>
-          <div>
-            <p className="font-bold text-[var(--text)]">FOREP</p>
-            <p className="text-sm text-[var(--muted)]">AI Workforce Intelligence Platform</p>
-          </div>
-        </Link>
-        <h1 className="text-3xl font-bold tracking-normal text-[var(--text)]">Welcome back</h1>
-        <p className="mt-2 text-sm text-[var(--muted)]">Sign in to continue to your workforce intelligence workspace.</p>
+        <div className="mb-8 flex items-center justify-between gap-4">
+          <Link to="/" className="flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-lg bg-[#0ea5e9] text-sm font-bold text-white">F</span>
+            <div>
+              <p className="font-bold text-[var(--text)]">FOREP</p>
+              <p className="text-sm text-[var(--muted)]">{t('auth.platform', 'AI Workforce Intelligence Platform')}</p>
+            </div>
+          </Link>
+          <LanguageToggle />
+        </div>
+        <h1 className="text-3xl font-bold tracking-normal text-[var(--text)]">{t('auth.welcomeBack', 'Welcome back')}</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">{t('auth.loginDescription', 'Sign in to continue to your workforce intelligence workspace.')}</p>
         {location.state?.message ? <p className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">{location.state.message}</p> : null}
         {oauthLinks.google || oauthLinks.github ? (
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            {oauthLinks.google ? <a href={oauthLinks.google} className="rounded-lg border border-[var(--border)] px-4 py-3 text-center text-sm font-semibold text-[var(--text)] transition hover:border-[var(--accent)]">Continue with Google</a> : null}
-            {oauthLinks.github ? <a href={oauthLinks.github} className="rounded-lg border border-[var(--border)] px-4 py-3 text-center text-sm font-semibold text-[var(--text)] transition hover:border-[var(--accent)]">Continue with GitHub</a> : null}
+            {oauthLinks.google ? <a href={oauthLinks.google} className="rounded-lg border border-[var(--border)] px-4 py-3 text-center text-sm font-semibold text-[var(--text)] transition hover:border-[var(--accent)]">Google</a> : null}
+            {oauthLinks.github ? <a href={oauthLinks.github} className="rounded-lg border border-[var(--border)] px-4 py-3 text-center text-sm font-semibold text-[var(--text)] transition hover:border-[var(--accent)]">GitHub</a> : null}
           </div>
         ) : null}
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
           <label className="block">
-            <span className="text-sm font-medium text-[var(--text)]">Email</span>
+            <span className="text-sm font-medium text-[var(--text)]">{t('auth.email', 'Email')}</span>
             <input
               type="email"
               required
@@ -97,8 +103,8 @@ function LoginPage() {
           </label>
           <label className="block">
             <span className="flex items-center justify-between text-sm font-medium text-[var(--text)]">
-              Password
-              <button type="button" onClick={() => setError('Password recovery will be available soon.')} className="text-xs font-semibold text-[#0ea5e9] hover:text-sky-600">Forgot password?</button>
+              {t('auth.password', 'Password')}
+              <button type="button" onClick={() => setError(t('auth.passwordRecoverySoon', 'Password recovery will be available soon.'))} className="text-xs font-semibold text-[#0ea5e9] hover:text-sky-600">{t('auth.forgotPassword', 'Forgot password?')}</button>
             </span>
             <input
               type="password"
@@ -111,11 +117,11 @@ function LoginPage() {
           </label>
           {error ? <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{error}</p> : null}
           <button type="submit" disabled={submitting} className="w-full rounded-lg bg-[#0ea5e9] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-60">
-            {submitting ? 'Signing in...' : 'Sign in'}
+            {submitting ? t('auth.signingIn', 'Signing in...') : t('auth.signIn', 'Sign in')}
           </button>
         </form>
         <p className="mt-6 text-center text-sm text-[var(--muted)]">
-          Don't have an account? <Link to="/register" className="font-semibold text-[#0ea5e9] hover:text-sky-600">Create account</Link>
+          {t('auth.noAccount', "Don't have an account?")} <Link to="/register" className="font-semibold text-[#0ea5e9] hover:text-sky-600">{t('auth.createAccount', 'Create account')}</Link>
         </p>
       </div>
     </main>

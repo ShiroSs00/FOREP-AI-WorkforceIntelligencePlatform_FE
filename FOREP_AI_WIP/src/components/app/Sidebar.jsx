@@ -20,6 +20,7 @@ import {
 import { NavLink } from 'react-router-dom'
 import { getUnreadCount } from '../../services/notificationService.js'
 import { useRole } from '../../context/role.js'
+import { useLanguage } from '../../context/language.js'
 import RoleSwitcher from './RoleSwitcher.jsx'
 import SidebarSearch from './SidebarSearch.jsx'
 import SidebarUserCard from './SidebarUserCard.jsx'
@@ -45,6 +46,7 @@ const iconMap = {
 
 function Sidebar() {
   const { roleConfig, menuGroups } = useRole()
+  const { t } = useLanguage()
   const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
@@ -87,7 +89,7 @@ function Sidebar() {
                       <>
                         <span className={`absolute right-0 top-2 bottom-2 w-1 rounded-full transition-colors ${isActive ? 'bg-[#0ea5e9] dark:bg-[#38bdf8]' : 'bg-transparent'}`} />
                         <Icon size={18} />
-                        <span className="min-w-0 flex-1 truncate">{label}</span>
+                        <span className="min-w-0 flex-1 truncate">{t(`nav.${label}`, label)}</span>
                         {notificationBadge && unreadCount > 0 ? <span className="grid min-h-5 min-w-5 place-items-center rounded-full bg-[#ef4444] px-1.5 text-xs font-bold leading-none text-white">{unreadCount}</span> : null}
                       </>
                     )}

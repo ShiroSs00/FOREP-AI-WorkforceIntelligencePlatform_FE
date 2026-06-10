@@ -7,6 +7,8 @@ import ErrorState from '../components/ui/ErrorState.jsx'
 import Input from '../components/ui/Input.jsx'
 import LoadingState from '../components/ui/LoadingState.jsx'
 import ThemeToggle from '../components/app/ThemeToggle.jsx'
+import LanguageToggle from '../components/app/LanguageToggle.jsx'
+import { useLanguage } from '../context/language.js'
 import { useServiceData } from '../hooks/useServiceData.js'
 import { getProfile, updateProfile } from '../services/employeeService.js'
 import { extractBackendMessage, getName, valueOf } from '../services/responseNormalizer.js'
@@ -39,6 +41,7 @@ function buildProfilePayload(form) {
 }
 
 function ProfileSettingsForm({ profile, onSaved }) {
+  const { t } = useLanguage()
   const [form, setForm] = useState(() => getProfileForm(profile))
   const [actionError, setActionError] = useState('')
   const [savedMessage, setSavedMessage] = useState('')
@@ -80,27 +83,28 @@ function ProfileSettingsForm({ profile, onSaved }) {
       {savedMessage ? <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">{savedMessage}</p> : null}
       {actionError ? <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{actionError}</p> : null}
       <div className="flex justify-end">
-        <Button type="submit" disabled={submitting}>{submitting ? 'Saving...' : 'Save Profile'}</Button>
+        <Button type="submit" disabled={submitting}>{submitting ? t('settings.saving', 'Saving...') : t('settings.saveProfile', 'Save Profile')}</Button>
       </div>
     </form>
   )
 }
 
 function ProfileSettingsCard() {
+  const { t } = useLanguage()
   const { data: profile, loading, error, apiPending, retry } = useServiceData(getProfile, [])
 
   return (
     <Card className="page-animate opacity-0 lg:col-span-2">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="font-semibold text-[var(--text)]">Profile</h2>
-          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Update your personal employee profile from the backend account API.</p>
+          <h2 className="font-semibold text-[var(--text)]">{t('settings.profile', 'Profile')}</h2>
+          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{t('settings.profileDescription', 'Update your personal employee profile from the backend account API.')}</p>
         </div>
-        <Button variant="secondary" onClick={retry}>Refresh</Button>
+        <Button variant="secondary" onClick={retry}>{t('settings.refresh', 'Refresh')}</Button>
       </div>
 
-      {loading ? <div className="mt-5"><LoadingState title="Loading profile" description="Reading your profile from the backend." /></div> : null}
-      {error ? <div className="mt-5"><ErrorState title="Unable to load profile" description={error.message} status={error.status} details={error.details} onRetry={retry} /></div> : null}
+      {loading ? <div className="mt-5"><LoadingState title={t('settings.loadingProfile', 'Loading profile')} description={t('settings.readingProfile', 'Reading your profile from the backend.')} /></div> : null}
+      {error ? <div className="mt-5"><ErrorState title={t('settings.unableProfile', 'Unable to load profile')} description={error.message} status={error.status} details={error.details} onRetry={retry} /></div> : null}
       {apiPending ? <div className="mt-5"><ErrorState description="Profile API is not available yet." onRetry={retry} /></div> : null}
 
       {!loading && !error && !apiPending ? (
@@ -108,7 +112,7 @@ function ProfileSettingsCard() {
           <ProfileSettingsForm key={`${valueOf(profile, ['employeeId', 'id'], 'profile')}-${valueOf(profile, ['updatedAt'], '')}`} profile={profile} onSaved={retry} />
         ) : (
           <div className="mt-5">
-            <EmptyState title="Profile data is not available." description="Please check authentication or retry after the backend returns the employee profile." />
+            <EmptyState title={t('settings.profileUnavailable', 'Profile data is not available.')} description={t('settings.profileUnavailableDescription', 'Please check authentication or retry after the backend returns the employee profile.')} />
           </div>
         )
       ) : null}
@@ -117,19 +121,27 @@ function ProfileSettingsCard() {
 }
 
 function SettingsPage() {
+  const { t } = useLanguage()
   return (
     <>
-      <PageHeader title="Product Configuration" description="Configuration placeholders prepared for backend administration features." />
+      <PageHeader title={t('settings.title', 'Product Configuration')} description={t('settings.description', 'Configuration placeholders prepared for backend administration features.')} />
       <div className="grid gap-5 lg:grid-cols-2">
         <ProfileSettingsCard />
-        <Card className="page-animate opacity-0 lg:col-span-2">
-          <h2 className="font-semibold text-[var(--text)]">Appearance</h2>
-          <p className="mt-3 text-sm leading-6 text-[var(--muted)]">Choose how FOREP appears on this device.</p>
+        <Card className="page-animate opacity-0">
+          <h2 className="font-semibold text-[var(--text)]">{t('settings.appearance', 'Appearance')}</h2>
+          <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{t('settings.appearanceDescription', 'Choose how FOREP appears on this device.')}</p>
           <div className="mt-5">
             <ThemeToggle mode="select" />
           </div>
         </Card>
-        {sections.map((section) => <Card key={section} className="page-animate opacity-0"><h2 className="font-semibold text-[var(--text)]">{section}</h2><p className="mt-3 text-sm leading-6 text-[var(--muted)]">This configuration area will be connected to backend administration APIs later.</p></Card>)}
+        <Card className="page-animate opacity-0">
+          <h2 className="font-semibold text-[var(--text)]">{t('settings.languageTitle', 'Language')}</h2>
+          <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{t('settings.languageDescription', 'Choose English or Vietnamese for the product interface on this device.')}</p>
+          <div className="mt-5">
+            <LanguageToggle mode="select" />
+          </div>
+        </Card>
+        {sections.map((section) => <Card key={section} className="page-animate opacity-0"><h2 className="font-semibold text-[var(--text)]">{section}</h2><p className="mt-3 text-sm leading-6 text-[var(--muted)]">{t('settings.futureConfig', 'This configuration area will be connected to backend administration APIs later.')}</p></Card>)}
       </div>
     </>
   )

@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { animate } from 'animejs'
 import { useRole } from '../context/role.js'
+import { useLanguage } from '../context/language.js'
 import { getCurrentUser, register } from '../services/authService.js'
 import { extractBackendMessage } from '../services/responseNormalizer.js'
+import LanguageToggle from '../components/app/LanguageToggle.jsx'
 
 const initialForm = {
   firstName: '',
@@ -22,6 +24,7 @@ function getRegisterMessage(error) {
 function RegisterPage() {
   const navigate = useNavigate()
   const { syncRoleFromAccount } = useRole()
+  const { t } = useLanguage()
   const cardRef = useRef(null)
   const [form, setForm] = useState(initialForm)
   const [fieldError, setFieldError] = useState('')
@@ -80,7 +83,7 @@ function RegisterPage() {
         syncRoleFromAccount(currentUser ?? response?.user ?? response)
         navigate('/dashboard', { replace: true })
       }
-      else navigate('/login', { state: { message: extractBackendMessage(response, 'Account created. Please sign in.') } })
+      else navigate('/login', { state: { message: extractBackendMessage(response, t('auth.accountCreated', 'Account created. Please sign in.')) } })
     } catch (err) {
       setError(getRegisterMessage(err))
     } finally {
@@ -91,60 +94,63 @@ function RegisterPage() {
   return (
     <main className="grid min-h-screen place-items-center bg-[var(--bg)] px-4 py-12 text-[var(--text)]">
       <div ref={cardRef} className="w-full max-w-lg rounded-lg border border-[var(--border)] bg-[var(--surface)] p-8 opacity-0 shadow-xl shadow-slate-200/70 dark:shadow-slate-950/40">
-        <Link to="/" className="mb-8 flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-lg bg-[#0ea5e9] text-sm font-bold text-white">F</span>
-          <div>
-            <p className="font-bold text-[var(--text)]">FOREP</p>
-            <p className="text-sm text-[var(--muted)]">AI Workforce Intelligence Platform</p>
-          </div>
-        </Link>
-        <h1 className="text-3xl font-bold tracking-normal text-[var(--text)]">Create your account</h1>
-        <p className="mt-2 text-sm text-[var(--muted)]">Create a FOREP workspace account for your organization.</p>
+        <div className="mb-8 flex items-center justify-between gap-4">
+          <Link to="/" className="flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-lg bg-[#0ea5e9] text-sm font-bold text-white">F</span>
+            <div>
+              <p className="font-bold text-[var(--text)]">FOREP</p>
+              <p className="text-sm text-[var(--muted)]">{t('auth.platform', 'AI Workforce Intelligence Platform')}</p>
+            </div>
+          </Link>
+          <LanguageToggle />
+        </div>
+        <h1 className="text-3xl font-bold tracking-normal text-[var(--text)]">{t('auth.createTitle', 'Create your account')}</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">{t('auth.registerDescription', 'Create a FOREP workspace account for your organization.')}</p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block">
-              <span className="text-sm font-medium text-[var(--text)]">First name</span>
+              <span className="text-sm font-medium text-[var(--text)]">{t('auth.firstName', 'First name')}</span>
               <input required value={form.firstName} onChange={(event) => updateField('firstName', event.target.value)} className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--text)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-sky-100 dark:focus:ring-sky-950" />
             </label>
             <label className="block">
-              <span className="text-sm font-medium text-[var(--text)]">Last name</span>
+              <span className="text-sm font-medium text-[var(--text)]">{t('auth.lastName', 'Last name')}</span>
               <input required value={form.lastName} onChange={(event) => updateField('lastName', event.target.value)} className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--text)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-sky-100 dark:focus:ring-sky-950" />
             </label>
             <label className="block sm:col-span-2">
-              <span className="text-sm font-medium text-[var(--text)]">Email</span>
+              <span className="text-sm font-medium text-[var(--text)]">{t('auth.email', 'Email')}</span>
               <input type="email" required value={form.email} onChange={(event) => updateField('email', event.target.value)} className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--text)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-sky-100 dark:focus:ring-sky-950" />
             </label>
             <label className="block">
-              <span className="text-sm font-medium text-[var(--text)]">Password</span>
+              <span className="text-sm font-medium text-[var(--text)]">{t('auth.password', 'Password')}</span>
               <input type="password" required value={form.password} onChange={(event) => updateField('password', event.target.value)} className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--text)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-sky-100 dark:focus:ring-sky-950" />
             </label>
             <label className="block">
-              <span className="text-sm font-medium text-[var(--text)]">Confirm password</span>
+              <span className="text-sm font-medium text-[var(--text)]">{t('auth.confirmPassword', 'Confirm password')}</span>
               <input type="password" required value={form.confirmPassword} onChange={(event) => updateField('confirmPassword', event.target.value)} className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--text)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-sky-100 dark:focus:ring-sky-950" />
             </label>
             <label className="block sm:col-span-2">
-              <span className="text-sm font-medium text-[var(--text)]">Role</span>
+              <span className="text-sm font-medium text-[var(--text)]">{t('auth.role', 'Role')}</span>
               <select required value={form.role} onChange={(event) => updateField('role', event.target.value)} className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--text)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-sky-100 dark:focus:ring-sky-950">
-                <option value="">Select role</option>
+                <option value="">{t('auth.selectRole', 'Select role')}</option>
                 <option value="ADMIN">Admin</option>
                 <option value="MANAGER">Manager</option>
                 <option value="HR">People Ops</option>
                 <option value="EMPLOYEE">Employee</option>
               </select>
-              <span className="mt-2 block text-xs text-[var(--muted)]">Your selected role determines which FOREP workspace opens after sign in.</span>
+              <span className="mt-2 block text-xs text-[var(--muted)]">{t('auth.roleHelp', 'Your selected role determines which FOREP workspace opens after sign in.')}</span>
             </label>
           </div>
 
           {fieldError ? <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">{fieldError}</p> : null}
           {error ? <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{error}</p> : null}
           <button type="submit" disabled={submitting} className="w-full rounded-lg bg-[#0ea5e9] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-60">
-            {submitting ? 'Creating account...' : 'Create account'}
+            {submitting ? t('auth.creatingAccount', 'Creating account...') : t('auth.createAccount', 'Create account')}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-[var(--muted)]">
-          Already have an account? <Link to="/login" className="font-semibold text-[#0ea5e9] hover:text-sky-600">Sign in</Link>
+          {t('auth.alreadyAccount', 'Already have an account?')} <Link to="/login" className="font-semibold text-[#0ea5e9] hover:text-sky-600">{t('auth.signIn', 'Sign in')}</Link>
         </p>
       </div>
     </main>

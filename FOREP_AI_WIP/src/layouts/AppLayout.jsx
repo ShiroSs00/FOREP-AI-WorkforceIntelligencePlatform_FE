@@ -6,6 +6,7 @@ import TopHeader from '../components/app/TopHeader.jsx'
 import PageTransition from '../components/app/PageTransition.jsx'
 import RoleAccessNotice from '../components/app/RoleAccessNotice.jsx'
 import { useRole } from '../context/role.js'
+import { useLanguage } from '../context/language.js'
 
 const titles = {
   '/dashboard': 'Dashboard',
@@ -34,7 +35,9 @@ function AppLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const { availableRoutes } = useRole()
-  const title = titles[location.pathname] ?? 'Dashboard'
+  const { t } = useLanguage()
+  const rawTitle = titles[location.pathname] ?? 'Dashboard'
+  const title = t(`titles.${rawTitle}`, rawTitle)
   const hasAccess = availableRoutes.includes(location.pathname)
 
   useEffect(() => {

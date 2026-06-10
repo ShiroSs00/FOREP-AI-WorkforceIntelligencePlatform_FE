@@ -4,8 +4,10 @@ import { useNavigate } from 'react-router-dom'
 import NotificationDropdown from './NotificationDropdown.jsx'
 import { getNotifications, getUnreadCount } from '../../services/notificationService.js'
 import ThemeToggle from './ThemeToggle.jsx'
+import LanguageToggle from './LanguageToggle.jsx'
 import Button from '../ui/Button.jsx'
 import { useRole } from '../../context/role.js'
+import { useLanguage } from '../../context/language.js'
 import { routes } from '../../constants/routes.js'
 
 const actionRoutes = {
@@ -35,7 +37,8 @@ function TopHeader({ title }) {
   const [createOpen, setCreateOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
-  const { roleConfig } = useRole()
+  const { roleConfig, selectedRole } = useRole()
+  const { t } = useLanguage()
 
   const refresh = async () => {
     try {
@@ -65,17 +68,17 @@ function TopHeader({ title }) {
         <div className="flex items-center gap-3">
           <label className="relative min-w-0 flex-1 sm:w-80 sm:flex-none">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]" size={18} />
-            <input type="search" placeholder={roleConfig.searchPlaceholder} className="w-full rounded-xl border border-[var(--border)] bg-slate-50/80 py-2.5 pl-10 pr-14 text-sm text-[var(--text)] outline-none transition placeholder:text-slate-400 focus:border-[var(--accent)] focus:bg-[var(--surface)] focus:ring-4 focus:ring-sky-100 dark:bg-slate-950/70 dark:placeholder:text-slate-500 dark:focus:bg-slate-950 dark:focus:ring-sky-950" />
+            <input type="search" placeholder={t(`search.${selectedRole}`, roleConfig.searchPlaceholder)} className="w-full rounded-xl border border-[var(--border)] bg-slate-50/80 py-2.5 pl-10 pr-14 text-sm text-[var(--text)] outline-none transition placeholder:text-slate-400 focus:border-[var(--accent)] focus:bg-[var(--surface)] focus:ring-4 focus:ring-sky-100 dark:bg-slate-950/70 dark:placeholder:text-slate-500 dark:focus:bg-slate-950 dark:focus:ring-sky-950" />
             <span className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded-md border border-[var(--border)] bg-[var(--surface)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--muted)] sm:inline">⌘K</span>
           </label>
           <div className="relative">
-            <Button variant="secondary" onClick={() => setCreateOpen((value) => !value)}><Plus size={16} /> Create</Button>
+            <Button variant="secondary" onClick={() => setCreateOpen((value) => !value)}><Plus size={16} /> {t('common.create', 'Create')}</Button>
             {createOpen ? (
               <div className="absolute right-0 top-12 z-40 w-56 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2 shadow-xl">
                 {roleConfig.createActions.map((action) => (
                   <button key={action} type="button" onClick={() => { setCreateOpen(false); navigate(actionRoutes[action] ?? routes.dashboard) }} className="w-full rounded-lg px-3 py-2 text-left text-sm text-[var(--text)] transition-colors hover:bg-slate-50 dark:hover:bg-slate-900">
                     {action}
-                    <span className="block text-xs text-[var(--muted)]">Open role module</span>
+                    <span className="block text-xs text-[var(--muted)]">{t('common.openRoleModule', 'Open role module')}</span>
                   </button>
                 ))}
               </div>
@@ -88,8 +91,9 @@ function TopHeader({ title }) {
             </button>
             {open ? <NotificationDropdown notifications={notifications} onRefresh={refresh} /> : null}
           </div>
+          <LanguageToggle />
           <ThemeToggle />
-          <button type="button" aria-label="Settings" onClick={() => navigate(routes.settings)} className="grid h-10 w-10 place-items-center rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--muted)] transition hover:bg-slate-50 hover:text-[var(--text)] dark:hover:bg-slate-900">
+          <button type="button" aria-label={t('common.settings', 'Settings')} onClick={() => navigate(routes.settings)} className="grid h-10 w-10 place-items-center rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--muted)] transition hover:bg-slate-50 hover:text-[var(--text)] dark:hover:bg-slate-900">
             <Settings size={18} />
           </button>
         </div>

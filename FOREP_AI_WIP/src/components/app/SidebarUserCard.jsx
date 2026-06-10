@@ -2,11 +2,13 @@ import { LogOut } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { routes } from '../../constants/routes.js'
 import { useRole } from '../../context/role.js'
+import { useLanguage } from '../../context/language.js'
 import { logout } from '../../services/authService.js'
 
 function SidebarUserCard() {
   const navigate = useNavigate()
   const { currentUser } = useRole()
+  const { t } = useLanguage()
 
   const signOut = async () => {
     await logout()
@@ -23,7 +25,7 @@ function SidebarUserCard() {
         </span>
         <button
           type="button"
-          aria-label="Sign out"
+          aria-label={t('common.signOut', 'Sign out')}
           onClick={signOut}
           className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-[var(--muted)] transition-colors hover:bg-slate-100 hover:text-[var(--text)] dark:hover:bg-slate-800"
         >
