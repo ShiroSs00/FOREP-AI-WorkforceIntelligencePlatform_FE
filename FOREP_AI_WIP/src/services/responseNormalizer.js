@@ -58,6 +58,35 @@ export function extractUser(response) {
     ?? null
 }
 
+export function extractBackendMessage(response, fallback = '') {
+  if (!response) return fallback
+  if (typeof response === 'string') return response || fallback
+
+  const source = response.response && typeof response.response === 'object' ? response.response : response
+  const messages = [
+    source?.message,
+    source?.error,
+    source?.data?.message,
+    source?.data?.error,
+    source?.result?.message,
+    source?.result?.error,
+    source?.payload?.message,
+    source?.payload?.error,
+  ].filter(Boolean)
+
+  const errorList = source?.errors ?? source?.data?.errors ?? source?.result?.errors ?? source?.payload?.errors
+  if (Array.isArray(errorList) && errorList.length) {
+    const details = errorList.map((item) => (typeof item === 'string' ? item : formatApiValue(item))).filter(Boolean).join(' ')
+    return [messages[0], details].filter(Boolean).join(': ') || fallback
+  }
+  if (errorList && typeof errorList === 'object') {
+    const details = Object.values(errorList).flat().map((item) => (typeof item === 'string' ? item : formatApiValue(item))).filter(Boolean).join(' ')
+    return [messages[0], details].filter(Boolean).join(': ') || fallback
+  }
+
+  return messages[0] ?? fallback
+}
+
 function firstValue(item, keys, fallback = '-') {
   if (!item || typeof item !== 'object') return fallback
   for (const key of keys) {
@@ -121,12 +150,11 @@ export function getDisplayFields(item, preferredKeys = [], limit = 6) {
 export function getApiErrorMessage(error) {
   if (!error) return 'Backend API is unavailable or waking up. Please retry in a moment.'
   if (error.name === 'AbortError') return 'Backend API is unavailable or waking up. Please retry in a moment.'
+  const response = error.details?.response ?? error.details
+  const backendMessage = extractBackendMessage(response, error.message)
+  if (backendMessage && backendMessage !== 'undefined') return backendMessage
   if (error.status === 401) return 'Session expired. Please log in again.'
   if (error.status === 403) return 'You do not have permission to access this feature.'
-  const response = error.details?.response ?? error.details
-  const backendMessage = response?.errors?.length
-    ? response.errors.join(' ')
-    : response?.message ?? response?.error ?? error.message
   if (error.status === 404) return 'This feature is not available in the backend yet.'
   if (error.status >= 500) {
     if (String(backendMessage).toLowerCase().includes('constraint') || String(backendMessage).toLowerCase().includes('foreign key')) {

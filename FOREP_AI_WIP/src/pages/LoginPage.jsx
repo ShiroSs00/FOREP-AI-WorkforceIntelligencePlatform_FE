@@ -6,7 +6,7 @@ import { getCurrentUser, isAuthenticated, login } from '../services/authService.
 
 function getLoginMessage(error) {
   if (error?.status === 0) return 'Backend API is unavailable or waking up. Please retry in a moment.'
-  return 'Unable to sign in. Please check your email and password.'
+  return error?.message || 'Unable to sign in. Please check your email and password.'
 }
 
 function LoginPage() {

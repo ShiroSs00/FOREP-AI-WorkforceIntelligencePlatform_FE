@@ -1,24 +1,41 @@
 import { Bell, CheckCircle } from 'lucide-react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Badge from '../ui/Badge.jsx'
 import Button from '../ui/Button.jsx'
 import { markAllAsRead, markAsRead } from '../../services/notificationService.js'
 import { routes } from '../../constants/routes.js'
-import { getId, valueOf } from '../../services/responseNormalizer.js'
+import { extractBackendMessage, getId, valueOf } from '../../services/responseNormalizer.js'
 
 function NotificationDropdown({ notifications, onRefresh }) {
   const navigate = useNavigate()
+  const [actionMessage, setActionMessage] = useState('')
+  const [actionError, setActionError] = useState('')
   const unreadCount = notifications.filter((item) => !(item.read ?? item.isRead)).length
 
   const openItem = async (notification) => {
-    await markAsRead(getId(notification))
-    await onRefresh()
-    if (notification.link) navigate(notification.link)
+    setActionError('')
+    setActionMessage('')
+    try {
+      const response = await markAsRead(getId(notification))
+      setActionMessage(extractBackendMessage(response, 'Notification marked as read.'))
+      await onRefresh()
+      if (notification.link) navigate(notification.link)
+    } catch (error) {
+      setActionError(error?.message || 'Unable to update notification.')
+    }
   }
 
   const markAll = async () => {
-    await markAllAsRead()
-    await onRefresh()
+    setActionError('')
+    setActionMessage('')
+    try {
+      const response = await markAllAsRead()
+      setActionMessage(extractBackendMessage(response, 'Notifications marked as read.'))
+      await onRefresh()
+    } catch (error) {
+      setActionError(error?.message || 'Unable to update notifications.')
+    }
   }
 
   return (
@@ -33,6 +50,8 @@ function NotificationDropdown({ notifications, onRefresh }) {
           <Button variant="ghost" className="px-2 py-1 shadow-none" onClick={() => navigate(routes.notifications)}>View all</Button>
         </div>
       </div>
+      {actionMessage ? <p className="mx-4 mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">{actionMessage}</p> : null}
+      {actionError ? <p className="mx-4 mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{actionError}</p> : null}
       <div className="max-h-96 overflow-auto p-2">
         {notifications.length ? notifications.slice(0, 8).map((notification, index) => {
           const read = Boolean(notification.read ?? notification.isRead)
