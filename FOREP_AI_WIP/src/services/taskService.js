@@ -39,10 +39,22 @@ export async function updateTaskStatus(id, status) {
   return apiClient.patch(withQuery(`${base}/${id}/status`, { status }))
 }
 
+export async function assessTask(id) {
+  // POST /api/v1/tasks/{id}/assess
+  if (useMocks) return { id, assessmentSummary: 'Mock assessment skipped.' }
+  return apiClient.post(`${base}/${id}/assess`)
+}
+
 export async function getTasksByTeam(teamId) {
   // GET /api/v1/tasks/team/{teamId}
   if (useMocks) return mockData.tasks.filter((task) => task.teamId === teamId || task.team === teamId)
   return asArray(await apiClient.get(`${base}/team/${teamId}`))
+}
+
+export async function getTasksByProject(projectId) {
+  // GET /api/v1/tasks/project/{projectId}
+  if (useMocks) return mockData.tasks.filter((task) => task.projectId === projectId)
+  return asArray(await apiClient.get(`${base}/project/${projectId}`))
 }
 
 export async function getTasksByStatus(status) {

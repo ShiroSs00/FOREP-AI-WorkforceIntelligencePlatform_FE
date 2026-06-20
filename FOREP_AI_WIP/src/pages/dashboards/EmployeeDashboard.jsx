@@ -10,6 +10,7 @@ import LoadingState from '../../components/ui/LoadingState.jsx'
 import AIAnalystCard from '../../components/app/AIAnalystCard.jsx'
 import PartialErrorNotice from '../../components/app/PartialErrorNotice.jsx'
 import { getMyInsights } from '../../services/aiInsightService.js'
+import { getSuggestionsByEmployee } from '../../services/aiSuggestionService.js'
 import { getMyAttendanceHistory } from '../../services/attendanceService.js'
 import { getEmployeeDashboard } from '../../services/dashboardService.js'
 import { getProfile } from '../../services/employeeService.js'
@@ -29,6 +30,7 @@ async function fetchEmployeeResources() {
     getMyLeaveHistory(),
     getMyAttendanceHistory(),
     getMyInsights(),
+    hasEmployeeId ? getSuggestionsByEmployee(employeeId) : Promise.resolve([]),
   ])
   return [profileResult, ...rest]
 }
@@ -37,10 +39,10 @@ function EmployeeDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [failures, setFailures] = useState([])
-  const [data, setData] = useState({ profile: null, dashboard: {}, tasks: [], leaves: [], attendance: [], insights: [] })
+  const [data, setData] = useState({ profile: null, dashboard: {}, tasks: [], leaves: [], attendance: [], insights: [], suggestions: [] })
 
   const applyResults = useCallback((results) => {
-    const [profile, dashboard, tasks, leaves, attendance, insights] = results
+    const [profile, dashboard, tasks, leaves, attendance, insights, suggestions] = results
     setFailures(results.filter((result) => result.status === 'rejected'))
     setData({
       profile: profile.status === 'fulfilled' ? normalizeObject(profile.value) : null,
@@ -49,6 +51,7 @@ function EmployeeDashboard() {
       leaves: leaves.status === 'fulfilled' ? normalizeArray(leaves.value) : [],
       attendance: attendance.status === 'fulfilled' ? normalizeArray(attendance.value) : [],
       insights: insights.status === 'fulfilled' ? normalizeArray(insights.value) : [],
+      suggestions: suggestions.status === 'fulfilled' ? normalizeArray(suggestions.value) : [],
     })
     if (profile.status === 'rejected') setError(profile.reason)
   }, [])
@@ -118,6 +121,7 @@ function EmployeeDashboard() {
               signals={data.insights.slice(0, 3).map((insight) => valueOf(insight, ['summary', 'fullAnalysis'], 'Personal insight available'))}
               insights={[
                 data.dashboard?.missingEmployeeId ? 'Employee profile is missing a stable employee id.' : 'Personal dashboard data was requested when employee id was available.',
+                `${data.suggestions.length} personal AI suggestions returned by the backend.`,
                 'Only employee-scoped data is used in this workspace.',
               ]}
             />

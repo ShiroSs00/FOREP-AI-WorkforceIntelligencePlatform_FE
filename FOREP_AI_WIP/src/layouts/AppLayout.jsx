@@ -13,6 +13,7 @@ const titles = {
   '/tasks': 'Tasks',
   '/employees': 'Employees',
   '/teams': 'Teams',
+  '/projects': 'Projects',
   '/sprints': 'Sprints',
   '/events': 'Events Timeline',
   '/analytics': 'Analytics',

@@ -19,7 +19,7 @@ export const roles = {
     searchPlaceholder: 'Search organizations, users, integrations...',
     sidebarSearchPlaceholder: 'Search platform...',
     createActions: ['Create Organization', 'Invite User', 'Configure Integration'],
-    allowedRoutes: [routes.dashboard, routes.settings, routes.organizations, routes.users, routes.teams, routes.employees, routes.tasks, routes.sprints, routes.attendance, routes.leave, routes.events, routes.analytics, routes.aiInsights, routes.integrations, routes.monitoring, routes.notifications],
+    allowedRoutes: [routes.dashboard, routes.settings, routes.organizations, routes.users, routes.teams, routes.projects, routes.employees, routes.tasks, routes.sprints, routes.attendance, routes.leave, routes.events, routes.analytics, routes.aiInsights, routes.integrations, routes.monitoring, routes.notifications],
     menuSections: [
       {
         title: 'PLATFORM INTELLIGENCE',
@@ -28,6 +28,7 @@ export const roles = {
           { label: 'Organizations', path: routes.organizations, icon: 'building' },
           { label: 'Users', path: routes.users, icon: 'users' },
           { label: 'Teams', path: routes.teams, icon: 'users' },
+          { label: 'Projects', path: routes.projects, icon: 'projects' },
           { label: 'Employees', path: routes.employees, icon: 'users' },
           { label: 'Tasks', path: routes.tasks, icon: 'tasks' },
           { label: 'Sprints', path: routes.sprints, icon: 'tasks' },
@@ -66,7 +67,7 @@ export const roles = {
     searchPlaceholder: 'Search tasks, employees, events...',
     sidebarSearchPlaceholder: 'Search team...',
     createActions: ['Create Team', 'Create Task', 'Assign Task'],
-    allowedRoutes: [routes.dashboard, routes.settings, routes.organizations, routes.teams, routes.tasks, routes.sprints, routes.employees, routes.analytics, routes.aiInsights, routes.events, routes.attendance, routes.leave, routes.integrations, routes.reports, routes.notifications],
+    allowedRoutes: [routes.dashboard, routes.settings, routes.organizations, routes.teams, routes.projects, routes.tasks, routes.sprints, routes.employees, routes.analytics, routes.aiInsights, routes.events, routes.attendance, routes.leave, routes.integrations, routes.reports, routes.notifications],
     menuSections: [
       {
         title: 'OPERATIONAL INTELLIGENCE',
@@ -74,6 +75,7 @@ export const roles = {
           { label: 'Dashboard', path: routes.dashboard, icon: 'dashboard' },
           { label: 'Organization', path: routes.organizations, icon: 'building' },
           { label: 'Teams', path: routes.teams, icon: 'users' },
+          { label: 'Projects', path: routes.projects, icon: 'projects' },
           { label: 'Team Tasks', path: routes.tasks, icon: 'tasks' },
           { label: 'Sprints', path: routes.sprints, icon: 'tasks' },
           { label: 'Employees', path: routes.employees, icon: 'users' },
@@ -112,7 +114,7 @@ export const roles = {
     searchPlaceholder: 'Search employees, leave requests, attendance...',
     sidebarSearchPlaceholder: 'Search people...',
     createActions: ['Add Employee', 'Create Leave Request', 'Add Candidate'],
-    allowedRoutes: [routes.dashboard, routes.settings, routes.teams, routes.employees, routes.tasks, routes.attendance, routes.leave, routes.recruitment, routes.analytics, routes.aiInsights, routes.reports, routes.notifications],
+    allowedRoutes: [routes.dashboard, routes.settings, routes.teams, routes.projects, routes.employees, routes.tasks, routes.attendance, routes.leave, routes.recruitment, routes.analytics, routes.aiInsights, routes.reports, routes.notifications],
     menuSections: [
       {
         title: 'WORKFORCE',
@@ -120,6 +122,7 @@ export const roles = {
           { label: 'Dashboard', path: routes.dashboard, icon: 'dashboard' },
           { label: 'Employees', path: routes.employees, icon: 'users' },
           { label: 'Teams', path: routes.teams, icon: 'users' },
+          { label: 'Projects', path: routes.projects, icon: 'projects' },
           { label: 'Task Overview', path: routes.tasks, icon: 'tasks' },
           { label: 'Attendance', path: routes.attendance, icon: 'attendance' },
           { label: 'Leave Requests', path: routes.leave, icon: 'leave' },
@@ -155,13 +158,14 @@ export const roles = {
     searchPlaceholder: 'Search my tasks, activity, leave...',
     sidebarSearchPlaceholder: 'Search workspace...',
     createActions: ['Create Personal Task', 'Request Leave', 'Check In'],
-    allowedRoutes: [routes.dashboard, routes.settings, routes.tasks, routes.attendance, routes.leave, routes.analytics, routes.events, routes.aiInsights, routes.notifications, routes.profile],
+    allowedRoutes: [routes.dashboard, routes.settings, routes.projects, routes.tasks, routes.attendance, routes.leave, routes.analytics, routes.events, routes.aiInsights, routes.notifications, routes.profile],
     menuSections: [
       {
         title: 'MY WORKSPACE',
         items: [
           { label: 'Dashboard', path: routes.dashboard, icon: 'dashboard' },
           { label: 'My Tasks', path: routes.tasks, icon: 'tasks' },
+          { label: 'Projects', path: routes.projects, icon: 'projects' },
           { label: 'Attendance', path: routes.attendance, icon: 'attendance' },
           { label: 'Leave Requests', path: routes.leave, icon: 'leave' },
           { label: 'Personal Analytics', path: routes.analytics, icon: 'analytics' },

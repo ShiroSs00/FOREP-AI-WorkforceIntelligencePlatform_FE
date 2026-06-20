@@ -83,10 +83,11 @@ function LoginPage() {
         <h1 className="text-3xl font-bold tracking-normal text-[var(--text)]">{t('auth.welcomeBack', 'Welcome back')}</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">{t('auth.loginDescription', 'Sign in to continue to your workforce intelligence workspace.')}</p>
         {location.state?.message ? <p className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">{location.state.message}</p> : null}
-        {oauthLinks.google || oauthLinks.github ? (
-          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        {oauthLinks.google || oauthLinks.github || oauthLinks.jira ? (
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
             {oauthLinks.google ? <a href={oauthLinks.google} className="rounded-lg border border-[var(--border)] px-4 py-3 text-center text-sm font-semibold text-[var(--text)] transition hover:border-[var(--accent)]">Google</a> : null}
             {oauthLinks.github ? <a href={oauthLinks.github} className="rounded-lg border border-[var(--border)] px-4 py-3 text-center text-sm font-semibold text-[var(--text)] transition hover:border-[var(--accent)]">GitHub</a> : null}
+            {oauthLinks.jira ? <a href={oauthLinks.jira} className="rounded-lg border border-[var(--border)] px-4 py-3 text-center text-sm font-semibold text-[var(--text)] transition hover:border-[var(--accent)]">Jira</a> : null}
           </div>
         ) : null}
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">

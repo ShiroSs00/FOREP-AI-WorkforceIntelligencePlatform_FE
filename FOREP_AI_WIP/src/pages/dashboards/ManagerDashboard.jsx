@@ -10,6 +10,7 @@ import LoadingState from '../../components/ui/LoadingState.jsx'
 import AIAnalystCard from '../../components/app/AIAnalystCard.jsx'
 import PartialErrorNotice from '../../components/app/PartialErrorNotice.jsx'
 import { getManagedTeamInsights } from '../../services/aiInsightService.js'
+import { getManagedTeamSuggestions } from '../../services/aiSuggestionService.js'
 import { getManagedTeamsWorkloadHistory } from '../../services/analyticsService.js'
 import { getManagedTeamAttendance } from '../../services/attendanceService.js'
 import { getNotifications } from '../../services/notificationService.js'
@@ -26,6 +27,7 @@ function fetchManagerResources() {
     getManagedTeamAttendance(),
     getManagedTeamsWorkloadHistory(),
     getManagedTeamInsights(),
+    getManagedTeamSuggestions(),
     getNotifications(),
   ])
 }
@@ -45,11 +47,12 @@ function ManagerDashboard() {
     attendance: [],
     workload: [],
     insights: [],
+    suggestions: [],
     notifications: [],
   })
 
   const applyResults = useCallback((results) => {
-    const [tasks, teams, sprints, attendance, workload, insights, notifications] = results
+    const [tasks, teams, sprints, attendance, workload, insights, suggestions, notifications] = results
     setFailures(results.filter((result) => result.status === 'rejected'))
     setData({
       tasks: tasks.status === 'fulfilled' ? normalizeArray(tasks.value) : [],
@@ -58,6 +61,7 @@ function ManagerDashboard() {
       attendance: attendance.status === 'fulfilled' ? normalizeArray(attendance.value) : [],
       workload: workload.status === 'fulfilled' ? normalizeArray(workload.value) : [],
       insights: insights.status === 'fulfilled' ? normalizeArray(insights.value) : [],
+      suggestions: suggestions.status === 'fulfilled' ? normalizeArray(suggestions.value) : [],
       notifications: notifications.status === 'fulfilled' ? normalizeArray(notifications.value) : [],
     })
     if (results.every((result) => result.status === 'rejected')) setError(results[0].reason)
@@ -130,10 +134,14 @@ function ManagerDashboard() {
             <AIAnalystCard
               role="Manager"
               title="Team AI Analyst"
-              signals={data.insights.slice(0, 3).map((insight) => valueOf(insight, ['summary', 'fullAnalysis'], 'AI insight available'))}
+              signals={[
+                ...data.insights.slice(0, 2).map((insight) => valueOf(insight, ['summary', 'fullAnalysis'], 'AI insight available')),
+                ...data.suggestions.slice(0, 2).map((suggestion) => valueOf(suggestion, ['description'], 'AI suggestion available')),
+              ]}
               insights={[
                 `${data.workload.length} workload history records available.`,
                 `${data.attendance.length} attendance records available for managed teams.`,
+                `${data.suggestions.length} AI suggestions returned for managed teams.`,
                 `${data.notifications.length} notifications available.`,
               ]}
             />

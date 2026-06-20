@@ -12,7 +12,7 @@ import Select from '../components/ui/Select.jsx'
 import Table from '../components/ui/Table.jsx'
 import { useRole } from '../context/role.js'
 import { useServiceData } from '../hooks/useServiceData.js'
-import { assignEmployee, createTeam, deleteTeam, getMyManagedTeams, getTeamMembers, getTeams, getTeamsByOrganization, getTeamsManagedBy, updateTeam } from '../services/teamService.js'
+import { approveMembership, assignEmployee, createTeam, deleteTeam, endActiveMembership, getMyManagedTeams, getTeamMembers, getTeams, getTeamsByOrganization, getTeamsManagedBy, requestTeamMembership, updateTeam } from '../services/teamService.js'
 import { extractBackendMessage, getId, getName, valueOf } from '../services/responseNormalizer.js'
 
 const emptyTeam = { name: '', description: '', organizationId: '', managerId: '' }
@@ -68,6 +68,8 @@ function TeamPage() {
   const [editingTeam, setEditingTeam] = useState(null)
   const [form, setForm] = useState(emptyTeam)
   const [employeeId, setEmployeeId] = useState('')
+  const [membershipId, setMembershipId] = useState('')
+  const [endEmployeeId, setEndEmployeeId] = useState('')
   const [actionError, setActionError] = useState('')
   const [actionMessage, setActionMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -159,6 +161,46 @@ function TeamPage() {
       setActionError(err.message)
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const requestMembership = async () => {
+    if (!selected) return
+    setActionError('')
+    setActionMessage('')
+    try {
+      const response = await requestTeamMembership(getId(selected))
+      setActionMessage(extractBackendMessage(response, 'Team membership request submitted.'))
+    } catch (err) {
+      setActionError(err.message)
+    }
+  }
+
+  const approveTeamMembership = async () => {
+    if (!membershipId) return
+    setActionError('')
+    setActionMessage('')
+    try {
+      const response = await approveMembership(membershipId)
+      setActionMessage(extractBackendMessage(response, 'Membership approved.'))
+      setMembershipId('')
+      retry()
+    } catch (err) {
+      setActionError(err.message)
+    }
+  }
+
+  const endMembership = async () => {
+    if (!endEmployeeId) return
+    setActionError('')
+    setActionMessage('')
+    try {
+      const response = await endActiveMembership(endEmployeeId)
+      setActionMessage(extractBackendMessage(response, 'Active membership ended.'))
+      setEndEmployeeId('')
+      retry()
+    } catch (err) {
+      setActionError(err.message)
     }
   }
 
@@ -276,6 +318,22 @@ function TeamPage() {
                       <Button variant="secondary" onClick={submitAssignEmployee} disabled={submitting || !employeeId}>Assign</Button>
                     </div>
                   ) : null}
+                  <div className="mt-4 grid gap-3 rounded-lg border border-[var(--border)] p-3">
+                    <p className="font-semibold text-[var(--text)]">Membership actions</p>
+                    {selectedRole === 'employee' ? <Button variant="secondary" onClick={requestMembership}>Request to join this team</Button> : null}
+                    {['admin', 'manager'].includes(selectedRole) ? (
+                      <>
+                        <div className="flex gap-2">
+                          <Input placeholder="Membership ID to approve" value={membershipId} onChange={(event) => setMembershipId(event.target.value)} />
+                          <Button variant="secondary" onClick={approveTeamMembership} disabled={!membershipId}>Approve</Button>
+                        </div>
+                        <div className="flex gap-2">
+                          <Input placeholder="Employee ID to end active membership" value={endEmployeeId} onChange={(event) => setEndEmployeeId(event.target.value)} />
+                          <Button variant="ghost" onClick={endMembership} disabled={!endEmployeeId}>End active</Button>
+                        </div>
+                      </>
+                    ) : null}
+                  </div>
                 </div>
               </div>
             ) : <p className="mt-4 text-sm text-[var(--muted)]">Select a team to preview members and assign employees.</p>}

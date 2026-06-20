@@ -103,12 +103,12 @@ function firstValue(item, keys, fallback = '-') {
 }
 
 export function getId(item) {
-  return firstValue(item, ['id', 'employeeId', 'taskId', 'teamId', 'organizationId', 'notificationId', 'leaveId', 'attendanceId', 'insightId', 'suggestionId', 'sprintId'], 'missing-id')
+  return firstValue(item, ['id', 'employeeId', 'taskId', 'teamId', 'organizationId', 'projectId', 'notificationId', 'leaveId', 'attendanceId', 'insightId', 'suggestionId', 'sprintId'], 'missing-id')
 }
 
 export function getName(item) {
   if (item?.firstName || item?.lastName) return `${item.firstName ?? ''} ${item.lastName ?? ''}`.trim()
-  return firstValue(item, ['name', 'fullName', 'title', 'username', 'email', 'organizationName', 'teamName', 'sprintName', 'summary', 'sourceTaskTitle'], 'Untitled')
+  return firstValue(item, ['name', 'fullName', 'title', 'username', 'email', 'organizationName', 'teamName', 'projectName', 'sprintName', 'summary', 'sourceTaskTitle'], 'Untitled')
 }
 
 export function getStatus(item) {

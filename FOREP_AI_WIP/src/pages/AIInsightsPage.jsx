@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import PageHeader from '../components/PageHeader.jsx'
 import SearchAndFilterBar from '../components/SearchAndFilterBar.jsx'
 import EmptyState from '../components/EmptyState.jsx'
@@ -9,15 +9,36 @@ import ErrorState from '../components/ui/ErrorState.jsx'
 import LoadingState from '../components/ui/LoadingState.jsx'
 import { useRole } from '../context/role.js'
 import { useServiceData } from '../hooks/useServiceData.js'
-import { generateInsight, getInsightsByOrganization, getManagedTeamInsights, getMyInsights } from '../services/aiInsightService.js'
+import { generateInsight, getAiRuntimeStatus, getInsightsByOrganization, getManagedTeamInsights, getMyInsights } from '../services/aiInsightService.js'
 import { adoptSuggestion, getManagedTeamSuggestions, getSuggestions, getSuggestionsByEmployee, getSuggestionsByOrganization } from '../services/aiSuggestionService.js'
-import { extractBackendMessage, getDate, getId, getName, valueOf } from '../services/responseNormalizer.js'
+import { extractBackendMessage, getDate, getId, valueOf } from '../services/responseNormalizer.js'
 
 const pageCopy = {
   admin: ['Platform AI Insights', 'Organization-level AI insights for the current account context.'],
   manager: ['Team AI Insights', 'AI insights for teams you manage.'],
   hr: ['People AI Insights', 'AI insights for People Ops workflows.'],
   employee: ['My AI Insights', 'AI insights for your personal workspace.'],
+}
+
+function insightTitle(insight) {
+  return valueOf(insight, ['summary'], valueOf(insight, ['insightType'], 'AI insight'))
+}
+
+function suggestionTitle(suggestion) {
+  const type = valueOf(suggestion, ['suggestionType'], 'Suggestion')
+  const sourceTask = valueOf(suggestion, ['sourceTaskTitle'], '')
+  if (sourceTask && sourceTask !== '-') return `${type}: ${sourceTask}`
+  const source = valueOf(suggestion, ['sourceEmployeeName'], '')
+  const target = valueOf(suggestion, ['targetEmployeeName'], '')
+  if (source && source !== '-' && target && target !== '-') return `${type}: ${source} to ${target}`
+  return type
+}
+
+function formatConfidence(value) {
+  if (value === undefined || value === null || value === '-' || value === '') return 'Not provided'
+  const numeric = Number(value)
+  if (Number.isNaN(numeric)) return value
+  return numeric <= 1 ? `${Math.round(numeric * 100)}%` : `${numeric}%`
 }
 
 function AIInsightsPage() {
@@ -44,15 +65,35 @@ function AIInsightsPage() {
   const [severity, setSeverity] = useState('')
   const [actionError, setActionError] = useState('')
   const [actionMessage, setActionMessage] = useState('')
+  const [runtimeStatus, setRuntimeStatus] = useState(null)
+  const [runtimeError, setRuntimeError] = useState('')
   const filtered = useMemo(() => insights.filter((insight) => {
     const insightCategory = valueOf(insight, ['category', 'insightType'], 'General')
     const insightSeverity = valueOf(insight, ['severity'], 'Info')
-    return `${getName(insight)} ${valueOf(insight, ['fullAnalysis', 'content', 'description', 'summary'], '')}`.toLowerCase().includes(search.toLowerCase()) && (!category || insightCategory === category) && (!severity || insightSeverity === severity)
+    return `${insightTitle(insight)} ${valueOf(insight, ['fullAnalysis'], '')}`.toLowerCase().includes(search.toLowerCase()) && (!category || insightCategory === category) && (!severity || insightSeverity === severity)
   }), [insights, search, category, severity])
+
+  useEffect(() => {
+    let active = true
+    getAiRuntimeStatus()
+      .then((status) => {
+        if (active) setRuntimeStatus(status)
+      })
+      .catch((err) => {
+        if (active) setRuntimeError(err.message)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   const handleGenerateInsight = async () => {
     setActionError('')
     setActionMessage('')
+    if (!employeeId) {
+      setActionError('Employee context is required before generating an AI insight.')
+      return
+    }
     try {
       const response = await generateInsight(employeeId)
       setActionMessage(extractBackendMessage(response, 'AI insight generated.'))
@@ -83,6 +124,14 @@ function AIInsightsPage() {
       {apiPending ? <ErrorState description="Connect AI insight APIs to display generated insights." onRetry={retry} /> : null}
       {actionMessage ? <p className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">{actionMessage}</p> : null}
       {actionError ? <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{actionError}</p> : null}
+      <Card className="mb-5">
+        <div className="grid gap-3 md:grid-cols-4">
+          <div><p className="text-sm text-[var(--muted)]">AI provider</p><p className="mt-1 font-semibold text-[var(--text)]">{valueOf(runtimeStatus, ['provider'], runtimeError || 'Not loaded')}</p></div>
+          <div><p className="text-sm text-[var(--muted)]">Model</p><p className="mt-1 font-semibold text-[var(--text)]">{valueOf(runtimeStatus, ['model'], '-')}</p></div>
+          <div><p className="text-sm text-[var(--muted)]">API key</p><p className="mt-1 font-semibold text-[var(--text)]">{runtimeStatus ? (valueOf(runtimeStatus, ['apiKeyConfigured'], false) ? 'Configured' : 'Missing') : '-'}</p></div>
+          <div><p className="text-sm text-[var(--muted)]">RAG</p><p className="mt-1 font-semibold text-[var(--text)]">{runtimeStatus ? (valueOf(runtimeStatus, ['ragEnabled'], false) ? 'Enabled' : 'Disabled') : '-'}</p></div>
+        </div>
+      </Card>
       {!loading && !error && !apiPending && missingOrganizationContext ? <EmptyState title="Required user or organization context is not available yet." description="Organization-scoped AI insights will load after the backend provides organization context for the signed-in user." /> : null}
       {!loading && !error && !apiPending && !missingOrganizationContext ? (
         <>
@@ -90,13 +139,13 @@ function AIInsightsPage() {
             { label: 'All categories', value: category, onChange: setCategory, options: [...new Set(insights.map((item) => valueOf(item, ['category', 'insightType'], '')).filter(Boolean))] },
             { label: 'All severity', value: severity, onChange: setSeverity, options: [...new Set(insights.map((item) => valueOf(item, ['severity'], '')).filter(Boolean))] },
           ]} />
-          <div className="grid gap-4 lg:grid-cols-2">{filtered.map((insight, index) => <Card key={`${getId(insight)}-${index}`} className="page-animate opacity-0"><div className="flex gap-2"><Badge>{valueOf(insight, ['category', 'insightType'], 'General')}</Badge><Badge>{valueOf(insight, ['severity'], 'Info')}</Badge></div><h2 className="mt-4 font-semibold text-[var(--text)]">{getName(insight)}</h2><p className="mt-2 text-sm text-[var(--muted)]">{valueOf(insight, ['fullAnalysis', 'content', 'description', 'summary'], 'No description')}</p><p className="mt-4 rounded-lg bg-slate-50 p-4 text-sm text-[var(--text)] dark:bg-slate-900">Confidence: {valueOf(insight, ['confidenceScore', 'confidence'], 'Not provided by API')}</p><p className="mt-3 text-xs text-[var(--muted)]">{getDate(insight)}</p></Card>)}</div>
+          <div className="grid gap-4 lg:grid-cols-2">{filtered.map((insight, index) => <Card key={`${getId(insight)}-${index}`} className="page-animate opacity-0"><div className="flex flex-wrap gap-2"><Badge>{valueOf(insight, ['insightType'], 'General')}</Badge><Badge>{valueOf(insight, ['severity'], 'Info')}</Badge></div><h2 className="mt-4 font-semibold text-[var(--text)]">{insightTitle(insight)}</h2><p className="mt-2 text-sm text-[var(--muted)]">{valueOf(insight, ['fullAnalysis'], 'No analysis returned by the backend yet.')}</p><div className="mt-4 grid gap-3 rounded-lg bg-slate-50 p-4 text-sm text-[var(--text)] dark:bg-slate-900 sm:grid-cols-2"><span>Confidence: {formatConfidence(valueOf(insight, ['confidenceScore'], '-'))}</span><span>Employee: {valueOf(insight, ['employee', 'employeeName'], 'Not scoped')}</span><span>Team: {valueOf(insight, ['team', 'teamName'], 'Not scoped')}</span><span>Affected: {valueOf(insight, ['affectedEmployeeIds'], 'None')}</span></div><p className="mt-3 text-xs text-[var(--muted)]">{getDate(insight)}</p></Card>)}</div>
           {!filtered.length ? <EmptyState title="No AI insights available." /> : null}
           <div className="mt-8">
             <h2 className="mb-4 text-lg font-semibold text-[var(--text)]">AI Suggestions</h2>
             {suggestionsLoading ? <LoadingState /> : null}
             <div className="grid gap-4 lg:grid-cols-2">
-              {suggestions.map((suggestion, index) => <Card key={`${getId(suggestion)}-${index}`} className="page-animate opacity-0"><div className="flex flex-wrap gap-2"><Badge>{valueOf(suggestion, ['suggestionType'], 'Suggestion')}</Badge><Badge>{valueOf(suggestion, ['isAdopted', 'adopted'], false) ? 'Adopted' : 'Open'}</Badge></div><h3 className="mt-4 font-semibold text-[var(--text)]">{getName(suggestion)}</h3><p className="mt-2 text-sm text-[var(--muted)]">{valueOf(suggestion, ['description', 'content'], 'No description')}</p><p className="mt-3 text-xs text-[var(--muted)]">Confidence: {valueOf(suggestion, ['confidenceScore'], 'Not provided')}</p><Button className="mt-4" variant="secondary" disabled={Boolean(valueOf(suggestion, ['isAdopted', 'adopted'], false))} onClick={() => handleAdoptSuggestion(suggestion)}>Adopt Suggestion</Button></Card>)}
+              {suggestions.map((suggestion, index) => <Card key={`${getId(suggestion)}-${index}`} className="page-animate opacity-0"><div className="flex flex-wrap gap-2"><Badge>{valueOf(suggestion, ['suggestionType'], 'Suggestion')}</Badge><Badge>{valueOf(suggestion, ['isAdopted', 'adopted'], false) ? 'Adopted' : 'Open'}</Badge></div><h3 className="mt-4 font-semibold text-[var(--text)]">{suggestionTitle(suggestion)}</h3><p className="mt-2 text-sm text-[var(--muted)]">{valueOf(suggestion, ['description'], 'No suggestion description returned by the backend yet.')}</p><div className="mt-4 grid gap-2 rounded-lg bg-slate-50 p-4 text-xs text-[var(--muted)] dark:bg-slate-900 sm:grid-cols-2"><span>Source: {valueOf(suggestion, ['sourceEmployeeName'], 'Not provided')}</span><span>Target: {valueOf(suggestion, ['targetEmployeeName'], 'Not provided')}</span><span>Sprint: {valueOf(suggestion, ['sprintNumber'], 'Not provided')}</span><span>Confidence: {formatConfidence(valueOf(suggestion, ['confidenceScore'], '-'))}</span></div><Button className="mt-4" variant="secondary" disabled={Boolean(valueOf(suggestion, ['isAdopted', 'adopted'], false))} onClick={() => handleAdoptSuggestion(suggestion)}>Adopt Suggestion</Button></Card>)}
             </div>
             {!suggestionsLoading && !suggestions.length ? <EmptyState title="No AI suggestions available." /> : null}
           </div>

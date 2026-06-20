@@ -40,6 +40,24 @@ export async function assignEmployee(teamId, payload) {
   return unwrapData(await apiClient.put(withQuery(`${base}/${teamId}/assign-employee`, { employeeId })))
 }
 
+export async function requestTeamMembership(teamId) {
+  // POST /api/v1/teams/{id}/members/request
+  if (useMocks) return { teamId, status: 'REQUESTED' }
+  return unwrapData(await apiClient.post(`${base}/${teamId}/members/request`))
+}
+
+export async function approveMembership(membershipId) {
+  // PUT /api/v1/teams/memberships/{membershipId}/approve
+  if (useMocks) return { membershipId, status: 'APPROVED' }
+  return unwrapData(await apiClient.put(`${base}/memberships/${membershipId}/approve`))
+}
+
+export async function endActiveMembership(employeeId) {
+  // PUT /api/v1/teams/members/{employeeId}/end-active
+  if (useMocks) return { employeeId, status: 'ENDED' }
+  return unwrapData(await apiClient.put(`${base}/members/${employeeId}/end-active`))
+}
+
 export async function getTeamMembers(teamId) {
   // GET /api/v1/teams/{id}/members
   if (useMocks) return mockData.employees.filter((employee) => employee.teamId === teamId || employee.team === teamId)

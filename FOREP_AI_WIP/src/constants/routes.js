@@ -6,6 +6,7 @@ export const routes = {
   tasks: '/tasks',
   employees: '/employees',
   teams: '/teams',
+  projects: '/projects',
   sprints: '/sprints',
   events: '/events',
   analytics: '/analytics',

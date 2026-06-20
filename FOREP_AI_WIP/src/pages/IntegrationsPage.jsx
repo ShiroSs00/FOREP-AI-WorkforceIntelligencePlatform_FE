@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Cable, Plus, RefreshCw } from 'lucide-react'
 import PageHeader from '../components/PageHeader.jsx'
 import EmptyState from '../components/EmptyState.jsx'
@@ -12,32 +12,38 @@ import Select from '../components/ui/Select.jsx'
 import Table from '../components/ui/Table.jsx'
 import Badge from '../components/ui/Badge.jsx'
 import { useRole } from '../context/role.js'
-import { connectIntegration, createIntegration, deleteIntegration, getIntegrationsByTeam, integrationProviders, syncIntegration, updateIntegration } from '../services/integrationService.js'
+import { connectIntegration, createIntegration, deleteIntegration, getIntegrationRuntimeStatus, getIntegrationSyncLogs, getIntegrations, getIntegrationsByTeam, integrationProviders, syncIntegration, updateIntegration } from '../services/integrationService.js'
 import { extractBackendMessage, getDate, getId, valueOf } from '../services/responseNormalizer.js'
 
 const emptyConfigForm = {
   teamId: '',
+  projectId: '',
   provider: 'GITHUB',
   webhookSecret: '',
   accessToken: '',
   projectKey: '',
+  jiraDomain: '',
   isActive: true,
 }
 
 const emptyConnectForm = {
   teamId: '',
+  projectId: '',
   provider: 'GITHUB',
   projectKey: '',
+  jiraDomain: '',
   connectionKey: '',
 }
 
 function toConfigForm(config = emptyConfigForm) {
   return {
     teamId: valueOf(config, ['teamId'], ''),
+    projectId: valueOf(config, ['projectId'], ''),
     provider: valueOf(config, ['provider'], 'GITHUB'),
     webhookSecret: '',
     accessToken: '',
     projectKey: valueOf(config, ['projectKey'], ''),
+    jiraDomain: valueOf(config, ['jiraDomain'], ''),
     isActive: Boolean(valueOf(config, ['isActive'], true)),
   }
 }
@@ -49,7 +55,10 @@ function cleanPayload(payload) {
 function IntegrationsPage() {
   const { accountContext } = useRole()
   const [teamId, setTeamId] = useState(accountContext.teamId ?? '')
+  const [loadAll, setLoadAll] = useState(!accountContext.teamId)
   const [configs, setConfigs] = useState([])
+  const [runtimeStatus, setRuntimeStatus] = useState(null)
+  const [syncLogs, setSyncLogs] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [actionError, setActionError] = useState('')
@@ -68,6 +77,7 @@ function IntegrationsPage() {
     const content = [
       valueOf(config, ['provider'], ''),
       valueOf(config, ['teamId'], ''),
+      valueOf(config, ['projectId', 'projectName'], ''),
       valueOf(config, ['projectKey'], ''),
       valueOf(config, ['id'], ''),
     ].join(' ').toLowerCase()
@@ -78,13 +88,18 @@ function IntegrationsPage() {
     setError(null)
     setActionError('')
     setActionMessage('')
-    if (!teamId) {
+    if (!teamId && !loadAll) {
       setConfigs([])
       return
     }
     setLoading(true)
     try {
-      setConfigs(await getIntegrationsByTeam(teamId))
+      const [configRows, runtime] = await Promise.all([
+        loadAll ? getIntegrations() : getIntegrationsByTeam(teamId),
+        getIntegrationRuntimeStatus().catch(() => null),
+      ])
+      setConfigs(configRows)
+      setRuntimeStatus(runtime)
     } catch (err) {
       setConfigs([])
       setError(err)
@@ -165,6 +180,17 @@ function IntegrationsPage() {
     }
   }
 
+  const viewLogs = async (config) => {
+    setActionError('')
+    setActionMessage('')
+    try {
+      setSyncLogs(await getIntegrationSyncLogs(getId(config)))
+    } catch (err) {
+      setActionError(err.message)
+      setSyncLogs([])
+    }
+  }
+
   const removeConfig = async (config) => {
     setActionError('')
     setActionMessage('')
@@ -177,12 +203,20 @@ function IntegrationsPage() {
     }
   }
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      loadConfigs()
+    }, 0)
+    return () => window.clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   return (
     <>
       <PageHeader
         eyebrow="Platform / Integrations"
         title="Integration Management"
-        description="Manage task integration configs and connect provider webhooks from the backend integration controller."
+        description="Manage project-level provider connections, webhook settings, runtime status and sync history."
         action={(
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" onClick={loadConfigs}><RefreshCw size={16} />Refresh</Button>
@@ -192,7 +226,7 @@ function IntegrationsPage() {
         )}
       />
 
-      <div className="mb-5 grid gap-4 md:grid-cols-3">
+      <div className="mb-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card>
           <div className="flex items-center gap-3">
             <span className="grid h-10 w-10 place-items-center rounded-lg bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-300"><Cable size={18} /></span>
@@ -207,10 +241,14 @@ function IntegrationsPage() {
           <p className="text-sm text-[var(--muted)]">Supported providers</p>
           <p className="mt-2 text-lg font-bold text-[var(--text)]">{integrationProviders.join(', ')}</p>
         </Card>
+        <Card>
+          <p className="text-sm text-[var(--muted)]">Runtime status</p>
+          <p className="mt-2 text-lg font-bold text-[var(--text)]">{runtimeStatus ? `${valueOf(runtimeStatus, ['activeConfigCount'], 0)} active / ${valueOf(runtimeStatus, ['failedConfigCount'], 0)} failed` : 'Not loaded'}</p>
+        </Card>
       </div>
 
       <Card className="mb-5">
-        <div className="grid gap-3 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
+        <div className="grid gap-3 lg:grid-cols-[1fr_1fr_auto_auto] lg:items-end">
           <label>
             <span className="text-sm font-medium text-[var(--text)]">Team ID</span>
             <Input className="mt-2" placeholder="Paste team UUID to load configs" value={teamId} onChange={(event) => setTeamId(event.target.value)} />
@@ -219,7 +257,11 @@ function IntegrationsPage() {
             <span className="text-sm font-medium text-[var(--text)]">Search</span>
             <Input className="mt-2" placeholder="Search provider, project, config..." value={search} onChange={(event) => setSearch(event.target.value)} />
           </label>
-          <Button onClick={loadConfigs} disabled={!teamId}>Load Integrations</Button>
+          <label className="flex items-center gap-2 rounded-lg border border-[var(--border)] px-4 py-3 text-sm text-[var(--text)]">
+            <input type="checkbox" checked={loadAll} onChange={(event) => setLoadAll(event.target.checked)} />
+            Load all
+          </label>
+          <Button onClick={loadConfigs} disabled={!teamId && !loadAll}>Load Integrations</Button>
         </div>
       </Card>
 
@@ -230,19 +272,21 @@ function IntegrationsPage() {
 
       {!loading && !error ? (
         <Table
-          columns={['Provider', 'Team', 'Project', 'Active', 'Updated', 'Actions']}
+          columns={['Provider', 'Team', 'Project', 'Sync', 'Active', 'Updated', 'Actions']}
           rows={filteredConfigs}
-          empty={<EmptyState title={teamId ? 'No integrations found for this team.' : 'Enter a Team ID to load integrations.'} description="Integration configs from the backend will appear here for the selected team." />}
+          empty={<EmptyState title={teamId || loadAll ? 'No integrations found for this scope.' : 'Enter a Team ID or load all integrations.'} description="Provider connections will appear here when they are available for the selected scope." />}
           renderRow={(config, index) => (
             <tr key={`${getId(config)}-${index}`}>
               <td className="px-4 py-4"><Badge>{valueOf(config, ['provider'], 'Unknown')}</Badge></td>
               <td className="px-4 py-4 text-[var(--muted)]">{valueOf(config, ['teamId'], '-')}</td>
-              <td className="px-4 py-4 text-[var(--muted)]">{valueOf(config, ['projectKey'], '-')}</td>
+              <td className="px-4 py-4 text-[var(--muted)]"><p>{valueOf(config, ['projectName', 'projectId'], '-')}</p><p className="text-xs">{valueOf(config, ['projectKey'], '-')}</p></td>
+              <td className="px-4 py-4"><Badge>{valueOf(config, ['lastSyncStatus'], 'No sync')}</Badge><p className="mt-1 text-xs text-[var(--muted)]">{valueOf(config, ['lastSyncError'], '')}</p></td>
               <td className="px-4 py-4"><Badge tone={valueOf(config, ['isActive'], false) ? 'Success' : 'Warning'}>{valueOf(config, ['isActive'], false) ? 'Active' : 'Inactive'}</Badge></td>
               <td className="px-4 py-4 text-[var(--muted)]">{valueOf(config, ['updatedAt', 'createdAt'], getDate(config))}</td>
               <td className="px-4 py-4">
                 <div className="flex flex-wrap gap-2">
                   <Button variant="secondary" onClick={() => syncConfig(config)}>Sync</Button>
+                  <Button variant="secondary" onClick={() => viewLogs(config)}>Logs</Button>
                   <Button variant="secondary" onClick={() => openEdit(config)}>Edit</Button>
                   <Button variant="ghost" onClick={() => removeConfig(config)}>Delete</Button>
                 </div>
@@ -252,9 +296,22 @@ function IntegrationsPage() {
         />
       ) : null}
 
+      {syncLogs.length ? (
+        <Card className="mt-5">
+          <h2 className="font-semibold text-[var(--text)]">Sync logs</h2>
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="text-xs uppercase text-[var(--muted)]"><tr><th className="py-2">Started</th><th>Status</th><th>Provider</th><th>Message</th><th>Finished</th></tr></thead>
+              <tbody>{syncLogs.map((log, index) => <tr key={`${getId(log)}-${index}`} className="border-t border-[var(--border)]"><td className="py-3 text-[var(--muted)]">{valueOf(log, ['startedAt'], '-')}</td><td><Badge>{valueOf(log, ['status'], 'UNKNOWN')}</Badge></td><td>{valueOf(log, ['provider'], '-')}</td><td className="text-[var(--muted)]">{valueOf(log, ['message'], '-')}</td><td className="text-[var(--muted)]">{valueOf(log, ['finishedAt'], '-')}</td></tr>)}</tbody>
+            </table>
+          </div>
+        </Card>
+      ) : null}
+
       <Modal open={configModalOpen} title={editingConfig ? 'Update Integration Config' : 'Create Integration Config'} onClose={() => setConfigModalOpen(false)}>
         <form onSubmit={submitConfig} className="grid gap-4">
           <Input required placeholder="Team UUID" value={configForm.teamId} onChange={(event) => setConfigForm({ ...configForm, teamId: event.target.value })} />
+          <Input required placeholder="Project UUID" value={configForm.projectId} onChange={(event) => setConfigForm({ ...configForm, projectId: event.target.value })} />
           <div className="grid gap-4 sm:grid-cols-2">
             <Select value={configForm.provider} onChange={(event) => setConfigForm({ ...configForm, provider: event.target.value })}>
               {integrationProviders.map((provider) => <option key={provider}>{provider}</option>)}
@@ -267,6 +324,7 @@ function IntegrationsPage() {
           <Input required={!editingConfig} placeholder="Webhook secret" value={configForm.webhookSecret} onChange={(event) => setConfigForm({ ...configForm, webhookSecret: event.target.value })} />
           <Input placeholder="Access token" value={configForm.accessToken} onChange={(event) => setConfigForm({ ...configForm, accessToken: event.target.value })} />
           <Input placeholder="Project key" value={configForm.projectKey} onChange={(event) => setConfigForm({ ...configForm, projectKey: event.target.value })} />
+          <Input placeholder="Jira domain" value={configForm.jiraDomain} onChange={(event) => setConfigForm({ ...configForm, jiraDomain: event.target.value })} />
           {actionError ? <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{actionError}</p> : null}
           <div className="flex justify-end"><Button type="submit" disabled={submitting}>{submitting ? 'Saving...' : editingConfig ? 'Update Config' : 'Create Config'}</Button></div>
         </form>
@@ -275,10 +333,12 @@ function IntegrationsPage() {
       <Modal open={connectModalOpen} title="Connect Provider" onClose={() => setConnectModalOpen(false)}>
         <form onSubmit={submitConnect} className="grid gap-4">
           <Input required placeholder="Team UUID" value={connectForm.teamId} onChange={(event) => setConnectForm({ ...connectForm, teamId: event.target.value })} />
+          <Input required placeholder="Project UUID" value={connectForm.projectId} onChange={(event) => setConnectForm({ ...connectForm, projectId: event.target.value })} />
           <Select value={connectForm.provider} onChange={(event) => setConnectForm({ ...connectForm, provider: event.target.value })}>
             {integrationProviders.map((provider) => <option key={provider}>{provider}</option>)}
           </Select>
           <Input required placeholder="Project key" value={connectForm.projectKey} onChange={(event) => setConnectForm({ ...connectForm, projectKey: event.target.value })} />
+          <Input placeholder="Jira domain" value={connectForm.jiraDomain} onChange={(event) => setConnectForm({ ...connectForm, jiraDomain: event.target.value })} />
           <Input required placeholder="Connection key" value={connectForm.connectionKey} onChange={(event) => setConnectForm({ ...connectForm, connectionKey: event.target.value })} />
           {connectResult ? (
             <Card>

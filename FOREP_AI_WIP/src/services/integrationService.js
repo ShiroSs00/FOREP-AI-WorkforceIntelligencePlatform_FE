@@ -11,6 +11,12 @@ export async function getIntegrationsByTeam(teamId) {
   return asArray(await apiClient.get(`${base}/team/${teamId}`))
 }
 
+export async function getIntegrations() {
+  // GET /api/v1/integrations
+  if (useMocks) return []
+  return asArray(await apiClient.get(base))
+}
+
 export async function createIntegration(payload) {
   // POST /api/v1/integrations
   if (useMocks) return { id: `mock-integration-${Date.now()}`, ...payload }
@@ -33,6 +39,18 @@ export async function syncIntegration(id) {
   // POST /api/v1/integrations/{id}/sync
   if (useMocks) return { message: 'Mock sync completed.' }
   return apiClient.post(`${base}/${id}/sync`)
+}
+
+export async function getIntegrationSyncLogs(id) {
+  // GET /api/v1/integrations/{id}/sync-logs
+  if (useMocks) return []
+  return asArray(await apiClient.get(`${base}/${id}/sync-logs`))
+}
+
+export async function getIntegrationRuntimeStatus() {
+  // GET /api/v1/integrations/runtime-status
+  if (useMocks) return {}
+  return unwrapData(await apiClient.get(`${base}/runtime-status`))
 }
 
 export async function connectIntegration(payload) {

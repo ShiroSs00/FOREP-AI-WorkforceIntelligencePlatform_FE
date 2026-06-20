@@ -13,7 +13,7 @@ import Select from '../components/ui/Select.jsx'
 import Table from '../components/ui/Table.jsx'
 import { useRole } from '../context/role.js'
 import { useServiceData } from '../hooks/useServiceData.js'
-import { createTask, deleteTask, getManagedTeamTasks, getMyTasks, getTasks, updateTask, updateTaskStatus } from '../services/taskService.js'
+import { assessTask, createTask, deleteTask, getManagedTeamTasks, getMyTasks, getTasks, getTasksByProject, updateTask, updateTaskStatus } from '../services/taskService.js'
 import { createTaskComment, deleteTaskComment, getTaskComments } from '../services/taskCommentService.js'
 import { extractBackendMessage, getDate, getId, getName, getStatus, valueOf } from '../services/responseNormalizer.js'
 
@@ -27,11 +27,16 @@ const emptyTask = {
   estimatedHours: '',
   assigneeId: '',
   reporterId: '',
+  projectId: '',
   teamId: '',
   sprintId: '',
   externalTicketRef: '',
   sprintNumber: '',
   storyPoints: '',
+  difficultyScore: '',
+  progressPercent: '',
+  leadEvaluation: '',
+  agentAssess: false,
 }
 const pageCopy = {
   admin: ['Platform task visibility', 'Review task records available to the platform role.'],
@@ -49,11 +54,16 @@ function toTaskForm(task = emptyTask) {
     estimatedHours: valueOf(task, ['estimatedHours'], ''),
     assigneeId: valueOf(task, ['assigneeId'], ''),
     reporterId: valueOf(task, ['reporterId'], ''),
+    projectId: valueOf(task, ['projectId'], ''),
     teamId: valueOf(task, ['teamId'], ''),
     sprintId: valueOf(task, ['sprintId'], ''),
     externalTicketRef: valueOf(task, ['externalTicketRef'], ''),
     sprintNumber: valueOf(task, ['sprintNumber'], ''),
     storyPoints: valueOf(task, ['storyPoints'], ''),
+    difficultyScore: valueOf(task, ['difficultyScore'], ''),
+    progressPercent: valueOf(task, ['progressPercent'], ''),
+    leadEvaluation: valueOf(task, ['leadEvaluation'], ''),
+    agentAssess: Boolean(valueOf(task, ['agentAssess'], false)),
   }
 }
 
@@ -67,11 +77,16 @@ function buildTaskPayload(form) {
     estimatedHours: form.estimatedHours !== '' ? Number(form.estimatedHours) : undefined,
     assigneeId: optionalString(form.assigneeId),
     reporterId: optionalString(form.reporterId),
+    projectId: optionalString(form.projectId),
     teamId: optionalString(form.teamId),
     sprintId: optionalString(form.sprintId),
     externalTicketRef: form.externalTicketRef || undefined,
     sprintNumber: form.sprintNumber !== '' ? Number(form.sprintNumber) : undefined,
     storyPoints: form.storyPoints !== '' ? Number(form.storyPoints) : undefined,
+    difficultyScore: form.difficultyScore !== '' ? Number(form.difficultyScore) : undefined,
+    progressPercent: form.progressPercent !== '' ? Number(form.progressPercent) : undefined,
+    leadEvaluation: form.leadEvaluation || undefined,
+    agentAssess: Boolean(form.agentAssess),
   }
 }
 
@@ -81,17 +96,20 @@ function TaskPage() {
   const canEditTask = ['admin', 'manager'].includes(selectedRole)
   const canDeleteTask = ['admin', 'manager'].includes(selectedRole)
   const canChangeStatus = ['admin', 'manager', 'employee'].includes(selectedRole)
+  const [projectScopeId, setProjectScopeId] = useState('')
   const loadTasks = () => {
+    if (projectScopeId) return getTasksByProject(projectScopeId)
     if (selectedRole === 'manager') return getManagedTeamTasks()
     if (selectedRole === 'employee') return getMyTasks()
     if (selectedRole === 'hr') return getTasks()
     return getTasks()
   }
-  const { data: tasks, loading, error, apiPending, retry } = useServiceData(loadTasks, [selectedRole])
+  const { data: tasks, loading, error, apiPending, retry } = useServiceData(loadTasks, [selectedRole, projectScopeId])
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
   const [priority, setPriority] = useState('')
   const [assignee, setAssignee] = useState('')
+  const [sourceProvider, setSourceProvider] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [editingTask, setEditingTask] = useState(null)
   const [commentsTask, setCommentsTask] = useState(null)
@@ -108,9 +126,11 @@ function TaskPage() {
       const taskPriority = valueOf(task, ['priority'], 'Unknown')
       const assigneeName = valueOf(task, ['assigneeName', 'assignee', 'assignedTo', 'employee', 'employeeName'], 'Not assigned')
       const teamName = valueOf(task, ['teamName', 'team'], 'Unknown')
-      return `${getName(task)} ${assigneeName} ${teamName}`.toLowerCase().includes(search.toLowerCase()) && (!status || taskStatus === status) && (!priority || taskPriority === priority) && (!assignee || assigneeName === assignee)
+      const provider = valueOf(task, ['sourceProvider'], 'INTERNAL')
+      const projectName = valueOf(task, ['projectName', 'project'], '')
+      return `${getName(task)} ${assigneeName} ${teamName} ${projectName} ${valueOf(task, ['externalTicketRef'], '')}`.toLowerCase().includes(search.toLowerCase()) && (!status || taskStatus === status) && (!priority || taskPriority === priority) && (!assignee || assigneeName === assignee) && (!sourceProvider || provider === sourceProvider)
     }),
-    [tasks, search, status, priority, assignee],
+    [tasks, search, status, priority, assignee, sourceProvider],
   )
 
   const submitTask = async (event) => {
@@ -204,6 +224,18 @@ function TaskPage() {
     }
   }
 
+  const runAssessment = async (task) => {
+    setActionError('')
+    setActionMessage('')
+    try {
+      const response = await assessTask(getId(task))
+      setActionMessage(extractBackendMessage(response, 'Task assessment completed.'))
+      retry()
+    } catch (err) {
+      setActionError(err.message)
+    }
+  }
+
   const removeTask = async (task) => {
     setActionError('')
     setActionMessage('')
@@ -226,6 +258,13 @@ function TaskPage() {
       {actionError ? <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{actionError}</p> : null}
       {!loading && !error && !apiPending ? (
         <>
+          <div className="mb-4 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
+            <label>
+              <span className="text-sm font-medium text-[var(--text)]">Project filter</span>
+              <Input className="mt-2" placeholder="Paste Project UUID to load tasks by project" value={projectScopeId} onChange={(event) => setProjectScopeId(event.target.value)} />
+            </label>
+            <p className="mt-2 text-xs text-[var(--muted)]">When a Project UUID is provided, the list narrows to tasks connected to that project.</p>
+          </div>
           <SearchAndFilterBar
             search={search}
             onSearchChange={setSearch}
@@ -233,23 +272,29 @@ function TaskPage() {
               { label: 'All statuses', value: status, onChange: setStatus, options: statusOptions },
               { label: 'All priorities', value: priority, onChange: setPriority, options: priorityOptions },
               { label: 'All assignees', value: assignee, onChange: setAssignee, options: [...new Set(tasks.map((task) => valueOf(task, ['assigneeName', 'assignee', 'assignedTo', 'employee', 'employeeName'], '')).filter(Boolean))] },
+              { label: 'All sources', value: sourceProvider, onChange: setSourceProvider, options: ['INTERNAL', 'GITHUB', 'JIRA', 'GMAIL'] },
             ]}
           />
           <Table
-            columns={['Task', 'Assignee', 'Team', 'Priority', 'Status', 'Due date', 'Actions']}
+            columns={['Task', 'Project', 'Assignee', 'Source', 'Commits', 'Priority', 'Status', 'Due date', 'Actions']}
             rows={filteredTasks}
             empty={<EmptyState title="No tasks found." description="No task records are available for the current role." />}
             renderRow={(task, index) => (
               <tr key={`${getId(task)}-${index}`}>
-                <td className="px-4 py-4"><p className="font-semibold text-[var(--text)]">{getName(task)}</p><p className="mt-1 text-xs text-[var(--muted)]">{valueOf(task, ['description'], 'No description')}</p></td>
+                <td className="px-4 py-4"><p className="font-semibold text-[var(--text)]">{getName(task)}</p><p className="mt-1 text-xs text-[var(--muted)]">{valueOf(task, ['description'], 'No description')}</p><p className="mt-1 text-xs text-[var(--muted)]">{valueOf(task, ['assessmentSummary'], '')}</p></td>
+                <td className="px-4 py-4 text-[var(--muted)]">{valueOf(task, ['projectName', 'project'], 'No project')}</td>
                 <td className="px-4 py-4 text-[var(--muted)]">{valueOf(task, ['assigneeName', 'assignee', 'assignedTo', 'employee', 'employeeName'], 'Not assigned')}</td>
-                <td className="px-4 py-4 text-[var(--muted)]">{valueOf(task, ['teamName', 'team'], 'Unknown')}</td>
+                <td className="px-4 py-4"><Badge>{valueOf(task, ['sourceProvider'], 'INTERNAL')}</Badge><p className="mt-1 text-xs text-[var(--muted)]">{valueOf(task, ['externalTicketRef'], '')}</p></td>
+                <td className="px-4 py-4 text-[var(--muted)]">
+                  <p className="font-semibold text-[var(--text)]">{valueOf(task, ['githubCommitCount'], 0)}</p>
+                  <p className="mt-1 text-xs">Score: {valueOf(task, ['githubCommitScore'], '-')}</p>
+                </td>
                 <td className="px-4 py-4"><Badge>{valueOf(task, ['priority'], 'Unknown')}</Badge></td>
                 <td className="px-4 py-4">
                   {canChangeStatus ? <Select value={getStatus(task)} onChange={(event) => changeStatus(task, event.target.value)}>{statusOptions.map((item) => <option key={item}>{item}</option>)}</Select> : <Badge>{getStatus(task)}</Badge>}
                 </td>
                 <td className="px-4 py-4 text-[var(--muted)]">{valueOf(task, ['dueDate']) || getDate(task)}</td>
-                <td className="px-4 py-4"><div className="flex gap-2">{canEditTask ? <Button variant="secondary" onClick={() => openEdit(task)}>Edit</Button> : null}<Button variant="ghost" onClick={() => openComments(task)}>Comments</Button>{canDeleteTask ? <Button variant="ghost" onClick={() => removeTask(task)}>Delete</Button> : null}</div></td>
+                <td className="px-4 py-4"><div className="flex flex-wrap gap-2">{canEditTask ? <Button variant="secondary" onClick={() => openEdit(task)}>Edit</Button> : null}{canEditTask ? <Button variant="secondary" onClick={() => runAssessment(task)}>Assess</Button> : null}<Button variant="ghost" onClick={() => openComments(task)}>Comments</Button>{canDeleteTask ? <Button variant="ghost" onClick={() => removeTask(task)}>Delete</Button> : null}</div></td>
               </tr>
             )}
           />
@@ -266,11 +311,19 @@ function TaskPage() {
             <Input type="date" value={form.dueDate} onChange={(event) => setForm({ ...form, dueDate: event.target.value })} />
             <Input type="number" min="0" placeholder="Estimated hours" value={form.estimatedHours} onChange={(event) => setForm({ ...form, estimatedHours: event.target.value })} />
             <Input placeholder="Reporter UUID" value={form.reporterId} onChange={(event) => setForm({ ...form, reporterId: event.target.value })} />
+            <Input placeholder="Project UUID" value={form.projectId} onChange={(event) => setForm({ ...form, projectId: event.target.value })} />
             <Input placeholder="Sprint UUID" value={form.sprintId} onChange={(event) => setForm({ ...form, sprintId: event.target.value })} />
             <Input placeholder="External ticket ref" value={form.externalTicketRef} onChange={(event) => setForm({ ...form, externalTicketRef: event.target.value })} />
             <Input type="number" min="0" placeholder="Sprint number" value={form.sprintNumber} onChange={(event) => setForm({ ...form, sprintNumber: event.target.value })} />
             <Input type="number" min="0" placeholder="Story points" value={form.storyPoints} onChange={(event) => setForm({ ...form, storyPoints: event.target.value })} />
+            <Input type="number" min="0" placeholder="Difficulty score" value={form.difficultyScore} onChange={(event) => setForm({ ...form, difficultyScore: event.target.value })} />
+            <Input type="number" min="0" max="100" placeholder="Progress percent" value={form.progressPercent} onChange={(event) => setForm({ ...form, progressPercent: event.target.value })} />
           </div>
+          <Input placeholder="Lead evaluation" value={form.leadEvaluation} onChange={(event) => setForm({ ...form, leadEvaluation: event.target.value })} />
+          <label className="flex items-center gap-3 rounded-lg border border-[var(--border)] px-4 py-3 text-sm text-[var(--text)]">
+            <input type="checkbox" checked={form.agentAssess} onChange={(event) => setForm({ ...form, agentAssess: event.target.checked })} />
+            Agent assess after save
+          </label>
           {actionError ? <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{actionError}</p> : null}
           <div className="flex justify-end"><Button type="submit" disabled={submitting}>{submitting ? 'Saving...' : editingTask ? 'Update Task' : 'Create Task'}</Button></div>
         </form>

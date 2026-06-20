@@ -96,6 +96,6 @@ export async function getCurrentUser() {
 
 export async function getOAuth2LoginLinks() {
   // GET /api/v1/auth/oauth2/links
-  if (useMocks) return { google: '', github: '' }
+  if (useMocks) return { google: '', github: '', jira: '' }
   return unwrapData(await apiClient.get('/api/v1/auth/oauth2/links'))
 }

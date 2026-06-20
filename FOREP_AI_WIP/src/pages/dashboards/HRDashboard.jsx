@@ -11,6 +11,7 @@ import AIAnalystCard from '../../components/app/AIAnalystCard.jsx'
 import PartialErrorNotice from '../../components/app/PartialErrorNotice.jsx'
 import { useRole } from '../../context/role.js'
 import { getInsightsByOrganization } from '../../services/aiInsightService.js'
+import { getSuggestions, getSuggestionsByOrganization } from '../../services/aiSuggestionService.js'
 import { getAttendanceByOrganization } from '../../services/attendanceService.js'
 import { getEmployees } from '../../services/employeeService.js'
 import { getLeaveRequests } from '../../services/leaveService.js'
@@ -24,6 +25,7 @@ function fetchHRResources(organizationId) {
     getNotifications(),
     organizationId ? getAttendanceByOrganization(organizationId) : Promise.resolve([]),
     organizationId ? getInsightsByOrganization(organizationId) : Promise.resolve([]),
+    organizationId ? getSuggestionsByOrganization(organizationId) : getSuggestions(),
   ])
 }
 
@@ -33,10 +35,10 @@ function HRDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [failures, setFailures] = useState([])
-  const [data, setData] = useState({ employees: [], leaves: [], notifications: [], attendance: [], insights: [] })
+  const [data, setData] = useState({ employees: [], leaves: [], notifications: [], attendance: [], insights: [], suggestions: [] })
 
   const applyResults = useCallback((results) => {
-    const [employees, leaves, notifications, attendance, insights] = results
+    const [employees, leaves, notifications, attendance, insights, suggestions] = results
     setFailures(results.filter((result) => result.status === 'rejected'))
     setData({
       employees: employees.status === 'fulfilled' ? normalizeArray(employees.value) : [],
@@ -44,6 +46,7 @@ function HRDashboard() {
       notifications: notifications.status === 'fulfilled' ? normalizeArray(notifications.value) : [],
       attendance: attendance.status === 'fulfilled' ? normalizeArray(attendance.value) : [],
       insights: insights.status === 'fulfilled' ? normalizeArray(insights.value) : [],
+      suggestions: suggestions.status === 'fulfilled' ? normalizeArray(suggestions.value) : [],
     })
     if (results.every((result) => result.status === 'rejected')) setError(results[0].reason)
   }, [])
@@ -121,6 +124,7 @@ function HRDashboard() {
                 `${data.employees.length} employee records available.`,
                 `${data.leaves.length} leave records available.`,
                 `${data.attendance.length} attendance records available.`,
+                `${data.suggestions.length} AI suggestions available for People Ops.`,
               ]}
               insights={['No keystroke or screen tracking is shown in HR views.', 'People signals are derived only from backend employee and leave data currently available.']}
             />

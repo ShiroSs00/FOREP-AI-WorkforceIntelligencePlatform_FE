@@ -1,6 +1,6 @@
 import Button from './Button.jsx'
 
-function ErrorState({ title = 'Backend API is not connected yet.', message, description = 'Connect the backend service or enable VITE_DATA_MODE=api.', status, details, onRetry }) {
+function ErrorState({ title = 'Unable to load data.', message, description = 'Please retry or check your account permissions.', status, details, onRetry }) {
   const body = message ?? description
   const detailsText = typeof details === 'string' ? details : details ? JSON.stringify(details, null, 2) : ''
   const hasTechnicalDetails = Boolean(detailsText)

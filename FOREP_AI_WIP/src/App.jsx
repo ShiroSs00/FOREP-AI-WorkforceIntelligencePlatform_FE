@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage.jsx'
 import TaskPage from './pages/TaskPage.jsx'
 import EmployeePage from './pages/EmployeePage.jsx'
 import TeamPage from './pages/TeamPage.jsx'
+import ProjectsPage from './pages/ProjectsPage.jsx'
 import SprintPage from './pages/SprintPage.jsx'
 import EventTimelinePage from './pages/EventTimelinePage.jsx'
 import AnalyticsPage from './pages/AnalyticsPage.jsx'
@@ -37,6 +38,7 @@ function App() {
             <Route path="/tasks" element={<TaskPage />} />
             <Route path="/employees" element={<EmployeePage />} />
             <Route path="/teams" element={<TeamPage />} />
+            <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/sprints" element={<SprintPage />} />
             <Route path="/events" element={<EventTimelinePage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />

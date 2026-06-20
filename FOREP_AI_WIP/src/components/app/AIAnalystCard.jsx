@@ -11,7 +11,7 @@ function AIAnalystCard({ role, title = 'AI Analyst', signals = [], insights = []
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-sky-300">{role}</p>
           <h2 className="mt-2 text-xl font-semibold text-white">{title}</h2>
         </div>
-        <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold text-sky-100">Backend API</span>
+        <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold text-sky-100">Live data</span>
       </div>
       {hasContent ? (
         <div className="relative mt-5 space-y-3">
@@ -21,7 +21,7 @@ function AIAnalystCard({ role, title = 'AI Analyst', signals = [], insights = []
         </div>
       ) : (
         <p className="relative mt-5 rounded-xl border border-white/10 bg-white/[0.08] px-4 py-3 text-sm leading-6 text-slate-300">
-          AI insights will appear here when the backend returns role-scoped insight data.
+          AI insights will appear here when role-scoped intelligence is available.
         </p>
       )}
       {insights.length ? (
