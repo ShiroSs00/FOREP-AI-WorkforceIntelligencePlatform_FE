@@ -12,7 +12,7 @@ import Select from '../components/ui/Select.jsx'
 import Table from '../components/ui/Table.jsx'
 import Badge from '../components/ui/Badge.jsx'
 import { useRole } from '../context/role.js'
-import { connectIntegration, createIntegration, deleteIntegration, getIntegrationRuntimeStatus, getIntegrationSyncLogs, getIntegrations, getIntegrationsByTeam, integrationProviders, syncIntegration, updateIntegration } from '../services/integrationService.js'
+import { connectIntegration, createIntegration, deleteIntegration, getIntegrationRuntimeStatus, getIntegrationSyncLogs, getIntegrationsByTeam, integrationProviders, syncIntegration, updateIntegration } from '../services/integrationService.js'
 import { extractBackendMessage, getDate, getId, valueOf } from '../services/responseNormalizer.js'
 
 const emptyConfigForm = {
@@ -55,7 +55,6 @@ function cleanPayload(payload) {
 function IntegrationsPage() {
   const { accountContext } = useRole()
   const [teamId, setTeamId] = useState(accountContext.teamId ?? '')
-  const [loadAll, setLoadAll] = useState(!accountContext.teamId)
   const [configs, setConfigs] = useState([])
   const [runtimeStatus, setRuntimeStatus] = useState(null)
   const [syncLogs, setSyncLogs] = useState([])
@@ -88,14 +87,14 @@ function IntegrationsPage() {
     setError(null)
     setActionError('')
     setActionMessage('')
-    if (!teamId && !loadAll) {
+    if (!teamId) {
       setConfigs([])
       return
     }
     setLoading(true)
     try {
       const [configRows, runtime] = await Promise.all([
-        loadAll ? getIntegrations() : getIntegrationsByTeam(teamId),
+        getIntegrationsByTeam(teamId),
         getIntegrationRuntimeStatus().catch(() => null),
       ])
       setConfigs(configRows)
@@ -248,7 +247,7 @@ function IntegrationsPage() {
       </div>
 
       <Card className="mb-5">
-        <div className="grid gap-3 lg:grid-cols-[1fr_1fr_auto_auto] lg:items-end">
+        <div className="grid gap-3 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
           <label>
             <span className="text-sm font-medium text-[var(--text)]">Team ID</span>
             <Input className="mt-2" placeholder="Paste team UUID to load configs" value={teamId} onChange={(event) => setTeamId(event.target.value)} />
@@ -257,11 +256,7 @@ function IntegrationsPage() {
             <span className="text-sm font-medium text-[var(--text)]">Search</span>
             <Input className="mt-2" placeholder="Search provider, project, config..." value={search} onChange={(event) => setSearch(event.target.value)} />
           </label>
-          <label className="flex items-center gap-2 rounded-lg border border-[var(--border)] px-4 py-3 text-sm text-[var(--text)]">
-            <input type="checkbox" checked={loadAll} onChange={(event) => setLoadAll(event.target.checked)} />
-            Load all
-          </label>
-          <Button onClick={loadConfigs} disabled={!teamId && !loadAll}>Load Integrations</Button>
+          <Button onClick={loadConfigs} disabled={!teamId}>Load Integrations</Button>
         </div>
       </Card>
 
@@ -274,7 +269,7 @@ function IntegrationsPage() {
         <Table
           columns={['Provider', 'Team', 'Project', 'Sync', 'Active', 'Updated', 'Actions']}
           rows={filteredConfigs}
-          empty={<EmptyState title={teamId || loadAll ? 'No integrations found for this scope.' : 'Enter a Team ID or load all integrations.'} description="Provider connections will appear here when they are available for the selected scope." />}
+          empty={<EmptyState title={teamId ? 'No integrations found for this team.' : 'Enter a Team ID to load integrations.'} description="Provider connections are loaded through the team-scoped integration API." />}
           renderRow={(config, index) => (
             <tr key={`${getId(config)}-${index}`}>
               <td className="px-4 py-4"><Badge>{valueOf(config, ['provider'], 'Unknown')}</Badge></td>

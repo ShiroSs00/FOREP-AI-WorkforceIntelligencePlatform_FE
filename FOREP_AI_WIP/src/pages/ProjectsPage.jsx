@@ -13,7 +13,7 @@ import Table from '../components/ui/Table.jsx'
 import Badge from '../components/ui/Badge.jsx'
 import { useRole } from '../context/role.js'
 import { useServiceData } from '../hooks/useServiceData.js'
-import { createProject, deleteProject, getProjects, getProjectsByOrganization, getProjectsByTeam, updateProject } from '../services/projectService.js'
+import { createProject, deleteProject, getProjectsByOrganization, getProjectsByTeam, updateProject } from '../services/projectService.js'
 import { extractBackendMessage, getId, getName, valueOf } from '../services/responseNormalizer.js'
 
 const emptyProject = {
@@ -57,14 +57,14 @@ function cleanProjectPayload(form) {
 function ProjectsPage() {
   const { selectedRole, accountContext } = useRole()
   const canManage = ['admin', 'manager'].includes(selectedRole)
-  const [scope, setScope] = useState(selectedRole === 'manager' ? 'team' : 'all')
+  const [scope, setScope] = useState(selectedRole === 'manager' ? 'team' : 'organization')
   const [organizationId, setOrganizationId] = useState(accountContext.organizationId ?? '')
   const [teamId, setTeamId] = useState(accountContext.teamId ?? '')
   const [search, setSearch] = useState('')
   const loadProjects = () => {
     if (scope === 'organization') return organizationId ? getProjectsByOrganization(organizationId) : Promise.resolve([])
     if (scope === 'team') return teamId ? getProjectsByTeam(teamId) : Promise.resolve([])
-    return getProjects()
+    return Promise.resolve([])
   }
   const { data: projects, loading, error, apiPending, retry } = useServiceData(loadProjects, [scope, organizationId, teamId])
   const [modalOpen, setModalOpen] = useState(false)
@@ -158,7 +158,7 @@ function ProjectsPage() {
       <Card className="mb-5">
         <div className="grid gap-3 lg:grid-cols-[1fr_170px_220px_220px] lg:items-end">
           <label><span className="text-sm font-medium text-[var(--text)]">Search</span><Input className="mt-2" placeholder="Search project, team, repository..." value={search} onChange={(event) => setSearch(event.target.value)} /></label>
-          <label><span className="text-sm font-medium text-[var(--text)]">Scope</span><Select className="mt-2" value={scope} onChange={(event) => setScope(event.target.value)}><option value="all">All projects</option><option value="organization">Organization</option><option value="team">Team</option></Select></label>
+          <label><span className="text-sm font-medium text-[var(--text)]">Scope</span><Select className="mt-2" value={scope} onChange={(event) => setScope(event.target.value)}><option value="organization">Organization</option><option value="team">Team</option></Select></label>
           <label><span className="text-sm font-medium text-[var(--text)]">Organization ID</span><Input className="mt-2" placeholder="Organization UUID" value={organizationId} onChange={(event) => setOrganizationId(event.target.value)} /></label>
           <label><span className="text-sm font-medium text-[var(--text)]">Team ID</span><Input className="mt-2" placeholder="Team UUID" value={teamId} onChange={(event) => setTeamId(event.target.value)} /></label>
         </div>
@@ -174,7 +174,7 @@ function ProjectsPage() {
         <Table
           columns={['Project', 'Team', 'Sources', 'Status', 'Actions']}
           rows={filtered}
-          empty={<EmptyState title="No projects returned from the backend." description="Create a project or adjust the selected scope." />}
+          empty={<EmptyState title={organizationId || teamId ? 'No projects found for this scope.' : 'Enter an organization or team ID to load projects.'} description="Project list uses organization/team scoped API reads because the backend does not expose a global project list endpoint." />}
           renderRow={(project, index) => (
             <tr key={`${getId(project)}-${index}`}>
               <td className="px-4 py-4"><p className="font-semibold text-[var(--text)]">{getName(project)}</p><p className="mt-1 text-xs text-[var(--muted)]">{valueOf(project, ['description'], 'No description')}</p></td>

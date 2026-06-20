@@ -3,9 +3,10 @@ import { apiClient, asArray, unwrapData, useMocks } from './apiClient.js'
 const base = '/api/v1/projects'
 
 export async function getProjects() {
-  // GET /api/v1/projects
+  // Backend currently supports POST /api/v1/projects, but not GET /api/v1/projects.
+  // Use organization/team scoped reads instead.
   if (useMocks) return []
-  return asArray(await apiClient.get(base))
+  return []
 }
 
 export async function getProjectById(id) {

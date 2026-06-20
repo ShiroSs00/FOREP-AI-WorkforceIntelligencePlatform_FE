@@ -12,9 +12,10 @@ export async function getIntegrationsByTeam(teamId) {
 }
 
 export async function getIntegrations() {
-  // GET /api/v1/integrations
+  // Backend currently supports POST /api/v1/integrations, but not GET /api/v1/integrations.
+  // Use team-scoped reads instead.
   if (useMocks) return []
-  return asArray(await apiClient.get(base))
+  return []
 }
 
 export async function createIntegration(payload) {

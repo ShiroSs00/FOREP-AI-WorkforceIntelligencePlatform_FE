@@ -91,7 +91,7 @@ function buildTaskPayload(form) {
 }
 
 function TaskPage() {
-  const { selectedRole } = useRole()
+  const { selectedRole, accountContext } = useRole()
   const canCreateTask = ['admin', 'manager'].includes(selectedRole)
   const canEditTask = ['admin', 'manager'].includes(selectedRole)
   const canDeleteTask = ['admin', 'manager'].includes(selectedRole)
@@ -101,10 +101,10 @@ function TaskPage() {
     if (projectScopeId) return getTasksByProject(projectScopeId)
     if (selectedRole === 'manager') return getManagedTeamTasks()
     if (selectedRole === 'employee') return getMyTasks()
-    if (selectedRole === 'hr') return getTasks()
-    return getTasks()
+    if (accountContext.organizationId) return getTasks()
+    return Promise.resolve([])
   }
-  const { data: tasks, loading, error, apiPending, retry } = useServiceData(loadTasks, [selectedRole, projectScopeId])
+  const { data: tasks, loading, error, apiPending, retry } = useServiceData(loadTasks, [selectedRole, projectScopeId, accountContext.organizationId])
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
   const [priority, setPriority] = useState('')
@@ -263,7 +263,7 @@ function TaskPage() {
               <span className="text-sm font-medium text-[var(--text)]">Project filter</span>
               <Input className="mt-2" placeholder="Paste Project UUID to load tasks by project" value={projectScopeId} onChange={(event) => setProjectScopeId(event.target.value)} />
             </label>
-            <p className="mt-2 text-xs text-[var(--muted)]">When a Project UUID is provided, the list narrows to tasks connected to that project.</p>
+            <p className="mt-2 text-xs text-[var(--muted)]">Admin and HR task views load safely by project scope until the global task endpoint is stable.</p>
           </div>
           <SearchAndFilterBar
             search={search}
