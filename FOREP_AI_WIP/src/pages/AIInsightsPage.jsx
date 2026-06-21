@@ -14,10 +14,10 @@ import { adoptSuggestion, getManagedTeamSuggestions, getSuggestionsByEmployee, g
 import { extractBackendMessage, getDate, getId, valueOf } from '../services/responseNormalizer.js'
 
 const pageCopy = {
-  admin: ['Platform AI Insights', 'Organization-level AI insights for the current account context.'],
-  manager: ['Team AI Insights', 'AI insights for teams you manage.'],
-  hr: ['People AI Insights', 'AI insights for People Ops workflows.'],
-  employee: ['My AI Insights', 'AI insights for your personal workspace.'],
+  admin: ['AI Insights hệ thống', 'Admin không ưu tiên insight nghiệp vụ chi tiết.'],
+  director: ['AI Insights organization', 'Insight theo organization, team hoặc project trong phạm vi quản lý.'],
+  manager: ['AI Insights team/project', 'Insight theo team, project hoặc employee trong scope được phân quyền.'],
+  employee: ['My AI Insights', 'Insight cá nhân từ dữ liệu của bạn.'],
 }
 
 function insightTitle(insight) {
@@ -57,7 +57,7 @@ function AIInsightsPage() {
   const employeeId = accountContext.employeeId
   const [apiScope, setApiScope] = useState(selectedRole === 'employee' ? 'my' : selectedRole === 'manager' ? 'managed' : organizationId ? 'organization' : 'employee')
   const [scopeValue, setScopeValue] = useState(organizationId || employeeId || '')
-  const missingOrganizationContext = ['admin', 'hr'].includes(selectedRole) && apiScope === 'organization' && !scopeValue
+  const missingOrganizationContext = ['admin', 'director'].includes(selectedRole) && apiScope === 'organization' && !scopeValue
   const loadInsights = () => {
     if (apiScope === 'my') return getMyInsights()
     if (apiScope === 'managed') return getManagedTeamInsights()

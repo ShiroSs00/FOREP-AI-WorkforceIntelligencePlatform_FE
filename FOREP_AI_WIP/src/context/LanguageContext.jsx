@@ -254,7 +254,7 @@ const dictionary = {
 function readInitialLanguage() {
   const stored = localStorage.getItem(storageKey)
   if (supportedLanguages.includes(stored)) return stored
-  return 'en'
+  return 'vi'
 }
 
 function lookup(language, key) {

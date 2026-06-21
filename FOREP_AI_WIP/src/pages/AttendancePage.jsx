@@ -14,21 +14,21 @@ import Button from '../components/ui/Button.jsx'
 import { extractBackendMessage, getDate, getId, getStatus, valueOf } from '../services/responseNormalizer.js'
 
 const pageCopy = {
-  admin: ['Attendance Overview', 'Organization attendance records for the current account context.'],
-  manager: ['Team Attendance', 'Attendance records for teams you manage.'],
-  hr: ['Attendance Management', 'People attendance records for People Ops workflows.'],
-  employee: ['My Attendance', 'Review your attendance history and check in or out.'],
+  admin: ['Chấm công hệ thống', 'Admin không vận hành chấm công nghiệp vụ.'],
+  director: ['Chấm công organization', 'Tổng quan attendance theo organization khi backend cho phép.'],
+  manager: ['Chấm công team', 'Attendance records cho team được quản lý.'],
+  employee: ['Chấm công của tôi', 'Xem lịch sử chấm công cá nhân.'],
 }
 
 function AttendancePage() {
   const { selectedRole, accountContext } = useRole()
   const organizationId = accountContext.organizationId
-  const missingOrganizationContext = ['admin', 'hr'].includes(selectedRole) && !organizationId
+  const missingOrganizationContext = ['admin', 'director'].includes(selectedRole) && !organizationId
   const loadAttendance = () => {
     if (selectedRole === 'employee') return getMyAttendanceHistory()
     if (selectedRole === 'manager') return getManagedTeamAttendance()
-    if (!organizationId) return Promise.resolve([])
-    return getAttendanceByOrganization(organizationId)
+    if (['admin', 'director'].includes(selectedRole) && organizationId) return getAttendanceByOrganization(organizationId)
+    return Promise.resolve([])
   }
   const { data: records, loading, error, apiPending, retry } = useServiceData(loadAttendance, [selectedRole, organizationId])
   const [employee, setEmployee] = useState('')

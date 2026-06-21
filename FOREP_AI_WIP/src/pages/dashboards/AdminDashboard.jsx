@@ -80,8 +80,8 @@ function AdminDashboard() {
     <>
       <PageHeader
         eyebrow="Platform Admin / Dashboard"
-        title="System overview"
-        description="Live platform summary for users, organizations, teams, tasks and workforce risk."
+        title="Tổng quan hệ thống"
+        description="Tổng quan quản trị hệ thống, tổ chức, tài khoản và trạng thái nền tảng."
         action={(
           <Button variant="secondary" onClick={loadDashboard} disabled={loading}>
             <RefreshCw size={16} />
@@ -150,17 +150,17 @@ function AdminDashboard() {
             </Card>
 
             <Card>
-              <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#0ea5e9]">Platform Admin</p>
-              <h2 className="mt-3 text-xl font-semibold text-[var(--text)]">Admin function scope</h2>
+              <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#0ea5e9]">Quản trị hệ thống</p>
+              <h2 className="mt-3 text-xl font-semibold text-[var(--text)]">Phạm vi chức năng Admin</h2>
               <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
-                Admin can manage organizations, teams, sprints, analytics, AI insights, notifications and settings with the modules currently available.
+                Admin quản lý tổ chức, tài khoản, cấu hình hệ thống, runtime status, audit log và notification hệ thống. Admin không vận hành task/team/project như Manager.
               </p>
               <div className="mt-5 grid gap-3">
                 {[
-                  ['Organizations', 'Create, update and manage tenant workspaces.'],
-                  ['Teams', 'Create teams, assign employees and inspect team members.'],
-                  ['Sprints', 'Manage sprint cycles for organization work.'],
-                  ['Dashboard', 'Review live platform totals and risk distribution.'],
+                  ['Tổ chức', 'Quản lý organization và thông tin cấu hình ở mức hệ thống.'],
+                  ['Tài khoản', 'Quản lý tài khoản người dùng khi backend cho phép.'],
+                  ['Cấu hình hệ thống', 'Kiểm tra provider, runtime status và thiết lập nền tảng.'],
+                  ['Nhật ký hệ thống', 'Theo dõi audit log và sự kiện quản trị.'],
                 ].map(([label, description]) => (
                   <div key={label} className="rounded-lg border border-[var(--border)] bg-slate-50 p-3 dark:bg-slate-900">
                     <p className="font-semibold text-[var(--text)]">{label}</p>

@@ -1,40 +1,17 @@
 import { useEffect, useState } from 'react'
-import { Bell, Plus, Search, Settings } from 'lucide-react'
+import { Bell, Search, Settings } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import NotificationDropdown from './NotificationDropdown.jsx'
 import { getNotifications, getUnreadCount } from '../../services/notificationService.js'
 import ThemeToggle from './ThemeToggle.jsx'
 import LanguageToggle from './LanguageToggle.jsx'
-import Button from '../ui/Button.jsx'
 import { useRole } from '../../context/role.js'
 import { useLanguage } from '../../context/language.js'
 import { routes } from '../../constants/routes.js'
 
-const actionRoutes = {
-  'Create Organization': routes.organizations,
-  'Invite User': routes.users,
-  'Configure Integration': routes.integrations,
-  'Create Team': routes.teams,
-  'Create Sprint': routes.sprints,
-  'Create Task': routes.tasks,
-  'Assign Employee': routes.employees,
-  'Assign Task': routes.tasks,
-  'Request Report': routes.reports,
-  'Add Employee': routes.employees,
-  'Create Leave Policy': routes.leave,
-  'Create Leave Request': routes.leave,
-  'Add Candidate': routes.recruitment,
-  'Review Leave Requests': routes.leave,
-  'Open Attendance': routes.attendance,
-  'Create Personal Task': routes.tasks,
-  'Request Leave': routes.leave,
-  'Check In': routes.attendance,
-}
-
 function TopHeader({ title }) {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
-  const [createOpen, setCreateOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
   const { roleConfig, selectedRole } = useRole()
@@ -71,19 +48,6 @@ function TopHeader({ title }) {
             <input type="search" placeholder={t(`search.${selectedRole}`, roleConfig.searchPlaceholder)} className="w-full rounded-xl border border-[var(--border)] bg-slate-50/80 py-2.5 pl-10 pr-14 text-sm text-[var(--text)] outline-none transition placeholder:text-slate-400 focus:border-[var(--accent)] focus:bg-[var(--surface)] focus:ring-4 focus:ring-sky-100 dark:bg-slate-950/70 dark:placeholder:text-slate-500 dark:focus:bg-slate-950 dark:focus:ring-sky-950" />
             <span className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded-md border border-[var(--border)] bg-[var(--surface)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--muted)] sm:inline">⌘K</span>
           </label>
-          <div className="relative">
-            <Button variant="secondary" onClick={() => setCreateOpen((value) => !value)}><Plus size={16} /> {t('common.create', 'Create')}</Button>
-            {createOpen ? (
-              <div className="absolute right-0 top-12 z-40 w-56 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2 shadow-xl">
-                {roleConfig.createActions.map((action) => (
-                  <button key={action} type="button" onClick={() => { setCreateOpen(false); navigate(actionRoutes[action] ?? routes.dashboard) }} className="w-full rounded-lg px-3 py-2 text-left text-sm text-[var(--text)] transition-colors hover:bg-slate-50 dark:hover:bg-slate-900">
-                    {action}
-                    <span className="block text-xs text-[var(--muted)]">{t('common.openRoleModule', 'Open role module')}</span>
-                  </button>
-                ))}
-              </div>
-            ) : null}
-          </div>
           <div className="relative">
             <button type="button" aria-label="Notifications" onClick={() => setOpen((value) => !value)} className="relative grid h-10 w-10 place-items-center rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--muted)] transition hover:bg-slate-50 hover:text-[var(--text)] dark:hover:bg-slate-900">
               <Bell size={18} />

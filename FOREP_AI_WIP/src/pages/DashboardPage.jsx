@@ -1,13 +1,13 @@
 import { useRole } from '../context/role.js'
 import AdminDashboard from './dashboards/AdminDashboard.jsx'
+import DirectorDashboard from './dashboards/DirectorDashboard.jsx'
 import ManagerDashboard from './dashboards/ManagerDashboard.jsx'
-import HRDashboard from './dashboards/HRDashboard.jsx'
 import EmployeeDashboard from './dashboards/EmployeeDashboard.jsx'
 
 const dashboards = {
   admin: AdminDashboard,
+  director: DirectorDashboard,
   manager: ManagerDashboard,
-  hr: HRDashboard,
   employee: EmployeeDashboard,
 }
 

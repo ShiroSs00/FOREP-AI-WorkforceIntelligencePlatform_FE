@@ -11,19 +11,19 @@ import { useServiceData } from '../hooks/useServiceData.js'
 import { getManagedTeamAttendance, getMyAttendanceHistory } from '../services/attendanceService.js'
 import { getManagedTeamLeaves, getMyLeaveHistory, getLeaveRequests } from '../services/leaveService.js'
 import { getNotifications } from '../services/notificationService.js'
-import { getManagedTeamTasks, getMyTasks, getTasks } from '../services/taskService.js'
+import { getManagedTeamTasks, getMyTasks } from '../services/taskService.js'
 import { getDate, getId, getName, valueOf } from '../services/responseNormalizer.js'
 
 const pageCopy = {
-  admin: ['Platform Event Timeline', 'Operational activity across the platform scope.'],
-  manager: ['Team Event Timeline', 'Operational activity for teams you manage.'],
-  hr: ['People Event Timeline', 'People-operation activity for workforce workflows.'],
-  employee: ['My Event Timeline', 'Your personal workflow activity.'],
+  admin: ['Nhật ký hệ thống', 'Admin xem audit/system events thay vì timeline nghiệp vụ chi tiết.'],
+  director: ['Timeline organization', 'Hoạt động vận hành trong organization theo dữ liệu đã đồng bộ.'],
+  manager: ['Timeline team/project', 'Hoạt động vận hành cho team/project được phân quyền.'],
+  employee: ['Timeline của tôi', 'Hoạt động cá nhân liên quan tới tài khoản của bạn.'],
 }
 
 async function loadOperationalTimeline(selectedRole) {
-  const taskLoader = selectedRole === 'employee' ? getMyTasks : selectedRole === 'manager' ? getManagedTeamTasks : getTasks
-  const leaveLoader = selectedRole === 'employee' ? getMyLeaveHistory : selectedRole === 'manager' ? getManagedTeamLeaves : getLeaveRequests
+  const taskLoader = selectedRole === 'employee' ? getMyTasks : selectedRole === 'manager' ? getManagedTeamTasks : () => Promise.resolve([])
+  const leaveLoader = selectedRole === 'employee' ? getMyLeaveHistory : selectedRole === 'manager' ? getManagedTeamLeaves : selectedRole === 'director' ? getLeaveRequests : () => Promise.resolve([])
   const attendanceLoader = selectedRole === 'employee' ? getMyAttendanceHistory : selectedRole === 'manager' ? getManagedTeamAttendance : () => Promise.resolve([])
 
   const results = await Promise.allSettled([

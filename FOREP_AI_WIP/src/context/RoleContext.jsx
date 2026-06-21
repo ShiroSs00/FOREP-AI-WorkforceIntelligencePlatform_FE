@@ -69,7 +69,8 @@ function resolveRoleFromAccount(account) {
       .toLowerCase()
       .replace(/^role_/, '')
       .replace(/[^a-z0-9]+/g, '_')
-    if (normalized === 'hr' || normalized.includes('human_resource') || normalized.includes('people') || normalized.includes('people_ops')) return 'hr'
+    if (normalized.includes('director') || normalized === 'hrd') return 'director'
+    if (normalized === 'hr' || normalized.includes('human_resource') || normalized.includes('people') || normalized.includes('people_ops')) return 'director'
     if (normalized.includes('admin')) return 'admin'
     if (normalized.includes('manager')) return 'manager'
     if (normalized.includes('employee') || normalized.includes('staff') || normalized === 'user') return 'employee'

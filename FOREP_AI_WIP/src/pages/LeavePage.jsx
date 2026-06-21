@@ -15,16 +15,16 @@ import { approveLeaveRequest, createLeaveRequest, getLeaveRequests, getManagedTe
 import { extractBackendMessage, getId, getStatus, valueOf } from '../services/responseNormalizer.js'
 
 const pageCopy = {
-  admin: ['Leave Policy / Overview', 'Review leave requests across the platform scope.'],
-  manager: ['Team Leave Requests', 'Review leave requests for teams you manage.'],
-  hr: ['Leave Request Management', 'Review and process People Ops leave workflows.'],
-  employee: ['My Leave Requests', 'Review and submit your leave requests.'],
+  admin: ['Nghỉ phép hệ thống', 'Admin không xử lý nghiệp vụ nghỉ phép.'],
+  director: ['Nghỉ phép organization', 'Theo dõi leave signals trong organization khi backend cho phép.'],
+  manager: ['Nghỉ phép team', 'Xem leave records cho team được quản lý.'],
+  employee: ['Nghỉ phép của tôi', 'Xem lịch sử nghỉ phép cá nhân.'],
 }
 
 function LeavePage() {
   const { selectedRole } = useRole()
-  const canCreateLeave = ['employee', 'hr'].includes(selectedRole)
-  const canApproveLeave = selectedRole === 'hr'
+  const canCreateLeave = false
+  const canApproveLeave = false
   const loadLeaves = () => {
     if (selectedRole === 'employee') return getMyLeaveHistory()
     if (selectedRole === 'manager') return getManagedTeamLeaves()

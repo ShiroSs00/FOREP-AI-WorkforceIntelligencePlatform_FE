@@ -11,10 +11,10 @@ import { getAnalyticsDashboard, getManagedTeamsWorkloadHistory, getMyAnalyticsSu
 import { getDate, getId, getName, getStatus, valueOf } from '../services/responseNormalizer.js'
 
 const pageCopy = {
-  admin: ['Platform Analytics', 'Organization workload analytics for the current account context.'],
-  manager: ['Team Analytics', 'Workload analytics for teams you manage.'],
-  hr: ['People Analytics', 'People and workload signals for People Ops workflows.'],
-  employee: ['Personal Insights', 'Your workload history and personal analytics.'],
+  admin: ['Phân tích hệ thống', 'Admin chỉ xem tổng quan hệ thống, không vận hành workload chi tiết.'],
+  director: ['Phân tích organization', 'Project health, team analytics, GitHub analytics và burnout risk trong organization.'],
+  manager: ['Workload team', 'Workload analytics cho team/project được phân quyền.'],
+  employee: ['My Workload', 'Workload và burnout risk cá nhân của bạn.'],
 }
 
 function AnalyticsPage() {
@@ -22,7 +22,7 @@ function AnalyticsPage() {
   const organizationId = accountContext.organizationId
   const [apiScope, setApiScope] = useState(selectedRole === 'employee' ? 'my' : selectedRole === 'manager' ? 'managed' : organizationId ? 'organization' : 'team')
   const [scopeValue, setScopeValue] = useState(organizationId ?? '')
-  const missingOrganizationContext = ['admin', 'hr'].includes(selectedRole) && apiScope === 'organization' && !scopeValue
+  const missingOrganizationContext = ['admin', 'director'].includes(selectedRole) && apiScope === 'organization' && !scopeValue
   const loadAnalytics = () => {
     if (apiScope === 'my') return getMyWorkloadHistory()
     if (apiScope === 'managed') return getManagedTeamsWorkloadHistory()

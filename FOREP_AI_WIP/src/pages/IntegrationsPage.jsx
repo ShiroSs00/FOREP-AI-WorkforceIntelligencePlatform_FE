@@ -55,8 +55,8 @@ function cleanPayload(payload) {
 
 function IntegrationsPage() {
   const { selectedRole, accountContext } = useRole()
-  const canTriggerSync = ['admin', 'manager'].includes(selectedRole)
-  const canSyncAll = selectedRole === 'admin'
+  const canTriggerSync = ['director', 'manager'].includes(selectedRole)
+  const canSyncAll = false
   const [teamId, setTeamId] = useState(accountContext.teamId ?? '')
   const [configs, setConfigs] = useState([])
   const [runtimeStatus, setRuntimeStatus] = useState(null)

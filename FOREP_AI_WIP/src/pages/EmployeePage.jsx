@@ -17,10 +17,10 @@ import { deleteEmployee, getEmployees, getEmployeesByOrganization, getEmployeesB
 import { extractBackendMessage, getId, getName, valueOf } from '../services/responseNormalizer.js'
 
 const pageCopy = {
-  admin: ['Users / Employees Directory', 'Manage account-linked employee profiles.'],
-  manager: ['Team Members', 'Use team scope when a team id is available, or list employee records allowed by the backend.'],
-  hr: ['Employee Directory', 'Review workforce profiles for People Ops workflows.'],
-  employee: ['My Profile', 'Employee accounts can view personal profile data.'],
+  admin: ['Tài khoản / nhân sự', 'Quản trị tài khoản ở mức hệ thống khi backend cho phép.'],
+  director: ['Nhân sự organization', 'Xem nhân sự trong organization theo quyền được cấp.'],
+  manager: ['Thành viên team', 'Xem nhân sự trong team/project được phân quyền.'],
+  employee: ['Hồ sơ của tôi', 'Nhân viên chỉ xem dữ liệu hồ sơ cá nhân.'],
 }
 
 const emptyForm = {
@@ -63,8 +63,8 @@ function buildEmployeePayload(form) {
 
 function EmployeePage() {
   const { selectedRole, accountContext } = useRole()
-  const canEditEmployee = ['admin', 'hr', 'employee'].includes(selectedRole)
-  const canDeleteEmployee = selectedRole === 'admin'
+  const canEditEmployee = false
+  const canDeleteEmployee = false
   const [scope, setScope] = useState(selectedRole === 'employee' ? 'profile' : 'all')
   const [teamId, setTeamId] = useState('')
   const [organizationId, setOrganizationId] = useState('')
@@ -78,7 +78,7 @@ function EmployeePage() {
     if (scope === 'team') return teamId ? getEmployeesByTeam(teamId) : []
     if (scope === 'organization') return organizationId ? getEmployeesByOrganization(organizationId) : []
     if (selectedRole === 'manager' && accountContext.teamId) return getEmployeesByTeam(accountContext.teamId)
-    if (['admin', 'hr'].includes(selectedRole) && accountContext.organizationId) return getEmployeesByOrganization(accountContext.organizationId)
+    if (['admin', 'director'].includes(selectedRole) && accountContext.organizationId) return getEmployeesByOrganization(accountContext.organizationId)
     return getEmployees()
   }
 
