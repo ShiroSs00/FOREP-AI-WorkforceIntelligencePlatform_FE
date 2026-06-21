@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import PageHeader from '../components/PageHeader.jsx'
-import SearchAndFilterBar from '../components/SearchAndFilterBar.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import Button from '../components/ui/Button.jsx'
 import ErrorState from '../components/ui/ErrorState.jsx'
@@ -11,7 +10,7 @@ import Select from '../components/ui/Select.jsx'
 import Table from '../components/ui/Table.jsx'
 import { useRole } from '../context/role.js'
 import { useServiceData } from '../hooks/useServiceData.js'
-import { createSprint, deleteSprint, getActiveSprints, getSprints, updateSprint } from '../services/sprintService.js'
+import { createSprint, deleteSprint, getActiveSprints, getActiveSprintsByOrganization, getSprints, getSprintsByOrganization, updateSprint } from '../services/sprintService.js'
 import { extractBackendMessage, getId, getName, getStatus, valueOf } from '../services/responseNormalizer.js'
 
 const emptySprint = {
@@ -55,9 +54,16 @@ function buildSprintPayload(form) {
 }
 
 function SprintPage() {
-  const { selectedRole } = useRole()
-  const loadSprints = () => (selectedRole === 'manager' ? getActiveSprints() : getSprints())
-  const { data: sprints, loading, error, apiPending, retry } = useServiceData(loadSprints, [selectedRole])
+  const { selectedRole, accountContext } = useRole()
+  const [scope, setScope] = useState(selectedRole === 'manager' ? 'active' : 'all')
+  const [organizationId, setOrganizationId] = useState(accountContext.organizationId ?? '')
+  const loadSprints = () => {
+    if (scope === 'organization') return organizationId ? getSprintsByOrganization(organizationId) : Promise.resolve([])
+    if (scope === 'organizationActive') return organizationId ? getActiveSprintsByOrganization(organizationId) : Promise.resolve([])
+    if (scope === 'active') return getActiveSprints()
+    return getSprints()
+  }
+  const { data: sprints, loading, error, apiPending, retry } = useServiceData(loadSprints, [selectedRole, scope, organizationId])
   const [search, setSearch] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [editingSprint, setEditingSprint] = useState(null)
@@ -125,7 +131,25 @@ function SprintPage() {
       {actionError ? <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{actionError}</p> : null}
       {!loading && !error && !apiPending ? (
         <>
-          <SearchAndFilterBar search={search} onSearchChange={setSearch} filters={[]} />
+          <div className="mb-4 grid gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4 lg:grid-cols-[1fr_220px_260px] lg:items-end">
+            <label>
+              <span className="text-sm font-medium text-[var(--text)]">Search</span>
+              <Input className="mt-2" placeholder="Search sprint, status, organization..." value={search} onChange={(event) => setSearch(event.target.value)} />
+            </label>
+            <label>
+              <span className="text-sm font-medium text-[var(--text)]">Scope</span>
+              <Select className="mt-2" value={scope} onChange={(event) => setScope(event.target.value)}>
+                <option value="all">All sprints</option>
+                <option value="active">Active sprint</option>
+                <option value="organization">Organization sprints</option>
+                <option value="organizationActive">Organization active sprint</option>
+              </Select>
+            </label>
+            <label>
+              <span className="text-sm font-medium text-[var(--text)]">Organization ID</span>
+              <Input className="mt-2" placeholder="Required for organization scope" value={organizationId} onChange={(event) => setOrganizationId(event.target.value)} />
+            </label>
+          </div>
           <Table
             columns={['Sprint', 'Status', 'Period', 'Story Points', 'Velocity Confidence', 'Organization', 'Actions']}
             rows={filteredSprints}

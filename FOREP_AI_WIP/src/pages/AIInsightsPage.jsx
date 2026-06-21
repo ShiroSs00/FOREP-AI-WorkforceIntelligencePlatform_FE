@@ -9,8 +9,8 @@ import ErrorState from '../components/ui/ErrorState.jsx'
 import LoadingState from '../components/ui/LoadingState.jsx'
 import { useRole } from '../context/role.js'
 import { useServiceData } from '../hooks/useServiceData.js'
-import { generateInsight, getAiRuntimeStatus, getInsightsByOrganization, getManagedTeamInsights, getMyInsights } from '../services/aiInsightService.js'
-import { adoptSuggestion, getManagedTeamSuggestions, getSuggestions, getSuggestionsByEmployee, getSuggestionsByOrganization } from '../services/aiSuggestionService.js'
+import { generateInsight, getAiRuntimeStatus, getInsightsByEmployee, getInsightsByOrganization, getInsightsByTeam, getManagedTeamInsights, getMyInsights } from '../services/aiInsightService.js'
+import { adoptSuggestion, getManagedTeamSuggestions, getSuggestionsByEmployee, getSuggestionsByOrganization, getSuggestionsByTeam } from '../services/aiSuggestionService.js'
 import { extractBackendMessage, getDate, getId, valueOf } from '../services/responseNormalizer.js'
 
 const pageCopy = {
@@ -45,21 +45,27 @@ function AIInsightsPage() {
   const { selectedRole, accountContext } = useRole()
   const organizationId = accountContext.organizationId
   const employeeId = accountContext.employeeId
-  const missingOrganizationContext = ['admin', 'hr'].includes(selectedRole) && !organizationId
+  const [apiScope, setApiScope] = useState(selectedRole === 'employee' ? 'my' : selectedRole === 'manager' ? 'managed' : organizationId ? 'organization' : 'employee')
+  const [scopeValue, setScopeValue] = useState(organizationId || employeeId || '')
+  const missingOrganizationContext = ['admin', 'hr'].includes(selectedRole) && apiScope === 'organization' && !scopeValue
   const loadInsights = () => {
-    if (selectedRole === 'employee') return getMyInsights()
-    if (selectedRole === 'manager') return getManagedTeamInsights()
-    if (!organizationId) return Promise.resolve([])
-    return getInsightsByOrganization(organizationId)
+    if (apiScope === 'my') return getMyInsights()
+    if (apiScope === 'managed') return getManagedTeamInsights()
+    if (apiScope === 'organization') return scopeValue ? getInsightsByOrganization(scopeValue) : Promise.resolve([])
+    if (apiScope === 'team') return scopeValue ? getInsightsByTeam(scopeValue) : Promise.resolve([])
+    if (apiScope === 'employee') return scopeValue ? getInsightsByEmployee(scopeValue) : Promise.resolve([])
+    return Promise.resolve([])
   }
-  const { data: insights, loading, error, apiPending, retry } = useServiceData(loadInsights, [selectedRole, organizationId])
+  const { data: insights, loading, error, apiPending, retry } = useServiceData(loadInsights, [selectedRole, apiScope, scopeValue])
   const loadSuggestions = () => {
-    if (selectedRole === 'employee') return employeeId ? getSuggestionsByEmployee(employeeId) : Promise.resolve([])
-    if (selectedRole === 'manager') return getManagedTeamSuggestions()
-    if (selectedRole === 'admin' || selectedRole === 'hr') return organizationId ? getSuggestionsByOrganization(organizationId) : getSuggestions()
-    return getSuggestions()
+    if (apiScope === 'my') return employeeId ? getSuggestionsByEmployee(employeeId) : Promise.resolve([])
+    if (apiScope === 'managed') return getManagedTeamSuggestions()
+    if (apiScope === 'organization') return scopeValue ? getSuggestionsByOrganization(scopeValue) : Promise.resolve([])
+    if (apiScope === 'team') return scopeValue ? getSuggestionsByTeam(scopeValue) : Promise.resolve([])
+    if (apiScope === 'employee') return scopeValue ? getSuggestionsByEmployee(scopeValue) : Promise.resolve([])
+    return Promise.resolve([])
   }
-  const { data: suggestions, loading: suggestionsLoading, error: suggestionsError, retry: retrySuggestions } = useServiceData(loadSuggestions, [selectedRole, organizationId, employeeId])
+  const { data: suggestions, loading: suggestionsLoading, error: suggestionsError, retry: retrySuggestions } = useServiceData(loadSuggestions, [selectedRole, apiScope, scopeValue, employeeId])
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
   const [severity, setSeverity] = useState('')
@@ -90,12 +96,13 @@ function AIInsightsPage() {
   const handleGenerateInsight = async () => {
     setActionError('')
     setActionMessage('')
-    if (!employeeId) {
+    const targetEmployeeId = apiScope === 'employee' ? scopeValue : employeeId
+    if (!targetEmployeeId) {
       setActionError('Employee context is required before generating an AI insight.')
       return
     }
     try {
-      const response = await generateInsight(employeeId)
+      const response = await generateInsight(targetEmployeeId)
       setActionMessage(extractBackendMessage(response, 'AI insight generated.'))
       retry()
     } catch (err) {
@@ -117,7 +124,7 @@ function AIInsightsPage() {
 
   return (
     <>
-      <PageHeader title={pageCopy[selectedRole][0]} description={pageCopy[selectedRole][1]} action={<Button disabled={!employeeId} onClick={handleGenerateInsight}>Generate Insight</Button>} />
+      <PageHeader title={pageCopy[selectedRole][0]} description={pageCopy[selectedRole][1]} action={<Button disabled={!employeeId && apiScope !== 'employee'} onClick={handleGenerateInsight}>Generate Insight</Button>} />
       {loading ? <LoadingState /> : null}
       {error ? <ErrorState title="Unable to load insights" description={error.message} status={error.status} details={error.details} onRetry={retry} /> : null}
       {suggestionsError ? <ErrorState title="Unable to load AI suggestions" description={suggestionsError.message} status={suggestionsError.status} details={suggestionsError.details} onRetry={retrySuggestions} /> : null}
@@ -130,6 +137,23 @@ function AIInsightsPage() {
           <div><p className="text-sm text-[var(--muted)]">Model</p><p className="mt-1 font-semibold text-[var(--text)]">{valueOf(runtimeStatus, ['model'], '-')}</p></div>
           <div><p className="text-sm text-[var(--muted)]">API key</p><p className="mt-1 font-semibold text-[var(--text)]">{runtimeStatus ? (valueOf(runtimeStatus, ['apiKeyConfigured'], false) ? 'Configured' : 'Missing') : '-'}</p></div>
           <div><p className="text-sm text-[var(--muted)]">RAG</p><p className="mt-1 font-semibold text-[var(--text)]">{runtimeStatus ? (valueOf(runtimeStatus, ['ragEnabled'], false) ? 'Enabled' : 'Disabled') : '-'}</p></div>
+        </div>
+        <div className="mt-5 grid gap-3 border-t border-[var(--border)] pt-4 lg:grid-cols-[220px_1fr_auto] lg:items-end">
+          <label>
+            <span className="text-sm font-medium text-[var(--text)]">API scope</span>
+            <select className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[var(--text)]" value={apiScope} onChange={(event) => { setApiScope(event.target.value); setScopeValue(event.target.value === 'organization' ? organizationId ?? '' : event.target.value === 'employee' ? employeeId ?? '' : '') }}>
+              <option value="my">My insights</option>
+              <option value="managed">Managed teams</option>
+              <option value="organization">Organization ID</option>
+              <option value="team">Team ID</option>
+              <option value="employee">Employee ID</option>
+            </select>
+          </label>
+          <label>
+            <span className="text-sm font-medium text-[var(--text)]">Scope value</span>
+            <input className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[var(--text)]" disabled={['my', 'managed'].includes(apiScope)} placeholder={['my', 'managed'].includes(apiScope) ? 'No value required' : 'Paste UUID'} value={scopeValue} onChange={(event) => setScopeValue(event.target.value)} />
+          </label>
+          <Button variant="secondary" onClick={() => { retry(); retrySuggestions() }}>Load AI Data</Button>
         </div>
       </Card>
       {!loading && !error && !apiPending && missingOrganizationContext ? <EmptyState title="Required user or organization context is not available yet." description="Organization-scoped AI insights will load after the backend provides organization context for the signed-in user." /> : null}

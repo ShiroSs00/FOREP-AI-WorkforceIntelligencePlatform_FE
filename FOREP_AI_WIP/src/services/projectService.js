@@ -1,4 +1,4 @@
-import { apiClient, asArray, unwrapData, useMocks } from './apiClient.js'
+import { ApiError, apiClient, asArray, unwrapData, useMocks } from './apiClient.js'
 
 const base = '/api/v1/projects'
 
@@ -28,9 +28,9 @@ export async function updateProject(id, payload) {
 }
 
 export async function deleteProject(id) {
-  // DELETE /api/v1/projects/{id}
+  // Swagger does not expose DELETE /api/v1/projects/{id}; keep this explicit so the UI never fakes deletion.
   if (useMocks) return { id }
-  return apiClient.delete(`${base}/${id}`)
+  throw new ApiError('Project delete is not available in the backend API yet.', 405, { method: 'DELETE', path: `${base}/${id}` })
 }
 
 export async function getProjectsByOrganization(organizationId) {

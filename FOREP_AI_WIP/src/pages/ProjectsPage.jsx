@@ -13,7 +13,7 @@ import Table from '../components/ui/Table.jsx'
 import Badge from '../components/ui/Badge.jsx'
 import { useRole } from '../context/role.js'
 import { useServiceData } from '../hooks/useServiceData.js'
-import { createProject, deleteProject, getProjectsByOrganization, getProjectsByTeam, updateProject } from '../services/projectService.js'
+import { createProject, getProjectsByOrganization, getProjectsByTeam, updateProject } from '../services/projectService.js'
 import { extractBackendMessage, getId, getName, valueOf } from '../services/responseNormalizer.js'
 
 const emptyProject = {
@@ -123,18 +123,6 @@ function ProjectsPage() {
     }
   }
 
-  const removeProject = async (project) => {
-    setActionError('')
-    setActionMessage('')
-    try {
-      const response = await deleteProject(getId(project))
-      setActionMessage(extractBackendMessage(response, 'Project deleted.'))
-      retry()
-    } catch (err) {
-      setActionError(err.message)
-    }
-  }
-
   return (
     <>
       <PageHeader
@@ -181,7 +169,7 @@ function ProjectsPage() {
               <td className="px-4 py-4 text-[var(--muted)]">{valueOf(project, ['teamName', 'teamId'], 'No team')}</td>
               <td className="px-4 py-4 text-[var(--muted)]"><p>{valueOf(project, ['githubRepository'], 'No GitHub repo')}</p><p>{valueOf(project, ['jiraDomain'], '-')}/{valueOf(project, ['jiraProjectKey'], '-')}</p></td>
               <td className="px-4 py-4"><Badge tone={valueOf(project, ['active'], false) ? 'Success' : 'Info'}>{valueOf(project, ['active'], false) ? 'ACTIVE' : 'INACTIVE'}</Badge></td>
-              <td className="px-4 py-4"><div className="flex gap-2">{canManage ? <Button variant="secondary" onClick={() => openEdit(project)}>Edit</Button> : null}{canManage ? <Button variant="ghost" onClick={() => removeProject(project)}>Delete</Button> : null}</div></td>
+              <td className="px-4 py-4"><div className="flex gap-2">{canManage ? <Button variant="secondary" onClick={() => openEdit(project)}>Edit</Button> : null}</div></td>
             </tr>
           )}
         />

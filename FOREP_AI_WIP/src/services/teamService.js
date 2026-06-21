@@ -47,15 +47,15 @@ export async function requestTeamMembership(teamId) {
 }
 
 export async function approveMembership(membershipId) {
-  // PUT /api/v1/teams/memberships/{membershipId}/approve
+  // POST /api/v1/teams/memberships/{membershipId}/approve
   if (useMocks) return { membershipId, status: 'APPROVED' }
-  return unwrapData(await apiClient.put(`${base}/memberships/${membershipId}/approve`))
+  return unwrapData(await apiClient.post(`${base}/memberships/${membershipId}/approve`))
 }
 
 export async function endActiveMembership(employeeId) {
-  // PUT /api/v1/teams/members/{employeeId}/end-active
+  // POST /api/v1/teams/members/{employeeId}/end-active
   if (useMocks) return { employeeId, status: 'ENDED' }
-  return unwrapData(await apiClient.put(`${base}/members/${employeeId}/end-active`))
+  return unwrapData(await apiClient.post(`${base}/members/${employeeId}/end-active`))
 }
 
 export async function getTeamMembers(teamId) {

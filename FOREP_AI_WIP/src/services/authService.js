@@ -1,4 +1,4 @@
-import { apiClient, tokenStorageKey, unwrapData, useMocks } from './apiClient.js'
+import { apiBaseURL, apiClient, tokenStorageKey, unwrapData, useMocks } from './apiClient.js'
 import { extractToken, extractUser } from './responseNormalizer.js'
 
 function decodeJwtPayload(token) {
@@ -98,4 +98,9 @@ export async function getOAuth2LoginLinks() {
   // GET /api/v1/auth/oauth2/links
   if (useMocks) return { google: '', github: '', jira: '' }
   return unwrapData(await apiClient.get('/api/v1/auth/oauth2/links'))
+}
+
+export function getOAuth2RedirectUrl(provider) {
+  // GET /api/v1/auth/oauth2/{provider}
+  return `${apiBaseURL.replace(/\/$/, '')}/api/v1/auth/oauth2/${provider}`
 }

@@ -13,7 +13,7 @@ import Select from '../components/ui/Select.jsx'
 import Table from '../components/ui/Table.jsx'
 import { useRole } from '../context/role.js'
 import { useServiceData } from '../hooks/useServiceData.js'
-import { assessTask, createTask, deleteTask, getManagedTeamTasks, getMyTasks, getTasks, getTasksByProject, updateTask, updateTaskStatus } from '../services/taskService.js'
+import { assessTask, createTask, deleteTask, getManagedTeamTasks, getMyTasks, getTasksByEmployee, getTasksByOrganization, getTasksByProject, getTasksByReporter, getTasksBySprint, getTasksByStatus, getTasksByTeam, updateTask, updateTaskStatus } from '../services/taskService.js'
 import { createTaskComment, deleteTaskComment, getTaskComments } from '../services/taskCommentService.js'
 import { extractBackendMessage, getDate, getId, getName, getStatus, valueOf } from '../services/responseNormalizer.js'
 
@@ -96,15 +96,21 @@ function TaskPage() {
   const canEditTask = ['admin', 'manager'].includes(selectedRole)
   const canDeleteTask = ['admin', 'manager'].includes(selectedRole)
   const canChangeStatus = ['admin', 'manager', 'employee'].includes(selectedRole)
-  const [projectScopeId, setProjectScopeId] = useState('')
+  const [apiScope, setApiScope] = useState(selectedRole === 'manager' ? 'managed' : selectedRole === 'employee' ? 'my' : 'project')
+  const [scopeValue, setScopeValue] = useState('')
   const loadTasks = () => {
-    if (projectScopeId) return getTasksByProject(projectScopeId)
-    if (selectedRole === 'manager') return getManagedTeamTasks()
-    if (selectedRole === 'employee') return getMyTasks()
-    if (accountContext.organizationId) return getTasks()
+    if (apiScope === 'my') return getMyTasks()
+    if (apiScope === 'managed') return getManagedTeamTasks()
+    if (apiScope === 'project') return scopeValue ? getTasksByProject(scopeValue) : Promise.resolve([])
+    if (apiScope === 'team') return scopeValue ? getTasksByTeam(scopeValue) : Promise.resolve([])
+    if (apiScope === 'status') return scopeValue ? getTasksByStatus(scopeValue) : Promise.resolve([])
+    if (apiScope === 'sprint') return scopeValue ? getTasksBySprint(scopeValue) : Promise.resolve([])
+    if (apiScope === 'reporter') return scopeValue ? getTasksByReporter(scopeValue) : Promise.resolve([])
+    if (apiScope === 'organization') return scopeValue ? getTasksByOrganization(scopeValue) : Promise.resolve([])
+    if (apiScope === 'employee') return scopeValue ? getTasksByEmployee(scopeValue) : Promise.resolve([])
     return Promise.resolve([])
   }
-  const { data: tasks, loading, error, apiPending, retry } = useServiceData(loadTasks, [selectedRole, projectScopeId, accountContext.organizationId])
+  const { data: tasks, loading, error, apiPending, retry } = useServiceData(loadTasks, [selectedRole, apiScope, scopeValue, accountContext.organizationId])
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
   const [priority, setPriority] = useState('')
@@ -258,12 +264,34 @@ function TaskPage() {
       {actionError ? <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{actionError}</p> : null}
       {!loading && !error && !apiPending ? (
         <>
-          <div className="mb-4 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
+          <div className="mb-4 grid gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4 lg:grid-cols-[220px_1fr_auto] lg:items-end">
             <label>
-              <span className="text-sm font-medium text-[var(--text)]">Project filter</span>
-              <Input className="mt-2" placeholder="Paste Project UUID to load tasks by project" value={projectScopeId} onChange={(event) => setProjectScopeId(event.target.value)} />
+              <span className="text-sm font-medium text-[var(--text)]">API scope</span>
+              <Select className="mt-2" value={apiScope} onChange={(event) => { setApiScope(event.target.value); setScopeValue('') }}>
+                <option value="my">My tasks</option>
+                <option value="managed">Managed teams</option>
+                <option value="project">Project ID</option>
+                <option value="team">Team ID</option>
+                <option value="status">Status</option>
+                <option value="sprint">Sprint ID</option>
+                <option value="reporter">Reporter ID</option>
+                <option value="organization">Organization ID</option>
+                <option value="employee">Employee ID</option>
+              </Select>
             </label>
-            <p className="mt-2 text-xs text-[var(--muted)]">Admin and HR task views load safely by project scope until the global task endpoint is stable.</p>
+            <label>
+              <span className="text-sm font-medium text-[var(--text)]">Scope value</span>
+              {apiScope === 'status' ? (
+                <Select className="mt-2" value={scopeValue} onChange={(event) => setScopeValue(event.target.value)}>
+                  <option value="">Choose status</option>
+                  {statusOptions.map((item) => <option key={item}>{item}</option>)}
+                </Select>
+              ) : (
+                <Input className="mt-2" disabled={['my', 'managed'].includes(apiScope)} placeholder={['my', 'managed'].includes(apiScope) ? 'No value required' : 'Paste UUID'} value={scopeValue} onChange={(event) => setScopeValue(event.target.value)} />
+              )}
+            </label>
+            <Button variant="secondary" onClick={retry}>Load Tasks</Button>
+            <p className="text-xs text-[var(--muted)] lg:col-span-3">Global task list is intentionally not used because backend currently returns 500 for GET /api/v1/tasks. Use scoped endpoints above.</p>
           </div>
           <SearchAndFilterBar
             search={search}

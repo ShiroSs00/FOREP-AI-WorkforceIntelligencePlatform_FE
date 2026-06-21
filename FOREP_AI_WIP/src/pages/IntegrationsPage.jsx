@@ -12,6 +12,7 @@ import Select from '../components/ui/Select.jsx'
 import Table from '../components/ui/Table.jsx'
 import Badge from '../components/ui/Badge.jsx'
 import { useRole } from '../context/role.js'
+import { getOAuth2LoginLinks, getOAuth2RedirectUrl } from '../services/authService.js'
 import { connectIntegration, createIntegration, deleteIntegration, getIntegrationRuntimeStatus, getIntegrationSyncLogs, getIntegrationsByTeam, integrationProviders, syncIntegration, updateIntegration } from '../services/integrationService.js'
 import { extractBackendMessage, getDate, getId, valueOf } from '../services/responseNormalizer.js'
 
@@ -57,6 +58,7 @@ function IntegrationsPage() {
   const [teamId, setTeamId] = useState(accountContext.teamId ?? '')
   const [configs, setConfigs] = useState([])
   const [runtimeStatus, setRuntimeStatus] = useState(null)
+  const [oauthLinks, setOauthLinks] = useState(null)
   const [syncLogs, setSyncLogs] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -104,6 +106,16 @@ function IntegrationsPage() {
       setError(err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadOAuthLinks = async () => {
+    setActionError('')
+    try {
+      setOauthLinks(await getOAuth2LoginLinks())
+    } catch (err) {
+      setActionError(err.message)
+      setOauthLinks(null)
     }
   }
 
@@ -245,6 +257,35 @@ function IntegrationsPage() {
           <p className="mt-2 text-lg font-bold text-[var(--text)]">{runtimeStatus ? `${valueOf(runtimeStatus, ['activeConfigCount'], 0)} active / ${valueOf(runtimeStatus, ['failedConfigCount'], 0)} failed` : 'Not loaded'}</p>
         </Card>
       </div>
+
+      <Card className="mb-5">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="font-semibold text-[var(--text)]">OAuth provider links</h2>
+            <p className="mt-1 text-sm text-[var(--muted)]">Load backend-provided OAuth URLs for GitHub, Google and Jira connection flows.</p>
+          </div>
+          <Button variant="secondary" onClick={loadOAuthLinks}>Load OAuth Links</Button>
+        </div>
+        {oauthLinks ? (
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            {['github', 'google', 'jira'].map((provider) => {
+              const url = valueOf(oauthLinks, [provider, `${provider}Url`, `${provider}LoginUrl`], '')
+              return (
+                <a
+                  key={provider}
+                  className="rounded-lg border border-[var(--border)] bg-slate-50 px-4 py-3 text-sm font-semibold capitalize text-[var(--text)] transition-colors hover:border-sky-300 hover:text-sky-600 dark:bg-slate-900"
+                  href={url || getOAuth2RedirectUrl(provider)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {provider} OAuth
+                  <span className="mt-1 block truncate text-xs font-normal text-[var(--muted)]">{url || 'Backend redirect endpoint'}</span>
+                </a>
+              )
+            })}
+          </div>
+        ) : null}
+      </Card>
 
       <Card className="mb-5">
         <div className="grid gap-3 lg:grid-cols-[1fr_1fr_auto] lg:items-end">

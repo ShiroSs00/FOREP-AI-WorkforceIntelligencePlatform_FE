@@ -11,7 +11,7 @@ export async function generateMockWorkloadHistory(employeeId) {
 export async function getWorkloadHistory(employeeId) {
   // GET /api/v1/analytics/workload-history/{employeeId}
   if (useMocks) return mockData.analyticsSummary
-  return apiClient.get(`${workloadBase}/${employeeId}`)
+  return asArray(await apiClient.get(`${workloadBase}/${employeeId}`))
 }
 
 export async function getTeamWorkloadHistory(teamId) {
