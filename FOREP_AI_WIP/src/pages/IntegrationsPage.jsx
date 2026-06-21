@@ -13,7 +13,7 @@ import Table from '../components/ui/Table.jsx'
 import Badge from '../components/ui/Badge.jsx'
 import { useRole } from '../context/role.js'
 import { getOAuth2LoginLinks, getOAuth2RedirectUrl } from '../services/authService.js'
-import { connectIntegration, createIntegration, deleteIntegration, getIntegrationRuntimeStatus, getIntegrationSyncLogs, getIntegrationsByTeam, integrationProviders, syncIntegration, updateIntegration } from '../services/integrationService.js'
+import { connectIntegration, createIntegration, deleteIntegration, getIntegrationRuntimeStatus, getIntegrationSyncLogs, getIntegrationsByTeam, integrationProviders, syncAllIntegrations, syncIntegration, updateIntegration } from '../services/integrationService.js'
 import { extractBackendMessage, getDate, getId, valueOf } from '../services/responseNormalizer.js'
 
 const emptyConfigForm = {
@@ -54,7 +54,9 @@ function cleanPayload(payload) {
 }
 
 function IntegrationsPage() {
-  const { accountContext } = useRole()
+  const { selectedRole, accountContext } = useRole()
+  const canTriggerSync = ['admin', 'manager'].includes(selectedRole)
+  const canSyncAll = selectedRole === 'admin'
   const [teamId, setTeamId] = useState(accountContext.teamId ?? '')
   const [configs, setConfigs] = useState([])
   const [runtimeStatus, setRuntimeStatus] = useState(null)
@@ -191,6 +193,18 @@ function IntegrationsPage() {
     }
   }
 
+  const syncEveryActiveIntegration = async () => {
+    setActionError('')
+    setActionMessage('')
+    try {
+      const response = await syncAllIntegrations()
+      setActionMessage(extractBackendMessage(response, 'Sync started for all active integrations.'))
+      await loadConfigs()
+    } catch (err) {
+      setActionError(err.message)
+    }
+  }
+
   const viewLogs = async (config) => {
     setActionError('')
     setActionMessage('')
@@ -231,6 +245,7 @@ function IntegrationsPage() {
         action={(
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" onClick={loadConfigs}><RefreshCw size={16} />Refresh</Button>
+            {canSyncAll ? <Button variant="secondary" onClick={syncEveryActiveIntegration}>Sync All</Button> : null}
             <Button variant="secondary" onClick={openConnect}>Connect Provider</Button>
             <Button onClick={openCreate}><Plus size={16} />Create Config</Button>
           </div>
@@ -321,7 +336,7 @@ function IntegrationsPage() {
               <td className="px-4 py-4 text-[var(--muted)]">{valueOf(config, ['updatedAt', 'createdAt'], getDate(config))}</td>
               <td className="px-4 py-4">
                 <div className="flex flex-wrap gap-2">
-                  <Button variant="secondary" onClick={() => syncConfig(config)}>Sync</Button>
+                  {canTriggerSync ? <Button variant="secondary" onClick={() => syncConfig(config)}>Sync</Button> : null}
                   <Button variant="secondary" onClick={() => viewLogs(config)}>Logs</Button>
                   <Button variant="secondary" onClick={() => openEdit(config)}>Edit</Button>
                   <Button variant="ghost" onClick={() => removeConfig(config)}>Delete</Button>
@@ -337,8 +352,8 @@ function IntegrationsPage() {
           <h2 className="font-semibold text-[var(--text)]">Sync logs</h2>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="text-xs uppercase text-[var(--muted)]"><tr><th className="py-2">Started</th><th>Status</th><th>Provider</th><th>Message</th><th>Finished</th></tr></thead>
-              <tbody>{syncLogs.map((log, index) => <tr key={`${getId(log)}-${index}`} className="border-t border-[var(--border)]"><td className="py-3 text-[var(--muted)]">{valueOf(log, ['startedAt'], '-')}</td><td><Badge>{valueOf(log, ['status'], 'UNKNOWN')}</Badge></td><td>{valueOf(log, ['provider'], '-')}</td><td className="text-[var(--muted)]">{valueOf(log, ['message'], '-')}</td><td className="text-[var(--muted)]">{valueOf(log, ['finishedAt'], '-')}</td></tr>)}</tbody>
+              <thead className="text-xs uppercase text-[var(--muted)]"><tr><th className="py-2">Started</th><th>Status</th><th>Provider</th><th>Error / Message</th><th>Counters</th><th>Finished</th></tr></thead>
+              <tbody>{syncLogs.map((log, index) => <tr key={`${getId(log)}-${index}`} className="border-t border-[var(--border)]"><td className="py-3 text-[var(--muted)]">{valueOf(log, ['startedAt'], '-')}</td><td><Badge>{valueOf(log, ['status'], 'UNKNOWN')}</Badge></td><td>{valueOf(log, ['provider'], '-')}</td><td className="text-[var(--muted)]">{valueOf(log, ['errorMessage', 'message'], '-')}</td><td className="text-[var(--muted)]">{valueOf(log, ['totalFetched'], 0)} fetched / {valueOf(log, ['totalCreated'], 0)} created / {valueOf(log, ['totalUpdated'], 0)} updated</td><td className="text-[var(--muted)]">{valueOf(log, ['finishedAt'], '-')}</td></tr>)}</tbody>
             </table>
           </div>
         </Card>

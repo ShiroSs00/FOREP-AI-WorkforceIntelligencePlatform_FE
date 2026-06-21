@@ -9,7 +9,7 @@ import ErrorState from '../components/ui/ErrorState.jsx'
 import LoadingState from '../components/ui/LoadingState.jsx'
 import { useRole } from '../context/role.js'
 import { useServiceData } from '../hooks/useServiceData.js'
-import { generateInsight, getAiRuntimeStatus, getInsightsByEmployee, getInsightsByOrganization, getInsightsByTeam, getManagedTeamInsights, getMyInsights } from '../services/aiInsightService.js'
+import { generateInsight, getAiRuntimeStatus, getInsightsByEmployee, getInsightsByOrganization, getInsightsByProject, getInsightsByTeam, getManagedTeamInsights, getMyInsights } from '../services/aiInsightService.js'
 import { adoptSuggestion, getManagedTeamSuggestions, getSuggestionsByEmployee, getSuggestionsByOrganization, getSuggestionsByTeam } from '../services/aiSuggestionService.js'
 import { extractBackendMessage, getDate, getId, valueOf } from '../services/responseNormalizer.js'
 
@@ -41,6 +41,16 @@ function formatConfidence(value) {
   return numeric <= 1 ? `${Math.round(numeric * 100)}%` : `${numeric}%`
 }
 
+function parseFullAnalysis(value) {
+  if (!value) return null
+  if (typeof value === 'object') return value
+  try {
+    return JSON.parse(value)
+  } catch {
+    return null
+  }
+}
+
 function AIInsightsPage() {
   const { selectedRole, accountContext } = useRole()
   const organizationId = accountContext.organizationId
@@ -53,6 +63,7 @@ function AIInsightsPage() {
     if (apiScope === 'managed') return getManagedTeamInsights()
     if (apiScope === 'organization') return scopeValue ? getInsightsByOrganization(scopeValue) : Promise.resolve([])
     if (apiScope === 'team') return scopeValue ? getInsightsByTeam(scopeValue) : Promise.resolve([])
+    if (apiScope === 'project') return scopeValue ? getInsightsByProject(scopeValue) : Promise.resolve([])
     if (apiScope === 'employee') return scopeValue ? getInsightsByEmployee(scopeValue) : Promise.resolve([])
     return Promise.resolve([])
   }
@@ -131,6 +142,7 @@ function AIInsightsPage() {
       {apiPending ? <ErrorState description="Connect AI insight APIs to display generated insights." onRetry={retry} /> : null}
       {actionMessage ? <p className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">{actionMessage}</p> : null}
       {actionError ? <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{actionError}</p> : null}
+      {runtimeStatus && valueOf(runtimeStatus, ['apiKeyConfigured'], true) === false ? <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">AI provider key is not configured. Insight generation may fail until backend AI configuration is completed.</p> : null}
       <Card className="mb-5">
         <div className="grid gap-3 md:grid-cols-4">
           <div><p className="text-sm text-[var(--muted)]">AI provider</p><p className="mt-1 font-semibold text-[var(--text)]">{valueOf(runtimeStatus, ['provider'], runtimeError || 'Not loaded')}</p></div>
@@ -146,6 +158,7 @@ function AIInsightsPage() {
               <option value="managed">Managed teams</option>
               <option value="organization">Organization ID</option>
               <option value="team">Team ID</option>
+              <option value="project">Project ID</option>
               <option value="employee">Employee ID</option>
             </select>
           </label>
@@ -163,7 +176,12 @@ function AIInsightsPage() {
             { label: 'All categories', value: category, onChange: setCategory, options: [...new Set(insights.map((item) => valueOf(item, ['category', 'insightType'], '')).filter(Boolean))] },
             { label: 'All severity', value: severity, onChange: setSeverity, options: [...new Set(insights.map((item) => valueOf(item, ['severity'], '')).filter(Boolean))] },
           ]} />
-          <div className="grid gap-4 lg:grid-cols-2">{filtered.map((insight, index) => <Card key={`${getId(insight)}-${index}`} className="page-animate opacity-0"><div className="flex flex-wrap gap-2"><Badge>{valueOf(insight, ['insightType'], 'General')}</Badge><Badge>{valueOf(insight, ['severity'], 'Info')}</Badge></div><h2 className="mt-4 font-semibold text-[var(--text)]">{insightTitle(insight)}</h2><p className="mt-2 text-sm text-[var(--muted)]">{valueOf(insight, ['fullAnalysis'], 'No analysis returned by the backend yet.')}</p><div className="mt-4 grid gap-3 rounded-lg bg-slate-50 p-4 text-sm text-[var(--text)] dark:bg-slate-900 sm:grid-cols-2"><span>Confidence: {formatConfidence(valueOf(insight, ['confidenceScore'], '-'))}</span><span>Employee: {valueOf(insight, ['employee', 'employeeName'], 'Not scoped')}</span><span>Team: {valueOf(insight, ['team', 'teamName'], 'Not scoped')}</span><span>Affected: {valueOf(insight, ['affectedEmployeeIds'], 'None')}</span></div><p className="mt-3 text-xs text-[var(--muted)]">{getDate(insight)}</p></Card>)}</div>
+          <div className="grid gap-4 lg:grid-cols-2">{filtered.map((insight, index) => {
+            const analysis = parseFullAnalysis(valueOf(insight, ['fullAnalysis'], null))
+            const reasons = Array.isArray(analysis?.reasons) ? analysis.reasons : []
+            const recommendations = Array.isArray(analysis?.recommendations) ? analysis.recommendations : []
+            return <Card key={`${getId(insight)}-${index}`} className="page-animate opacity-0"><div className="flex flex-wrap gap-2"><Badge>{valueOf(insight, ['insightType'], 'General')}</Badge><Badge>{analysis?.riskLevel || valueOf(insight, ['severity'], 'Info')}</Badge></div><h2 className="mt-4 font-semibold text-[var(--text)]">{analysis?.summary || insightTitle(insight)}</h2><p className="mt-2 text-sm text-[var(--muted)]">{analysis ? 'Structured AI analysis returned by the backend.' : valueOf(insight, ['fullAnalysis'], 'No analysis returned by the backend yet.')}</p>{reasons.length ? <div className="mt-4"><p className="text-sm font-semibold text-[var(--text)]">Reasons</p><ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-[var(--muted)]">{reasons.map((item, reasonIndex) => <li key={reasonIndex}>{item}</li>)}</ul></div> : null}{recommendations.length ? <div className="mt-4"><p className="text-sm font-semibold text-[var(--text)]">Recommendations</p><ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-[var(--muted)]">{recommendations.map((item, recommendationIndex) => <li key={recommendationIndex}>{item}</li>)}</ul></div> : null}<div className="mt-4 grid gap-3 rounded-lg bg-slate-50 p-4 text-sm text-[var(--text)] dark:bg-slate-900 sm:grid-cols-2"><span>Confidence: {formatConfidence(valueOf(insight, ['confidenceScore'], '-'))}</span><span>Employee: {valueOf(insight, ['employee', 'employeeName'], 'Not scoped')}</span><span>Team: {valueOf(insight, ['team', 'teamName'], 'Not scoped')}</span><span>Project: {valueOf(insight, ['projectName', 'project'], 'Not scoped')}</span></div><p className="mt-3 text-xs text-[var(--muted)]">{getDate(insight)}</p></Card>
+          })}</div>
           {!filtered.length ? <EmptyState title="No AI insights available." /> : null}
           <div className="mt-8">
             <h2 className="mb-4 text-lg font-semibold text-[var(--text)]">AI Suggestions</h2>

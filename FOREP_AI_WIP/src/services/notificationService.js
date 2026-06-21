@@ -11,6 +11,12 @@ export async function getNotifications() {
   return asArray(await apiClient.get(base))
 }
 
+export async function getAdminNotifications() {
+  // GET /api/v1/notifications/admin/all
+  if (useMocks) return mockData.notifications
+  return asArray(await apiClient.get(`${base}/admin/all`))
+}
+
 export async function getUnreadNotifications() {
   // GET /api/v1/notifications/unread
   if (useMocks) return mockData.notifications.filter((item) => !item.read)

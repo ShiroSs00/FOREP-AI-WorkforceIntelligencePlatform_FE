@@ -33,6 +33,12 @@ export async function getInsightsByOrganization(organizationId) {
   return asArray(await apiClient.get(`${base}/insights/organization/${requireId(organizationId, 'Organization id')}`))
 }
 
+export async function getInsightsByProject(projectId) {
+  // GET /api/v1/ai/insights/project/{projectId}
+  if (useMocks) return mockData.aiInsights
+  return asArray(await apiClient.get(`${base}/insights/project/${requireId(projectId, 'Project id')}`))
+}
+
 export async function getMyInsights() {
   // GET /api/v1/ai/insights/my-insights
   if (useMocks) return mockData.aiInsights.slice(0, 3)

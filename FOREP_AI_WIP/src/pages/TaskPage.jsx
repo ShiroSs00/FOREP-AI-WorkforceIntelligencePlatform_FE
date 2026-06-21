@@ -309,7 +309,7 @@ function TaskPage() {
             empty={<EmptyState title="No tasks found." description="No task records are available for the current role." />}
             renderRow={(task, index) => (
               <tr key={`${getId(task)}-${index}`}>
-                <td className="px-4 py-4"><p className="font-semibold text-[var(--text)]">{getName(task)}</p><p className="mt-1 text-xs text-[var(--muted)]">{valueOf(task, ['description'], 'No description')}</p><p className="mt-1 text-xs text-[var(--muted)]">{valueOf(task, ['assessmentSummary'], '')}</p></td>
+                <td className="px-4 py-4"><div className="flex flex-wrap items-center gap-2"><p className="font-semibold text-[var(--text)]">{getName(task)}</p>{valueOf(task, ['externalDeleted'], false) ? <Badge tone="Warning">External deleted</Badge> : null}</div><p className="mt-1 text-xs text-[var(--muted)]">{valueOf(task, ['description'], 'No description')}</p><p className="mt-1 text-xs text-[var(--muted)]">{valueOf(task, ['assessmentSummary'], '')}</p></td>
                 <td className="px-4 py-4 text-[var(--muted)]">{valueOf(task, ['projectName', 'project'], 'No project')}</td>
                 <td className="px-4 py-4 text-[var(--muted)]">{valueOf(task, ['assigneeName', 'assignee', 'assignedTo', 'employee', 'employeeName'], 'Not assigned')}</td>
                 <td className="px-4 py-4"><Badge>{valueOf(task, ['sourceProvider'], 'INTERNAL')}</Badge><p className="mt-1 text-xs text-[var(--muted)]">{valueOf(task, ['externalTicketRef'], '')}</p></td>

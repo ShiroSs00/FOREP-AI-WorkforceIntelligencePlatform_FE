@@ -2,7 +2,8 @@ import { apiClient, asArray, unwrapData, useMocks } from './apiClient.js'
 
 const base = '/api/v1/integrations'
 
-export const integrationProviders = ['INTERNAL', 'GITHUB', 'JIRA', 'GMAIL']
+export const integrationProviders = ['INTERNAL', 'GITHUB', 'JIRA']
+export const integrationSyncStatuses = ['RUNNING', 'SUCCESS', 'FAILED']
 
 export async function getIntegrationsByTeam(teamId) {
   // GET /api/v1/integrations/team/{teamId}
@@ -40,6 +41,12 @@ export async function syncIntegration(id) {
   // POST /api/v1/integrations/{id}/sync
   if (useMocks) return { message: 'Mock sync completed.' }
   return apiClient.post(`${base}/${id}/sync`)
+}
+
+export async function syncAllIntegrations() {
+  // POST /api/v1/integrations/sync
+  if (useMocks) return { message: 'Mock sync-all completed.' }
+  return apiClient.post(`${base}/sync`)
 }
 
 export async function getIntegrationSyncLogs(id) {
