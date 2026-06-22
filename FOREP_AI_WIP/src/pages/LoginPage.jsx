@@ -7,8 +7,9 @@ import { getCurrentUser, getOAuth2LoginLinks, isAuthenticated, login } from '../
 import LanguageToggle from '../components/app/LanguageToggle.jsx'
 
 function getLoginMessage(error) {
-  if (error?.status === 0) return 'Backend API is unavailable or waking up. Please retry in a moment.'
-  return error?.message || 'Unable to sign in. Please check your email and password.'
+  if (error?.status === 0) return 'Không thể kết nối máy chủ. Vui lòng thử lại sau ít phút.'
+  if (error?.status === 401 || error?.status === 403) return 'Email hoặc mật khẩu không đúng, hoặc tài khoản chưa được cấp quyền.'
+  return error?.message || 'Không thể đăng nhập. Vui lòng kiểm tra email và mật khẩu.'
 }
 
 function LoginPage() {
@@ -80,8 +81,8 @@ function LoginPage() {
           </Link>
           <LanguageToggle />
         </div>
-        <h1 className="text-3xl font-bold tracking-normal text-[var(--text)]">{t('auth.welcomeBack', 'Welcome back')}</h1>
-        <p className="mt-2 text-sm text-[var(--muted)]">{t('auth.loginDescription', 'Sign in to continue to your workforce intelligence workspace.')}</p>
+        <h1 className="text-3xl font-bold tracking-normal text-[var(--text)]">Chào mừng quay lại</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">Đăng nhập để tiếp tục vào workspace FOREP của tổ chức bạn.</p>
         {location.state?.message ? <p className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">{location.state.message}</p> : null}
         {oauthLinks.google || oauthLinks.github || oauthLinks.jira ? (
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
@@ -105,25 +106,23 @@ function LoginPage() {
           <label className="block">
             <span className="flex items-center justify-between text-sm font-medium text-[var(--text)]">
               {t('auth.password', 'Password')}
-              <button type="button" onClick={() => setError(t('auth.passwordRecoverySoon', 'Password recovery will be available soon.'))} className="text-xs font-semibold text-[#0ea5e9] hover:text-sky-600">{t('auth.forgotPassword', 'Forgot password?')}</button>
+              <button type="button" onClick={() => setError('Khôi phục mật khẩu sẽ được hỗ trợ trong phiên bản sau.')} className="text-xs font-semibold text-[#0ea5e9] hover:text-sky-600">Quên mật khẩu?</button>
             </span>
             <input
               type="password"
               required
               value={credentials.password}
               onChange={(event) => setCredentials((current) => ({ ...current, password: event.target.value }))}
-              placeholder="Enter your password"
+              placeholder="Nhập mật khẩu"
               className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--text)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-sky-100 dark:focus:ring-sky-950"
             />
           </label>
           {error ? <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{error}</p> : null}
           <button type="submit" disabled={submitting} className="w-full rounded-lg bg-[#0ea5e9] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-60">
-            {submitting ? t('auth.signingIn', 'Signing in...') : t('auth.signIn', 'Sign in')}
+            {submitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
           </button>
         </form>
-        <p className="mt-6 text-center text-sm text-[var(--muted)]">
-          {t('auth.noAccount', "Don't have an account?")} <Link to="/register" className="font-semibold text-[#0ea5e9] hover:text-sky-600">{t('auth.createAccount', 'Create account')}</Link>
-        </p>
+        <p className="mt-6 text-center text-sm text-[var(--muted)]">Tài khoản được cấp bởi quản trị viên hoặc quản lý. Nếu chưa có tài khoản, vui lòng liên hệ người phụ trách FOREP trong tổ chức.</p>
       </div>
     </main>
   )

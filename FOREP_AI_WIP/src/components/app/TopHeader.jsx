@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Bell, Search, Settings } from 'lucide-react'
+import { Bell, Search } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import NotificationDropdown from './NotificationDropdown.jsx'
 import { getNotifications, getUnreadCount } from '../../services/notificationService.js'
@@ -16,6 +16,7 @@ function TopHeader({ title }) {
   const [unreadCount, setUnreadCount] = useState(0)
   const { roleConfig, selectedRole } = useRole()
   const { t } = useLanguage()
+  const canOpenSettings = roleConfig.allowedRoutes?.includes(routes.settings)
 
   const refresh = async () => {
     try {
@@ -57,9 +58,11 @@ function TopHeader({ title }) {
           </div>
           <LanguageToggle />
           <ThemeToggle />
-          <button type="button" aria-label={t('common.settings', 'Settings')} onClick={() => navigate(routes.settings)} className="grid h-10 w-10 place-items-center rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--muted)] transition hover:bg-slate-50 hover:text-[var(--text)] dark:hover:bg-slate-900">
-            <Settings size={18} />
-          </button>
+          {canOpenSettings ? (
+            <button type="button" aria-label={t('common.settings', 'Settings')} onClick={() => navigate(routes.settings)} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm font-semibold text-[var(--text)] transition hover:bg-slate-50 dark:hover:bg-slate-900">
+              Cài đặt
+            </button>
+          ) : null}
         </div>
       </div>
     </header>

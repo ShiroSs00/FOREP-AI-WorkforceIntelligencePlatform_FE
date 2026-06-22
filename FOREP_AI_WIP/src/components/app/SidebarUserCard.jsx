@@ -11,8 +11,8 @@ function SidebarUserCard() {
   const { t } = useLanguage()
 
   const signOut = async () => {
-    await logout()
-    navigate(routes.login)
+    await logout().catch(() => null)
+    navigate(routes.login, { replace: true })
   }
 
   return (

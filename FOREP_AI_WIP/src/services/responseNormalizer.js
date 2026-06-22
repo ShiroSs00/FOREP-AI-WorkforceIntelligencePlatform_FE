@@ -151,20 +151,28 @@ export function getDisplayFields(item, preferredKeys = [], limit = 6) {
 }
 
 export function getApiErrorMessage(error) {
-  if (!error) return 'Backend API is unavailable or waking up. Please retry in a moment.'
-  if (error.name === 'AbortError') return 'Backend API is unavailable or waking up. Please retry in a moment.'
+  if (!error) return 'Không thể kết nối máy chủ. Vui lòng thử lại sau ít phút.'
+  if (error.name === 'AbortError') return 'Không thể kết nối máy chủ. Vui lòng thử lại sau ít phút.'
   const response = error.details?.response ?? error.details
   const backendMessage = extractBackendMessage(response, error.message)
-  if (backendMessage && backendMessage !== 'undefined') return backendMessage
-  if (error.status === 401) return 'Session expired. Please log in again.'
-  if (error.status === 403) return 'You do not have permission to access this feature.'
-  if (error.status === 404) return 'This feature is not available in the backend yet.'
+  const raw = String(backendMessage ?? '')
+  const lowered = raw.toLowerCase()
+  if (error.status === 401) return 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.'
+  if (error.status === 403) return 'Bạn chưa có quyền xem hoặc thao tác dữ liệu này.'
+  if (error.status === 404) return 'Chức năng này chưa có dữ liệu hoặc API tương ứng.'
   if (error.status >= 500) {
-    if (String(backendMessage).toLowerCase().includes('constraint') || String(backendMessage).toLowerCase().includes('foreign key')) {
-      return 'This record cannot be changed because related data still depends on it.'
+    if (lowered.includes('request method') && lowered.includes('not supported')) {
+      return 'Chức năng đọc dữ liệu này chưa được backend hỗ trợ. Vui lòng dùng luồng đồng bộ hoặc trang phù hợp với quyền hiện tại.'
     }
-    return 'Backend could not process this request. Please retry or contact the backend owner.'
+    if (lowered.includes('bytebuddy') || lowered.includes('type definition error') || lowered.includes('hibernate')) {
+      return 'Backend chưa trả được danh sách dữ liệu cho màn này. Vui lòng kiểm tra controller/DTO phía backend.'
+    }
+    if (lowered.includes('constraint') || lowered.includes('foreign key')) {
+      return 'Không thể xóa dữ liệu này vì vẫn còn dữ liệu liên quan trong hệ thống.'
+    }
+    return raw && raw !== 'undefined' && raw !== 'Internal Server Error' ? raw : 'Backend chưa xử lý được yêu cầu này. Vui lòng thử lại hoặc kiểm tra log backend.'
   }
-  if (!error.status) return 'Backend API is unavailable or waking up. Please retry in a moment.'
-  return backendMessage ?? 'Backend API is unavailable or waking up. Please retry in a moment.'
+  if (raw && raw !== 'undefined') return raw
+  if (!error.status) return 'Không thể kết nối máy chủ. Vui lòng thử lại sau ít phút.'
+  return 'Không thể kết nối máy chủ. Vui lòng thử lại sau ít phút.'
 }

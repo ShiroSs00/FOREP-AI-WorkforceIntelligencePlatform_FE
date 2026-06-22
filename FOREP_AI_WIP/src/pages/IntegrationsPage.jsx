@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Cable, Plus, RefreshCw } from 'lucide-react'
+import { Cable, RefreshCw } from 'lucide-react'
 import PageHeader from '../components/PageHeader.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import Button from '../components/ui/Button.jsx'
@@ -13,19 +13,8 @@ import Table from '../components/ui/Table.jsx'
 import Badge from '../components/ui/Badge.jsx'
 import { useRole } from '../context/role.js'
 import { getOAuth2LoginLinks, getOAuth2RedirectUrl } from '../services/authService.js'
-import { connectIntegration, createIntegration, deleteIntegration, getIntegrationRuntimeStatus, getIntegrationSyncLogs, getIntegrationsByTeam, integrationProviders, syncAllIntegrations, syncIntegration, updateIntegration } from '../services/integrationService.js'
+import { connectIntegration, getIntegrationRuntimeStatus, getIntegrationSyncLogs, getIntegrationsByTeam, integrationProviders, syncIntegration } from '../services/integrationService.js'
 import { extractBackendMessage, getDate, getId, valueOf } from '../services/responseNormalizer.js'
-
-const emptyConfigForm = {
-  teamId: '',
-  projectId: '',
-  provider: 'GITHUB',
-  webhookSecret: '',
-  accessToken: '',
-  projectKey: '',
-  jiraDomain: '',
-  isActive: true,
-}
 
 const emptyConnectForm = {
   teamId: '',
@@ -36,19 +25,6 @@ const emptyConnectForm = {
   connectionKey: '',
 }
 
-function toConfigForm(config = emptyConfigForm) {
-  return {
-    teamId: valueOf(config, ['teamId'], ''),
-    projectId: valueOf(config, ['projectId'], ''),
-    provider: valueOf(config, ['provider'], 'GITHUB'),
-    webhookSecret: '',
-    accessToken: '',
-    projectKey: valueOf(config, ['projectKey'], ''),
-    jiraDomain: valueOf(config, ['jiraDomain'], ''),
-    isActive: Boolean(valueOf(config, ['isActive'], true)),
-  }
-}
-
 function cleanPayload(payload) {
   return Object.fromEntries(Object.entries(payload).filter(([, value]) => value !== '' && value !== undefined && value !== null))
 }
@@ -56,8 +32,7 @@ function cleanPayload(payload) {
 function IntegrationsPage() {
   const { selectedRole, accountContext } = useRole()
   const canTriggerSync = ['director', 'manager'].includes(selectedRole)
-  const canSyncAll = false
-  const [teamId, setTeamId] = useState(accountContext.teamId ?? '')
+  const teamId = accountContext.teamId ?? ''
   const [configs, setConfigs] = useState([])
   const [runtimeStatus, setRuntimeStatus] = useState(null)
   const [oauthLinks, setOauthLinks] = useState(null)
@@ -67,11 +42,8 @@ function IntegrationsPage() {
   const [actionError, setActionError] = useState('')
   const [actionMessage, setActionMessage] = useState('')
   const [connectResult, setConnectResult] = useState(null)
-  const [configModalOpen, setConfigModalOpen] = useState(false)
   const [connectModalOpen, setConnectModalOpen] = useState(false)
-  const [editingConfig, setEditingConfig] = useState(null)
   const [search, setSearch] = useState('')
-  const [configForm, setConfigForm] = useState(emptyConfigForm)
   const [connectForm, setConnectForm] = useState(emptyConnectForm)
   const [submitting, setSubmitting] = useState(false)
 
@@ -121,46 +93,12 @@ function IntegrationsPage() {
     }
   }
 
-  const openCreate = () => {
-    setEditingConfig(null)
-    setConfigForm({ ...emptyConfigForm, teamId })
-    setActionError('')
-    setActionMessage('')
-    setConfigModalOpen(true)
-  }
-
-  const openEdit = (config) => {
-    setEditingConfig(config)
-    setConfigForm(toConfigForm(config))
-    setActionError('')
-    setActionMessage('')
-    setConfigModalOpen(true)
-  }
-
   const openConnect = () => {
     setConnectForm({ ...emptyConnectForm, teamId })
     setConnectResult(null)
     setActionError('')
     setActionMessage('')
     setConnectModalOpen(true)
-  }
-
-  const submitConfig = async (event) => {
-    event.preventDefault()
-    setSubmitting(true)
-    setActionError('')
-    setActionMessage('')
-    try {
-      const payload = cleanPayload(configForm)
-      const response = editingConfig ? await updateIntegration(getId(editingConfig), payload) : await createIntegration(payload)
-      setActionMessage(extractBackendMessage(response, editingConfig ? 'Integration updated.' : 'Integration created.'))
-      setConfigModalOpen(false)
-      await loadConfigs()
-    } catch (err) {
-      setActionError(err.message)
-    } finally {
-      setSubmitting(false)
-    }
   }
 
   const submitConnect = async (event) => {
@@ -193,18 +131,6 @@ function IntegrationsPage() {
     }
   }
 
-  const syncEveryActiveIntegration = async () => {
-    setActionError('')
-    setActionMessage('')
-    try {
-      const response = await syncAllIntegrations()
-      setActionMessage(extractBackendMessage(response, 'Sync started for all active integrations.'))
-      await loadConfigs()
-    } catch (err) {
-      setActionError(err.message)
-    }
-  }
-
   const viewLogs = async (config) => {
     setActionError('')
     setActionMessage('')
@@ -213,18 +139,6 @@ function IntegrationsPage() {
     } catch (err) {
       setActionError(err.message)
       setSyncLogs([])
-    }
-  }
-
-  const removeConfig = async (config) => {
-    setActionError('')
-    setActionMessage('')
-    try {
-      const response = await deleteIntegration(getId(config))
-      setActionMessage(extractBackendMessage(response, 'Integration deleted.'))
-      await loadConfigs()
-    } catch (err) {
-      setActionError(err.message)
     }
   }
 
@@ -239,15 +153,13 @@ function IntegrationsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Platform / Integrations"
-        title="Integration Management"
-        description="Manage project-level provider connections, webhook settings, runtime status and sync history."
+        eyebrow="FOREP / Trung tâm tích hợp"
+        title="Trung tâm tích hợp"
+        description="Kết nối Jira/GitHub để import project, issue, repository, commit, pull request và member ở chế độ read-only."
         action={(
           <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" onClick={loadConfigs}><RefreshCw size={16} />Refresh</Button>
-            {canSyncAll ? <Button variant="secondary" onClick={syncEveryActiveIntegration}>Sync All</Button> : null}
-            <Button variant="secondary" onClick={openConnect}>Connect Provider</Button>
-            <Button onClick={openCreate}><Plus size={16} />Create Config</Button>
+            <Button variant="secondary" onClick={loadConfigs}><RefreshCw size={16} />Làm mới</Button>
+            <Button onClick={openConnect}>Kết nối Jira/GitHub</Button>
           </div>
         )}
       />
@@ -256,30 +168,30 @@ function IntegrationsPage() {
         <Card>
           <div className="flex items-center gap-3">
             <span className="grid h-10 w-10 place-items-center rounded-lg bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-300"><Cable size={18} /></span>
-            <div><p className="text-sm text-[var(--muted)]">Configs returned</p><p className="text-2xl font-bold text-[var(--text)]">{configs.length}</p></div>
+          <div><p className="text-sm text-[var(--muted)]">Kết nối đã tải</p><p className="text-2xl font-bold text-[var(--text)]">{configs.length}</p></div>
           </div>
         </Card>
         <Card>
-          <p className="text-sm text-[var(--muted)]">Active configs</p>
+          <p className="text-sm text-[var(--muted)]">Kết nối đang bật</p>
           <p className="mt-2 text-2xl font-bold text-[var(--text)]">{activeCount}</p>
         </Card>
         <Card>
-          <p className="text-sm text-[var(--muted)]">Supported providers</p>
+          <p className="text-sm text-[var(--muted)]">Nguồn hỗ trợ</p>
           <p className="mt-2 text-lg font-bold text-[var(--text)]">{integrationProviders.join(', ')}</p>
         </Card>
         <Card>
-          <p className="text-sm text-[var(--muted)]">Runtime status</p>
-          <p className="mt-2 text-lg font-bold text-[var(--text)]">{runtimeStatus ? `${valueOf(runtimeStatus, ['activeConfigCount'], 0)} active / ${valueOf(runtimeStatus, ['failedConfigCount'], 0)} failed` : 'Not loaded'}</p>
+          <p className="text-sm text-[var(--muted)]">Trạng thái runtime</p>
+          <p className="mt-2 text-lg font-bold text-[var(--text)]">{runtimeStatus ? `${valueOf(runtimeStatus, ['activeConfigCount'], 0)} bật / ${valueOf(runtimeStatus, ['failedConfigCount'], 0)} lỗi` : 'Chưa tải'}</p>
         </Card>
       </div>
 
       <Card className="mb-5">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="font-semibold text-[var(--text)]">OAuth provider links</h2>
-            <p className="mt-1 text-sm text-[var(--muted)]">Load backend-provided OAuth URLs for GitHub, Google and Jira connection flows.</p>
+            <h2 className="font-semibold text-[var(--text)]">Kết nối bằng OAuth</h2>
+            <p className="mt-1 text-sm text-[var(--muted)]">Dùng link do backend cung cấp để kết nối GitHub/Jira. Token không được lưu trong localStorage.</p>
           </div>
-          <Button variant="secondary" onClick={loadOAuthLinks}>Load OAuth Links</Button>
+          <Button variant="secondary" onClick={loadOAuthLinks}>Tải link kết nối</Button>
         </div>
         {oauthLinks ? (
           <div className="mt-4 grid gap-3 md:grid-cols-3">
@@ -293,8 +205,8 @@ function IntegrationsPage() {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  {provider} OAuth
-                  <span className="mt-1 block truncate text-xs font-normal text-[var(--muted)]">{url || 'Backend redirect endpoint'}</span>
+                  Kết nối {provider}
+                  <span className="mt-1 block text-xs font-normal text-[var(--muted)]">Mở luồng xác thực từ backend</span>
                 </a>
               )
             })}
@@ -303,43 +215,37 @@ function IntegrationsPage() {
       </Card>
 
       <Card className="mb-5">
-        <div className="grid gap-3 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
+        <div className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-end">
           <label>
-            <span className="text-sm font-medium text-[var(--text)]">Team ID</span>
-            <Input className="mt-2" placeholder="Paste team UUID to load configs" value={teamId} onChange={(event) => setTeamId(event.target.value)} />
+            <span className="text-sm font-medium text-[var(--text)]">Tìm kiếm</span>
+            <Input className="mt-2" placeholder="Tìm provider, project key, trạng thái..." value={search} onChange={(event) => setSearch(event.target.value)} />
           </label>
-          <label>
-            <span className="text-sm font-medium text-[var(--text)]">Search</span>
-            <Input className="mt-2" placeholder="Search provider, project, config..." value={search} onChange={(event) => setSearch(event.target.value)} />
-          </label>
-          <Button onClick={loadConfigs} disabled={!teamId}>Load Integrations</Button>
+          <Button onClick={loadConfigs} disabled={!teamId}>Tải kết nối</Button>
         </div>
+        {!teamId ? <p className="mt-3 text-sm text-[var(--muted)]">Chưa có team scope trong tài khoản hiện tại. FOREP sẽ tự tải kết nối sau khi backend trả team cho manager.</p> : null}
       </Card>
 
       {actionMessage ? <p className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">{actionMessage}</p> : null}
       {actionError ? <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{actionError}</p> : null}
-      {loading ? <LoadingState message="Loading integration configs..." /> : null}
-      {error ? <ErrorState title="Unable to load integrations" description={error.message} status={error.status} details={error.details} onRetry={loadConfigs} /> : null}
+      {loading ? <LoadingState message="Đang tải kết nối..." /> : null}
+      {error ? <ErrorState title="Không tải được dữ liệu tích hợp" description={error.message} onRetry={loadConfigs} /> : null}
 
       {!loading && !error ? (
         <Table
-          columns={['Provider', 'Team', 'Project', 'Sync', 'Active', 'Updated', 'Actions']}
+          columns={['Nguồn', 'Project', 'Đồng bộ', 'Trạng thái', 'Cập nhật', 'Hành động']}
           rows={filteredConfigs}
-          empty={<EmptyState title={teamId ? 'No integrations found for this team.' : 'Enter a Team ID to load integrations.'} description="Provider connections are loaded through the team-scoped integration API." />}
+          empty={<EmptyState title={teamId ? 'Chưa có integration nào được kết nối.' : 'Chưa có team scope cho tài khoản này.'} description={teamId ? 'Manager có thể kết nối Jira/GitHub để bắt đầu import dữ liệu read-only.' : 'Backend cần trả team scope cho manager trước khi tải integration.'} />}
           renderRow={(config, index) => (
             <tr key={`${getId(config)}-${index}`}>
               <td className="px-4 py-4"><Badge>{valueOf(config, ['provider'], 'Unknown')}</Badge></td>
-              <td className="px-4 py-4 text-[var(--muted)]">{valueOf(config, ['teamId'], '-')}</td>
               <td className="px-4 py-4 text-[var(--muted)]"><p>{valueOf(config, ['projectName', 'projectId'], '-')}</p><p className="text-xs">{valueOf(config, ['projectKey'], '-')}</p></td>
-              <td className="px-4 py-4"><Badge>{valueOf(config, ['lastSyncStatus'], 'No sync')}</Badge><p className="mt-1 text-xs text-[var(--muted)]">{valueOf(config, ['lastSyncError'], '')}</p></td>
-              <td className="px-4 py-4"><Badge tone={valueOf(config, ['isActive'], false) ? 'Success' : 'Warning'}>{valueOf(config, ['isActive'], false) ? 'Active' : 'Inactive'}</Badge></td>
+              <td className="px-4 py-4"><Badge>{valueOf(config, ['lastSyncStatus'], 'Chưa đồng bộ')}</Badge><p className="mt-1 text-xs text-[var(--muted)]">{valueOf(config, ['lastSyncError'], '')}</p></td>
+              <td className="px-4 py-4"><Badge tone={valueOf(config, ['isActive'], false) ? 'Success' : 'Warning'}>{valueOf(config, ['isActive'], false) ? 'Đang bật' : 'Tạm tắt'}</Badge></td>
               <td className="px-4 py-4 text-[var(--muted)]">{valueOf(config, ['updatedAt', 'createdAt'], getDate(config))}</td>
               <td className="px-4 py-4">
                 <div className="flex flex-wrap gap-2">
-                  {canTriggerSync ? <Button variant="secondary" onClick={() => syncConfig(config)}>Sync</Button> : null}
-                  <Button variant="secondary" onClick={() => viewLogs(config)}>Logs</Button>
-                  <Button variant="secondary" onClick={() => openEdit(config)}>Edit</Button>
-                  <Button variant="ghost" onClick={() => removeConfig(config)}>Delete</Button>
+                  {canTriggerSync ? <Button variant="secondary" onClick={() => syncConfig(config)}>Đồng bộ</Button> : null}
+                  <Button variant="secondary" onClick={() => viewLogs(config)}>Nhật ký</Button>
                 </div>
               </td>
             </tr>
@@ -349,62 +255,36 @@ function IntegrationsPage() {
 
       {syncLogs.length ? (
         <Card className="mt-5">
-          <h2 className="font-semibold text-[var(--text)]">Sync logs</h2>
+          <h2 className="font-semibold text-[var(--text)]">Lịch sử đồng bộ</h2>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="text-xs uppercase text-[var(--muted)]"><tr><th className="py-2">Started</th><th>Status</th><th>Provider</th><th>Error / Message</th><th>Counters</th><th>Finished</th></tr></thead>
+              <thead className="text-xs uppercase text-[var(--muted)]"><tr><th className="py-2">Bắt đầu</th><th>Trạng thái</th><th>Nguồn</th><th>Thông báo</th><th>Kết quả</th><th>Kết thúc</th></tr></thead>
               <tbody>{syncLogs.map((log, index) => <tr key={`${getId(log)}-${index}`} className="border-t border-[var(--border)]"><td className="py-3 text-[var(--muted)]">{valueOf(log, ['startedAt'], '-')}</td><td><Badge>{valueOf(log, ['status'], 'UNKNOWN')}</Badge></td><td>{valueOf(log, ['provider'], '-')}</td><td className="text-[var(--muted)]">{valueOf(log, ['errorMessage', 'message'], '-')}</td><td className="text-[var(--muted)]">{valueOf(log, ['totalFetched'], 0)} fetched / {valueOf(log, ['totalCreated'], 0)} created / {valueOf(log, ['totalUpdated'], 0)} updated</td><td className="text-[var(--muted)]">{valueOf(log, ['finishedAt'], '-')}</td></tr>)}</tbody>
             </table>
           </div>
         </Card>
       ) : null}
 
-      <Modal open={configModalOpen} title={editingConfig ? 'Update Integration Config' : 'Create Integration Config'} onClose={() => setConfigModalOpen(false)}>
-        <form onSubmit={submitConfig} className="grid gap-4">
-          <Input required placeholder="Team UUID" value={configForm.teamId} onChange={(event) => setConfigForm({ ...configForm, teamId: event.target.value })} />
-          <Input required placeholder="Project UUID" value={configForm.projectId} onChange={(event) => setConfigForm({ ...configForm, projectId: event.target.value })} />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Select value={configForm.provider} onChange={(event) => setConfigForm({ ...configForm, provider: event.target.value })}>
-              {integrationProviders.map((provider) => <option key={provider}>{provider}</option>)}
-            </Select>
-            <Select value={String(configForm.isActive)} onChange={(event) => setConfigForm({ ...configForm, isActive: event.target.value === 'true' })}>
-              <option value="true">Active</option>
-              <option value="false">Inactive</option>
-            </Select>
-          </div>
-          <Input required={!editingConfig} placeholder="Webhook secret" value={configForm.webhookSecret} onChange={(event) => setConfigForm({ ...configForm, webhookSecret: event.target.value })} />
-          <Input placeholder="Access token" value={configForm.accessToken} onChange={(event) => setConfigForm({ ...configForm, accessToken: event.target.value })} />
-          <Input placeholder="Project key" value={configForm.projectKey} onChange={(event) => setConfigForm({ ...configForm, projectKey: event.target.value })} />
-          <Input placeholder="Jira domain" value={configForm.jiraDomain} onChange={(event) => setConfigForm({ ...configForm, jiraDomain: event.target.value })} />
-          {actionError ? <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{actionError}</p> : null}
-          <div className="flex justify-end"><Button type="submit" disabled={submitting}>{submitting ? 'Saving...' : editingConfig ? 'Update Config' : 'Create Config'}</Button></div>
-        </form>
-      </Modal>
-
-      <Modal open={connectModalOpen} title="Connect Provider" onClose={() => setConnectModalOpen(false)}>
+      <Modal open={connectModalOpen} title="Kết nối Jira/GitHub" onClose={() => setConnectModalOpen(false)}>
         <form onSubmit={submitConnect} className="grid gap-4">
-          <Input required placeholder="Team UUID" value={connectForm.teamId} onChange={(event) => setConnectForm({ ...connectForm, teamId: event.target.value })} />
-          <Input required placeholder="Project UUID" value={connectForm.projectId} onChange={(event) => setConnectForm({ ...connectForm, projectId: event.target.value })} />
+          <p className="rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800 dark:border-sky-900/60 dark:bg-sky-950/30 dark:text-sky-200">Kết nối này chỉ dùng để import dữ liệu read-only. FOREP không ghi ngược Jira/GitHub.</p>
           <Select value={connectForm.provider} onChange={(event) => setConnectForm({ ...connectForm, provider: event.target.value })}>
             {integrationProviders.map((provider) => <option key={provider}>{provider}</option>)}
           </Select>
-          <Input required placeholder="Project key" value={connectForm.projectKey} onChange={(event) => setConnectForm({ ...connectForm, projectKey: event.target.value })} />
-          <Input placeholder="Jira domain" value={connectForm.jiraDomain} onChange={(event) => setConnectForm({ ...connectForm, jiraDomain: event.target.value })} />
-          <Input required placeholder="Connection key" value={connectForm.connectionKey} onChange={(event) => setConnectForm({ ...connectForm, connectionKey: event.target.value })} />
+          <Input required placeholder="Jira project key hoặc GitHub owner/repo" value={connectForm.projectKey} onChange={(event) => setConnectForm({ ...connectForm, projectKey: event.target.value })} />
+          <Input placeholder="Jira domain, ví dụ company.atlassian.net" value={connectForm.jiraDomain} onChange={(event) => setConnectForm({ ...connectForm, jiraDomain: event.target.value })} />
+          <Input required type="password" placeholder="Token/API key" value={connectForm.connectionKey} onChange={(event) => setConnectForm({ ...connectForm, connectionKey: event.target.value })} />
           {connectResult ? (
             <Card>
-              <h3 className="font-semibold text-[var(--text)]">Connection result</h3>
+              <h3 className="font-semibold text-[var(--text)]">Kết quả kết nối</h3>
               <div className="mt-3 space-y-2 text-sm text-[var(--muted)]">
-                <p>Config ID: {valueOf(connectResult, ['configId'], '-')}</p>
-                <p>Webhook registered: {String(valueOf(connectResult, ['webhookRegistered'], false))}</p>
-                <p>Webhook URL: {valueOf(connectResult, ['webhookUrl'], '-')}</p>
-                <p>Webhook secret: {valueOf(connectResult, ['webhookSecret'], '-')}</p>
-                <p>Message: {valueOf(connectResult, ['message'], '-')}</p>
+                <p>Webhook: {String(valueOf(connectResult, ['webhookRegistered'], false))}</p>
+                <p>Thông báo: {valueOf(connectResult, ['message'], '-')}</p>
               </div>
             </Card>
           ) : null}
           {actionError ? <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{actionError}</p> : null}
-          <div className="flex justify-end"><Button type="submit" disabled={submitting}>{submitting ? 'Connecting...' : 'Connect Provider'}</Button></div>
+          <div className="flex justify-end"><Button type="submit" disabled={submitting || !teamId}>{submitting ? 'Đang kết nối...' : 'Kết nối'}</Button></div>
         </form>
       </Modal>
     </>

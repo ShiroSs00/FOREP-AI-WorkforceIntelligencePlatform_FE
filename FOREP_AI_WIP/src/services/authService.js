@@ -81,6 +81,8 @@ export async function logout() {
   // POST /api/v1/auth/logout
   try {
     if (!useMocks) await apiClient.post('/api/v1/auth/logout')
+  } catch (error) {
+    console.warn('Logout endpoint did not complete; clearing local session anyway.', error)
   } finally {
     clearToken()
   }

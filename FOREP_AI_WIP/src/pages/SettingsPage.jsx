@@ -22,7 +22,6 @@ function getProfileForm(profile) {
     lastName: valueOf(profile, ['lastName'], restName.join(' ')),
     jobTitle: valueOf(profile, ['jobTitle', 'position', 'role'], ''),
     phoneNumber: valueOf(profile, ['phoneNumber', 'phone'], ''),
-    teamId: valueOf(profile, ['teamId'], ''),
     department: valueOf(profile, ['department'], ''),
     avatarInitials: valueOf(profile, ['avatarInitials'], ''),
   }
@@ -34,7 +33,6 @@ function buildProfilePayload(form) {
     lastName: form.lastName?.trim() || undefined,
     jobTitle: form.jobTitle?.trim() || undefined,
     phoneNumber: form.phoneNumber?.trim() || undefined,
-    teamId: form.teamId?.trim() || undefined,
     department: form.department?.trim() || undefined,
     avatarInitials: form.avatarInitials?.trim() || undefined,
   }
@@ -76,7 +74,6 @@ function ProfileSettingsForm({ profile, onSaved }) {
         <Input placeholder="Last name" value={form.lastName} onChange={(event) => updateField('lastName', event.target.value)} />
         <Input placeholder="Job title" value={form.jobTitle} onChange={(event) => updateField('jobTitle', event.target.value)} />
         <Input placeholder="Phone number" value={form.phoneNumber} onChange={(event) => updateField('phoneNumber', event.target.value)} />
-        <Input placeholder="Team UUID" value={form.teamId} onChange={(event) => updateField('teamId', event.target.value)} />
         <Input placeholder="Department" value={form.department} onChange={(event) => updateField('department', event.target.value)} />
         <Input placeholder="Avatar initials" value={form.avatarInitials} onChange={(event) => updateField('avatarInitials', event.target.value)} />
       </div>

@@ -11,7 +11,7 @@ import { getProfile, updateProfile } from '../services/employeeService.js'
 import { extractBackendMessage, getId, getName, valueOf } from '../services/responseNormalizer.js'
 
 function ProfileForm({ profile, onSaved }) {
-  const [form, setForm] = useState({ firstName: '', lastName: '', jobTitle: '', phoneNumber: '', teamId: '', department: '', avatarInitials: '' })
+  const [form, setForm] = useState({ firstName: '', lastName: '', jobTitle: '', phoneNumber: '', department: '', avatarInitials: '' })
   const [actionError, setActionError] = useState('')
   const [actionMessage, setActionMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -20,7 +20,6 @@ function ProfileForm({ profile, onSaved }) {
     lastName: valueOf(profile, ['lastName'], getName(profile).split(' ').slice(1).join(' ')),
     jobTitle: valueOf(profile, ['jobTitle', 'position', 'role'], ''),
     phoneNumber: valueOf(profile, ['phoneNumber', 'phone'], ''),
-    teamId: valueOf(profile, ['teamId'], ''),
     department: valueOf(profile, ['department'], ''),
     avatarInitials: valueOf(profile, ['avatarInitials'], ''),
   }))
@@ -37,7 +36,6 @@ function ProfileForm({ profile, onSaved }) {
         lastName: values.lastName || undefined,
         jobTitle: values.jobTitle || undefined,
         phoneNumber: values.phoneNumber || undefined,
-        teamId: values.teamId || undefined,
         department: values.department || undefined,
         avatarInitials: values.avatarInitials || undefined,
       })
@@ -54,17 +52,16 @@ function ProfileForm({ profile, onSaved }) {
     <Card className="page-animate max-w-2xl opacity-0">
       <form onSubmit={submitProfile} className="grid gap-4">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Input placeholder="First name" value={values.firstName} onChange={(event) => setForm({ ...values, firstName: event.target.value })} />
-          <Input placeholder="Last name" value={values.lastName} onChange={(event) => setForm({ ...values, lastName: event.target.value })} />
-          <Input placeholder="Job title" value={values.jobTitle} onChange={(event) => setForm({ ...values, jobTitle: event.target.value })} />
-          <Input placeholder="Phone number" value={values.phoneNumber} onChange={(event) => setForm({ ...values, phoneNumber: event.target.value })} />
-          <Input placeholder="Team UUID" value={values.teamId} onChange={(event) => setForm({ ...values, teamId: event.target.value })} />
-          <Input placeholder="Department" value={values.department} onChange={(event) => setForm({ ...values, department: event.target.value })} />
-          <Input placeholder="Avatar initials" value={values.avatarInitials} onChange={(event) => setForm({ ...values, avatarInitials: event.target.value })} />
+          <Input placeholder="Tên" value={values.firstName} onChange={(event) => setForm({ ...values, firstName: event.target.value })} />
+          <Input placeholder="Họ" value={values.lastName} onChange={(event) => setForm({ ...values, lastName: event.target.value })} />
+          <Input placeholder="Chức danh" value={values.jobTitle} onChange={(event) => setForm({ ...values, jobTitle: event.target.value })} />
+          <Input placeholder="Số điện thoại" value={values.phoneNumber} onChange={(event) => setForm({ ...values, phoneNumber: event.target.value })} />
+          <Input placeholder="Phòng ban" value={values.department} onChange={(event) => setForm({ ...values, department: event.target.value })} />
+          <Input placeholder="Ký tự avatar" value={values.avatarInitials} onChange={(event) => setForm({ ...values, avatarInitials: event.target.value })} />
         </div>
         {actionMessage ? <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">{actionMessage}</p> : null}
         {actionError ? <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">{actionError}</p> : null}
-        <div className="flex justify-end"><Button type="submit" disabled={submitting}>{submitting ? 'Saving...' : 'Save Profile'}</Button></div>
+        <div className="flex justify-end"><Button type="submit" disabled={submitting}>{submitting ? 'Đang lưu...' : 'Lưu hồ sơ'}</Button></div>
       </form>
     </Card>
   )
@@ -75,12 +72,12 @@ function ProfilePage() {
 
   return (
     <>
-      <PageHeader title="Profile" description="Personal employee profile for the signed-in account." />
+      <PageHeader title="Hồ sơ" description="Thông tin cá nhân của tài khoản đang đăng nhập." />
       {loading ? <LoadingState /> : null}
-      {error ? <ErrorState title="Unable to load profile" description={error.message} status={error.status} details={error.details} onRetry={retry} /> : null}
-      {apiPending ? <ErrorState description="Profile data is not available yet." onRetry={retry} /> : null}
+      {error ? <ErrorState title="Không tải được hồ sơ" description={error.message} onRetry={retry} /> : null}
+      {apiPending ? <ErrorState description="API hồ sơ chưa sẵn sàng." onRetry={retry} /> : null}
       {!loading && !error && !apiPending ? (
-        profile && Object.keys(profile).length ? <ProfileForm key={`${getId(profile)}-${valueOf(profile, ['email'], 'profile')}`} profile={profile} onSaved={retry} /> : <EmptyState title="Profile data is not available." description="Please check authentication or retry after the backend returns the employee profile." />
+        profile && Object.keys(profile).length ? <ProfileForm key={`${getId(profile)}-${valueOf(profile, ['email'], 'profile')}`} profile={profile} onSaved={retry} /> : <EmptyState title="Chưa có dữ liệu hồ sơ." description="Vui lòng kiểm tra đăng nhập hoặc thử lại sau khi backend trả hồ sơ nhân viên." />
       ) : null}
     </>
   )

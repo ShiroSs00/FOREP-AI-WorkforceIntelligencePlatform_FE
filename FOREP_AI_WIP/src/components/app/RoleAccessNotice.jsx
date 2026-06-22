@@ -8,9 +8,9 @@ function RoleAccessNotice() {
   return (
     <div className="grid min-h-[50vh] place-items-center">
       <div className="max-w-xl">
-        <EmptyState title="This view is not available for your account role." description="Return to your dashboard or sign in with an account that has access to this module." />
+        <EmptyState title="Tài khoản của bạn không có quyền mở màn này." description="Vui lòng quay lại tổng quan hoặc đăng nhập bằng tài khoản có quyền phù hợp." />
         <div className="mt-5 flex justify-center">
-          <Button onClick={() => navigate('/dashboard')}>Go to Dashboard</Button>
+          <Button onClick={() => navigate('/dashboard')}>Về tổng quan</Button>
         </div>
       </div>
     </div>
