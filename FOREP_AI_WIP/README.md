@@ -1,73 +1,81 @@
-# React + TypeScript + Vite
+﻿# FOREP EXE Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+FOREP EXE is a Vietnamese SaaS frontend for small-business task management, workload analytics, daily reporting, notifications, and backend-mediated AI assistance.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Next.js App Router
+- TypeScript strict mode
+- Tailwind CSS
+- TanStack Query
+- Axios
+- Zustand
+- React Hook Form + Zod
+- Recharts
 
-## React Compiler
+## Setup
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+cp .env.example .env.local
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Required Vercel variable:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+NEXT_PUBLIC_API_BASE_URL=https://forep-exe-backend.onrender.com/api/v1
 ```
+
+On Vercel, add it in:
+
+Project Settings -> Environment Variables -> Add New
+
+Use the same value for Production, Preview, and Development unless you have separate backend deployments.
+
+The old Vite variables (`VITE_API_BASE_URL`, `VITE_DATA_MODE`) are not used by this Next.js frontend.
+
+## Commands
+
+```bash
+npm run dev
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
+
+## Backend
+
+- Swagger: https://forep-exe-backend.onrender.com/swagger-ui/index.html
+- OpenAPI: https://forep-exe-backend.onrender.com/v3/api-docs
+
+Render may cold start. If requests timeout, retry after the backend wakes up.
+
+## UI/UX conventions
+
+- App text is Vietnamese first and should stay concise, direct, and non-technical.
+- Use semantic Tailwind tokens from `src/app/globals.css`: `bg-background`, `bg-surface`, `text-foreground`, `text-muted-foreground`, `border-border`, `bg-primary`, `text-destructive`.
+- Do not scatter random color classes across new components. Add semantic tokens or extend existing component variants instead.
+- Shared UI primitives live in `src/components/common` and feedback states in `src/components/feedback`.
+- `Button` defaults to `type="button"`; form submit buttons must explicitly use `type="submit"`.
+- Use `PageHeader` for title, description, and page actions so every route answers where the user is and what they can do next.
+- OWNER and EMPLOYEE experiences are intentionally different: OWNER sees management, workload, AI and employee flows; EMPLOYEE sees assigned work, daily reports, notifications and profile.
+- List-heavy screens should provide search/filter controls and mobile card alternatives.
+- Error states should show useful Vietnamese messages. Technical details belong in collapsed details, not as the main user-facing copy.
+
+## Responsive and accessibility expectations
+
+- Verify key routes at 320px, 375px, 768px, 1024px, and desktop widths.
+- No horizontal overflow on mobile.
+- Sidebar must remain persistent on desktop and usable as a drawer on mobile.
+- Touch targets should be approximately 44px where practical.
+- Icon-only controls need `aria-label`.
+- Active navigation uses `aria-current`.
+- Status must include text, not color alone.
+- Focus visibility is provided through `.focus-ring`.
+
+Design documentation:
+
+- `docs/ui-ux-audit.md`
+- `docs/design-system.md`

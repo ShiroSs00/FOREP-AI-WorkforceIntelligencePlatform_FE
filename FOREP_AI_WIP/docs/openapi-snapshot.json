@@ -1,0 +1,1476 @@
+﻿{
+    "openapi":  "3.0.1",
+    "info":  {
+                 "title":  "FOREP EXE API",
+                 "description":  "Backend API for FOREP EXE workspace, employee, task, workload, daily report, notification, and AI workflows.",
+                 "contact":  {
+                                 "name":  "FOREP EXE"
+                             },
+                 "version":  "0.1.0"
+             },
+    "servers":  [
+                    {
+                        "url":  "/",
+                        "description":  "Current host"
+                    }
+                ],
+    "security":  [
+                     {
+                         "bearerAuth":  [
+
+                                        ]
+                     }
+                 ],
+    "paths":  {
+                  "/api/v1/workspaces/current":  {
+                                                     "get":  {
+                                                                 "tags":  [
+                                                                              "forep-controller"
+                                                                          ],
+                                                                 "operationId":  "currentWorkspace",
+                                                                 "responses":  {
+                                                                                   "200":  {
+                                                                                               "description":  "OK",
+                                                                                               "content":  {
+                                                                                                               "*/*":  {
+                                                                                                                           "schema":  {
+                                                                                                                                          "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                      }
+                                                                                                                       }
+                                                                                                           }
+                                                                                           }
+                                                                               }
+                                                             },
+                                                     "put":  {
+                                                                 "tags":  [
+                                                                              "forep-controller"
+                                                                          ],
+                                                                 "operationId":  "updateWorkspace",
+                                                                 "requestBody":  {
+                                                                                     "content":  {
+                                                                                                     "application/json":  {
+                                                                                                                              "schema":  {
+                                                                                                                                             "$ref":  "#/components/schemas/UpdateWorkspaceRequest"
+                                                                                                                                         }
+                                                                                                                          }
+                                                                                                 },
+                                                                                     "required":  true
+                                                                                 },
+                                                                 "responses":  {
+                                                                                   "200":  {
+                                                                                               "description":  "OK",
+                                                                                               "content":  {
+                                                                                                               "*/*":  {
+                                                                                                                           "schema":  {
+                                                                                                                                          "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                      }
+                                                                                                                       }
+                                                                                                           }
+                                                                                           }
+                                                                               }
+                                                             }
+                                                 },
+                  "/api/v1/tasks/{id}":  {
+                                             "get":  {
+                                                         "tags":  [
+                                                                      "forep-controller"
+                                                                  ],
+                                                         "operationId":  "task",
+                                                         "parameters":  [
+                                                                            {
+                                                                                "name":  "id",
+                                                                                "in":  "path",
+                                                                                "required":  true,
+                                                                                "schema":  {
+                                                                                               "type":  "string",
+                                                                                               "format":  "uuid"
+                                                                                           }
+                                                                            }
+                                                                        ],
+                                                         "responses":  {
+                                                                           "200":  {
+                                                                                       "description":  "OK",
+                                                                                       "content":  {
+                                                                                                       "*/*":  {
+                                                                                                                   "schema":  {
+                                                                                                                                  "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                              }
+                                                                                                               }
+                                                                                                   }
+                                                                                   }
+                                                                       }
+                                                     },
+                                             "put":  {
+                                                         "tags":  [
+                                                                      "forep-controller"
+                                                                  ],
+                                                         "operationId":  "updateTask",
+                                                         "parameters":  [
+                                                                            {
+                                                                                "name":  "id",
+                                                                                "in":  "path",
+                                                                                "required":  true,
+                                                                                "schema":  {
+                                                                                               "type":  "string",
+                                                                                               "format":  "uuid"
+                                                                                           }
+                                                                            }
+                                                                        ],
+                                                         "requestBody":  {
+                                                                             "content":  {
+                                                                                             "application/json":  {
+                                                                                                                      "schema":  {
+                                                                                                                                     "$ref":  "#/components/schemas/UpdateTaskRequest"
+                                                                                                                                 }
+                                                                                                                  }
+                                                                                         },
+                                                                             "required":  true
+                                                                         },
+                                                         "responses":  {
+                                                                           "200":  {
+                                                                                       "description":  "OK",
+                                                                                       "content":  {
+                                                                                                       "*/*":  {
+                                                                                                                   "schema":  {
+                                                                                                                                  "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                              }
+                                                                                                               }
+                                                                                                   }
+                                                                                   }
+                                                                       }
+                                                     }
+                                         },
+                  "/api/v1/employees/{id}":  {
+                                                 "get":  {
+                                                             "tags":  [
+                                                                          "forep-controller"
+                                                                      ],
+                                                             "operationId":  "employee",
+                                                             "parameters":  [
+                                                                                {
+                                                                                    "name":  "id",
+                                                                                    "in":  "path",
+                                                                                    "required":  true,
+                                                                                    "schema":  {
+                                                                                                   "type":  "string",
+                                                                                                   "format":  "uuid"
+                                                                                               }
+                                                                                }
+                                                                            ],
+                                                             "responses":  {
+                                                                               "200":  {
+                                                                                           "description":  "OK",
+                                                                                           "content":  {
+                                                                                                           "*/*":  {
+                                                                                                                       "schema":  {
+                                                                                                                                      "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                  }
+                                                                                                                   }
+                                                                                                       }
+                                                                                       }
+                                                                           }
+                                                         },
+                                                 "put":  {
+                                                             "tags":  [
+                                                                          "forep-controller"
+                                                                      ],
+                                                             "operationId":  "updateEmployee",
+                                                             "parameters":  [
+                                                                                {
+                                                                                    "name":  "id",
+                                                                                    "in":  "path",
+                                                                                    "required":  true,
+                                                                                    "schema":  {
+                                                                                                   "type":  "string",
+                                                                                                   "format":  "uuid"
+                                                                                               }
+                                                                                }
+                                                                            ],
+                                                             "requestBody":  {
+                                                                                 "content":  {
+                                                                                                 "application/json":  {
+                                                                                                                          "schema":  {
+                                                                                                                                         "$ref":  "#/components/schemas/UpdateEmployeeRequest"
+                                                                                                                                     }
+                                                                                                                      }
+                                                                                             },
+                                                                                 "required":  true
+                                                                             },
+                                                             "responses":  {
+                                                                               "200":  {
+                                                                                           "description":  "OK",
+                                                                                           "content":  {
+                                                                                                           "*/*":  {
+                                                                                                                       "schema":  {
+                                                                                                                                      "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                  }
+                                                                                                                   }
+                                                                                                       }
+                                                                                       }
+                                                                           }
+                                                         }
+                                             },
+                  "/api/v1/workspaces/register":  {
+                                                      "post":  {
+                                                                   "tags":  [
+                                                                                "forep-controller"
+                                                                            ],
+                                                                   "operationId":  "registerWorkspace",
+                                                                   "requestBody":  {
+                                                                                       "content":  {
+                                                                                                       "application/json":  {
+                                                                                                                                "schema":  {
+                                                                                                                                               "$ref":  "#/components/schemas/RegisterWorkspaceRequest"
+                                                                                                                                           }
+                                                                                                                            }
+                                                                                                   },
+                                                                                       "required":  true
+                                                                                   },
+                                                                   "responses":  {
+                                                                                     "200":  {
+                                                                                                 "description":  "OK",
+                                                                                                 "content":  {
+                                                                                                                 "*/*":  {
+                                                                                                                             "schema":  {
+                                                                                                                                            "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                        }
+                                                                                                                         }
+                                                                                                             }
+                                                                                             }
+                                                                                 }
+                                                               }
+                                                  },
+                  "/api/v1/tasks":  {
+                                        "get":  {
+                                                    "tags":  [
+                                                                 "forep-controller"
+                                                             ],
+                                                    "operationId":  "tasks",
+                                                    "responses":  {
+                                                                      "200":  {
+                                                                                  "description":  "OK",
+                                                                                  "content":  {
+                                                                                                  "*/*":  {
+                                                                                                              "schema":  {
+                                                                                                                             "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                         }
+                                                                                                          }
+                                                                                              }
+                                                                              }
+                                                                  }
+                                                },
+                                        "post":  {
+                                                     "tags":  [
+                                                                  "forep-controller"
+                                                              ],
+                                                     "operationId":  "createTask",
+                                                     "requestBody":  {
+                                                                         "content":  {
+                                                                                         "application/json":  {
+                                                                                                                  "schema":  {
+                                                                                                                                 "$ref":  "#/components/schemas/CreateTaskRequest"
+                                                                                                                             }
+                                                                                                              }
+                                                                                     },
+                                                                         "required":  true
+                                                                     },
+                                                     "responses":  {
+                                                                       "200":  {
+                                                                                   "description":  "OK",
+                                                                                   "content":  {
+                                                                                                   "*/*":  {
+                                                                                                               "schema":  {
+                                                                                                                              "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                          }
+                                                                                                           }
+                                                                                               }
+                                                                               }
+                                                                   }
+                                                 }
+                                    },
+                  "/api/v1/tasks/{id}/updates":  {
+                                                     "get":  {
+                                                                 "tags":  [
+                                                                              "forep-controller"
+                                                                          ],
+                                                                 "operationId":  "updates",
+                                                                 "parameters":  [
+                                                                                    {
+                                                                                        "name":  "id",
+                                                                                        "in":  "path",
+                                                                                        "required":  true,
+                                                                                        "schema":  {
+                                                                                                       "type":  "string",
+                                                                                                       "format":  "uuid"
+                                                                                                   }
+                                                                                    }
+                                                                                ],
+                                                                 "responses":  {
+                                                                                   "200":  {
+                                                                                               "description":  "OK",
+                                                                                               "content":  {
+                                                                                                               "*/*":  {
+                                                                                                                           "schema":  {
+                                                                                                                                          "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                      }
+                                                                                                                       }
+                                                                                                           }
+                                                                                           }
+                                                                               }
+                                                             },
+                                                     "post":  {
+                                                                  "tags":  [
+                                                                               "forep-controller"
+                                                                           ],
+                                                                  "operationId":  "addUpdate",
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "id",
+                                                                                         "in":  "path",
+                                                                                         "required":  true,
+                                                                                         "schema":  {
+                                                                                                        "type":  "string",
+                                                                                                        "format":  "uuid"
+                                                                                                    }
+                                                                                     }
+                                                                                 ],
+                                                                  "requestBody":  {
+                                                                                      "content":  {
+                                                                                                      "application/json":  {
+                                                                                                                               "schema":  {
+                                                                                                                                              "$ref":  "#/components/schemas/UpdateProgressRequest"
+                                                                                                                                          }
+                                                                                                                           }
+                                                                                                  },
+                                                                                      "required":  true
+                                                                                  },
+                                                                  "responses":  {
+                                                                                    "200":  {
+                                                                                                "description":  "OK",
+                                                                                                "content":  {
+                                                                                                                "*/*":  {
+                                                                                                                            "schema":  {
+                                                                                                                                           "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                       }
+                                                                                                                        }
+                                                                                                            }
+                                                                                            }
+                                                                                }
+                                                              }
+                                                 },
+                  "/api/v1/employees":  {
+                                            "get":  {
+                                                        "tags":  [
+                                                                     "forep-controller"
+                                                                 ],
+                                                        "operationId":  "employees",
+                                                        "responses":  {
+                                                                          "200":  {
+                                                                                      "description":  "OK",
+                                                                                      "content":  {
+                                                                                                      "*/*":  {
+                                                                                                                  "schema":  {
+                                                                                                                                 "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                             }
+                                                                                                              }
+                                                                                                  }
+                                                                                  }
+                                                                      }
+                                                    },
+                                            "post":  {
+                                                         "tags":  [
+                                                                      "forep-controller"
+                                                                  ],
+                                                         "operationId":  "createEmployee",
+                                                         "requestBody":  {
+                                                                             "content":  {
+                                                                                             "application/json":  {
+                                                                                                                      "schema":  {
+                                                                                                                                     "$ref":  "#/components/schemas/CreateEmployeeRequest"
+                                                                                                                                 }
+                                                                                                                  }
+                                                                                         },
+                                                                             "required":  true
+                                                                         },
+                                                         "responses":  {
+                                                                           "200":  {
+                                                                                       "description":  "OK",
+                                                                                       "content":  {
+                                                                                                       "*/*":  {
+                                                                                                                   "schema":  {
+                                                                                                                                  "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                              }
+                                                                                                               }
+                                                                                                   }
+                                                                                   }
+                                                                       }
+                                                     }
+                                        },
+                  "/api/v1/daily-reports":  {
+                                                "get":  {
+                                                            "tags":  [
+                                                                         "forep-controller"
+                                                                     ],
+                                                            "operationId":  "reports",
+                                                            "responses":  {
+                                                                              "200":  {
+                                                                                          "description":  "OK",
+                                                                                          "content":  {
+                                                                                                          "*/*":  {
+                                                                                                                      "schema":  {
+                                                                                                                                     "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                 }
+                                                                                                                  }
+                                                                                                      }
+                                                                                      }
+                                                                          }
+                                                        },
+                                                "post":  {
+                                                             "tags":  [
+                                                                          "forep-controller"
+                                                                      ],
+                                                             "operationId":  "createReport",
+                                                             "requestBody":  {
+                                                                                 "content":  {
+                                                                                                 "application/json":  {
+                                                                                                                          "schema":  {
+                                                                                                                                         "$ref":  "#/components/schemas/DailyReportRequest"
+                                                                                                                                     }
+                                                                                                                      }
+                                                                                             },
+                                                                                 "required":  true
+                                                                             },
+                                                             "responses":  {
+                                                                               "200":  {
+                                                                                           "description":  "OK",
+                                                                                           "content":  {
+                                                                                                           "*/*":  {
+                                                                                                                       "schema":  {
+                                                                                                                                      "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                  }
+                                                                                                                   }
+                                                                                                       }
+                                                                                       }
+                                                                           }
+                                                         }
+                                            },
+                  "/api/v1/auth/logout":  {
+                                              "post":  {
+                                                           "tags":  [
+                                                                        "forep-controller"
+                                                                    ],
+                                                           "operationId":  "logout",
+                                                           "responses":  {
+                                                                             "200":  {
+                                                                                         "description":  "OK",
+                                                                                         "content":  {
+                                                                                                         "*/*":  {
+                                                                                                                     "schema":  {
+                                                                                                                                    "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                }
+                                                                                                                 }
+                                                                                                     }
+                                                                                     }
+                                                                         }
+                                                       }
+                                          },
+                  "/api/v1/auth/login":  {
+                                             "post":  {
+                                                          "tags":  [
+                                                                       "forep-controller"
+                                                                   ],
+                                                          "operationId":  "login",
+                                                          "requestBody":  {
+                                                                              "content":  {
+                                                                                              "application/json":  {
+                                                                                                                       "schema":  {
+                                                                                                                                      "$ref":  "#/components/schemas/LoginRequest"
+                                                                                                                                  }
+                                                                                                                   }
+                                                                                          },
+                                                                              "required":  true
+                                                                          },
+                                                          "responses":  {
+                                                                            "200":  {
+                                                                                        "description":  "OK",
+                                                                                        "content":  {
+                                                                                                        "*/*":  {
+                                                                                                                    "schema":  {
+                                                                                                                                   "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                               }
+                                                                                                                }
+                                                                                                    }
+                                                                                    }
+                                                                        }
+                                                      }
+                                         },
+                  "/api/v1/ai/recommend-assignee":  {
+                                                        "post":  {
+                                                                     "tags":  [
+                                                                                  "forep-controller"
+                                                                              ],
+                                                                     "operationId":  "recommendAssignee",
+                                                                     "requestBody":  {
+                                                                                         "content":  {
+                                                                                                         "application/json":  {
+                                                                                                                                  "schema":  {
+                                                                                                                                                 "$ref":  "#/components/schemas/RecommendAssigneeRequest"
+                                                                                                                                             }
+                                                                                                                              }
+                                                                                                     },
+                                                                                         "required":  true
+                                                                                     },
+                                                                     "responses":  {
+                                                                                       "200":  {
+                                                                                                   "description":  "OK",
+                                                                                                   "content":  {
+                                                                                                                   "*/*":  {
+                                                                                                                               "schema":  {
+                                                                                                                                              "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                          }
+                                                                                                                           }
+                                                                                                               }
+                                                                                               }
+                                                                                   }
+                                                                 }
+                                                    },
+                  "/api/v1/tasks/{id}/status":  {
+                                                    "patch":  {
+                                                                  "tags":  [
+                                                                               "forep-controller"
+                                                                           ],
+                                                                  "operationId":  "updateStatus",
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "id",
+                                                                                         "in":  "path",
+                                                                                         "required":  true,
+                                                                                         "schema":  {
+                                                                                                        "type":  "string",
+                                                                                                        "format":  "uuid"
+                                                                                                    }
+                                                                                     }
+                                                                                 ],
+                                                                  "requestBody":  {
+                                                                                      "content":  {
+                                                                                                      "application/json":  {
+                                                                                                                               "schema":  {
+                                                                                                                                              "$ref":  "#/components/schemas/UpdateTaskStatusRequest"
+                                                                                                                                          }
+                                                                                                                           }
+                                                                                                  },
+                                                                                      "required":  true
+                                                                                  },
+                                                                  "responses":  {
+                                                                                    "200":  {
+                                                                                                "description":  "OK",
+                                                                                                "content":  {
+                                                                                                                "*/*":  {
+                                                                                                                            "schema":  {
+                                                                                                                                           "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                       }
+                                                                                                                        }
+                                                                                                            }
+                                                                                            }
+                                                                                }
+                                                              }
+                                                },
+                  "/api/v1/tasks/{id}/progress":  {
+                                                      "patch":  {
+                                                                    "tags":  [
+                                                                                 "forep-controller"
+                                                                             ],
+                                                                    "operationId":  "updateProgress",
+                                                                    "parameters":  [
+                                                                                       {
+                                                                                           "name":  "id",
+                                                                                           "in":  "path",
+                                                                                           "required":  true,
+                                                                                           "schema":  {
+                                                                                                          "type":  "string",
+                                                                                                          "format":  "uuid"
+                                                                                                      }
+                                                                                       }
+                                                                                   ],
+                                                                    "requestBody":  {
+                                                                                        "content":  {
+                                                                                                        "application/json":  {
+                                                                                                                                 "schema":  {
+                                                                                                                                                "$ref":  "#/components/schemas/UpdateProgressRequest"
+                                                                                                                                            }
+                                                                                                                             }
+                                                                                                    },
+                                                                                        "required":  true
+                                                                                    },
+                                                                    "responses":  {
+                                                                                      "200":  {
+                                                                                                  "description":  "OK",
+                                                                                                  "content":  {
+                                                                                                                  "*/*":  {
+                                                                                                                              "schema":  {
+                                                                                                                                             "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                         }
+                                                                                                                          }
+                                                                                                              }
+                                                                                              }
+                                                                                  }
+                                                                }
+                                                  },
+                  "/api/v1/tasks/{id}/cancel":  {
+                                                    "patch":  {
+                                                                  "tags":  [
+                                                                               "forep-controller"
+                                                                           ],
+                                                                  "operationId":  "cancelTask",
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "id",
+                                                                                         "in":  "path",
+                                                                                         "required":  true,
+                                                                                         "schema":  {
+                                                                                                        "type":  "string",
+                                                                                                        "format":  "uuid"
+                                                                                                    }
+                                                                                     }
+                                                                                 ],
+                                                                  "responses":  {
+                                                                                    "200":  {
+                                                                                                "description":  "OK",
+                                                                                                "content":  {
+                                                                                                                "*/*":  {
+                                                                                                                            "schema":  {
+                                                                                                                                           "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                       }
+                                                                                                                        }
+                                                                                                            }
+                                                                                            }
+                                                                                }
+                                                              }
+                                                },
+                  "/api/v1/tasks/{id}/assign":  {
+                                                    "patch":  {
+                                                                  "tags":  [
+                                                                               "forep-controller"
+                                                                           ],
+                                                                  "operationId":  "assignTask",
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "id",
+                                                                                         "in":  "path",
+                                                                                         "required":  true,
+                                                                                         "schema":  {
+                                                                                                        "type":  "string",
+                                                                                                        "format":  "uuid"
+                                                                                                    }
+                                                                                     }
+                                                                                 ],
+                                                                  "requestBody":  {
+                                                                                      "content":  {
+                                                                                                      "application/json":  {
+                                                                                                                               "schema":  {
+                                                                                                                                              "$ref":  "#/components/schemas/AssignTaskRequest"
+                                                                                                                                          }
+                                                                                                                           }
+                                                                                                  },
+                                                                                      "required":  true
+                                                                                  },
+                                                                  "responses":  {
+                                                                                    "200":  {
+                                                                                                "description":  "OK",
+                                                                                                "content":  {
+                                                                                                                "*/*":  {
+                                                                                                                            "schema":  {
+                                                                                                                                           "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                       }
+                                                                                                                        }
+                                                                                                            }
+                                                                                            }
+                                                                                }
+                                                              }
+                                                },
+                  "/api/v1/notifications/{id}/read":  {
+                                                          "patch":  {
+                                                                        "tags":  [
+                                                                                     "forep-controller"
+                                                                                 ],
+                                                                        "operationId":  "readNotification",
+                                                                        "parameters":  [
+                                                                                           {
+                                                                                               "name":  "id",
+                                                                                               "in":  "path",
+                                                                                               "required":  true,
+                                                                                               "schema":  {
+                                                                                                              "type":  "string",
+                                                                                                              "format":  "uuid"
+                                                                                                          }
+                                                                                           }
+                                                                                       ],
+                                                                        "responses":  {
+                                                                                          "200":  {
+                                                                                                      "description":  "OK",
+                                                                                                      "content":  {
+                                                                                                                      "*/*":  {
+                                                                                                                                  "schema":  {
+                                                                                                                                                 "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                             }
+                                                                                                                              }
+                                                                                                                  }
+                                                                                                  }
+                                                                                      }
+                                                                    }
+                                                      },
+                  "/api/v1/notifications/read-all":  {
+                                                         "patch":  {
+                                                                       "tags":  [
+                                                                                    "forep-controller"
+                                                                                ],
+                                                                       "operationId":  "readAllNotifications",
+                                                                       "responses":  {
+                                                                                         "200":  {
+                                                                                                     "description":  "OK",
+                                                                                                     "content":  {
+                                                                                                                     "*/*":  {
+                                                                                                                                 "schema":  {
+                                                                                                                                                "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                            }
+                                                                                                                             }
+                                                                                                                 }
+                                                                                                 }
+                                                                                     }
+                                                                   }
+                                                     },
+                  "/api/v1/employees/{id}/status":  {
+                                                        "patch":  {
+                                                                      "tags":  [
+                                                                                   "forep-controller"
+                                                                               ],
+                                                                      "operationId":  "updateEmployeeStatus",
+                                                                      "parameters":  [
+                                                                                         {
+                                                                                             "name":  "id",
+                                                                                             "in":  "path",
+                                                                                             "required":  true,
+                                                                                             "schema":  {
+                                                                                                            "type":  "string",
+                                                                                                            "format":  "uuid"
+                                                                                                        }
+                                                                                         },
+                                                                                         {
+                                                                                             "name":  "status",
+                                                                                             "in":  "query",
+                                                                                             "required":  true,
+                                                                                             "schema":  {
+                                                                                                            "type":  "string",
+                                                                                                            "enum":  [
+                                                                                                                         "ACTIVE",
+                                                                                                                         "INACTIVE",
+                                                                                                                         "INVITED"
+                                                                                                                     ]
+                                                                                                        }
+                                                                                         }
+                                                                                     ],
+                                                                      "responses":  {
+                                                                                        "200":  {
+                                                                                                    "description":  "OK",
+                                                                                                    "content":  {
+                                                                                                                    "*/*":  {
+                                                                                                                                "schema":  {
+                                                                                                                                               "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                           }
+                                                                                                                            }
+                                                                                                                }
+                                                                                                }
+                                                                                    }
+                                                                  }
+                                                    },
+                  "/api/v1/daily-reports/{id}/review":  {
+                                                            "patch":  {
+                                                                          "tags":  [
+                                                                                       "forep-controller"
+                                                                                   ],
+                                                                          "operationId":  "reviewReport",
+                                                                          "parameters":  [
+                                                                                             {
+                                                                                                 "name":  "id",
+                                                                                                 "in":  "path",
+                                                                                                 "required":  true,
+                                                                                                 "schema":  {
+                                                                                                                "type":  "string",
+                                                                                                                "format":  "uuid"
+                                                                                                            }
+                                                                                             }
+                                                                                         ],
+                                                                          "responses":  {
+                                                                                            "200":  {
+                                                                                                        "description":  "OK",
+                                                                                                        "content":  {
+                                                                                                                        "*/*":  {
+                                                                                                                                    "schema":  {
+                                                                                                                                                   "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                               }
+                                                                                                                                }
+                                                                                                                    }
+                                                                                                    }
+                                                                                        }
+                                                                      }
+                                                        },
+                  "/api/v1/ai/suggestions/{id}/status":  {
+                                                             "patch":  {
+                                                                           "tags":  [
+                                                                                        "forep-controller"
+                                                                                    ],
+                                                                           "operationId":  "updateAiSuggestionStatus",
+                                                                           "parameters":  [
+                                                                                              {
+                                                                                                  "name":  "id",
+                                                                                                  "in":  "path",
+                                                                                                  "required":  true,
+                                                                                                  "schema":  {
+                                                                                                                 "type":  "string",
+                                                                                                                 "format":  "uuid"
+                                                                                                             }
+                                                                                              },
+                                                                                              {
+                                                                                                  "name":  "status",
+                                                                                                  "in":  "query",
+                                                                                                  "required":  true,
+                                                                                                  "schema":  {
+                                                                                                                 "type":  "string",
+                                                                                                                 "enum":  [
+                                                                                                                              "GENERATED",
+                                                                                                                              "ACCEPTED",
+                                                                                                                              "REJECTED"
+                                                                                                                          ]
+                                                                                                             }
+                                                                                              }
+                                                                                          ],
+                                                                           "responses":  {
+                                                                                             "200":  {
+                                                                                                         "description":  "OK",
+                                                                                                         "content":  {
+                                                                                                                         "*/*":  {
+                                                                                                                                     "schema":  {
+                                                                                                                                                    "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                                }
+                                                                                                                                 }
+                                                                                                                     }
+                                                                                                     }
+                                                                                         }
+                                                                       }
+                                                         },
+                  "/api/v1/notifications":  {
+                                                "get":  {
+                                                            "tags":  [
+                                                                         "forep-controller"
+                                                                     ],
+                                                            "operationId":  "notifications",
+                                                            "responses":  {
+                                                                              "200":  {
+                                                                                          "description":  "OK",
+                                                                                          "content":  {
+                                                                                                          "*/*":  {
+                                                                                                                      "schema":  {
+                                                                                                                                     "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                 }
+                                                                                                                  }
+                                                                                                      }
+                                                                                      }
+                                                                          }
+                                                        }
+                                            },
+                  "/api/v1/health":  {
+                                         "get":  {
+                                                     "tags":  [
+                                                                  "forep-controller"
+                                                              ],
+                                                     "operationId":  "health",
+                                                     "responses":  {
+                                                                       "200":  {
+                                                                                   "description":  "OK",
+                                                                                   "content":  {
+                                                                                                   "*/*":  {
+                                                                                                               "schema":  {
+                                                                                                                              "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                          }
+                                                                                                           }
+                                                                                               }
+                                                                               }
+                                                                   }
+                                                 }
+                                     },
+                  "/api/v1/daily-reports/{id}":  {
+                                                     "get":  {
+                                                                 "tags":  [
+                                                                              "forep-controller"
+                                                                          ],
+                                                                 "operationId":  "report",
+                                                                 "parameters":  [
+                                                                                    {
+                                                                                        "name":  "id",
+                                                                                        "in":  "path",
+                                                                                        "required":  true,
+                                                                                        "schema":  {
+                                                                                                       "type":  "string",
+                                                                                                       "format":  "uuid"
+                                                                                                   }
+                                                                                    }
+                                                                                ],
+                                                                 "responses":  {
+                                                                                   "200":  {
+                                                                                               "description":  "OK",
+                                                                                               "content":  {
+                                                                                                               "*/*":  {
+                                                                                                                           "schema":  {
+                                                                                                                                          "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                      }
+                                                                                                                       }
+                                                                                                           }
+                                                                                           }
+                                                                               }
+                                                             }
+                                                 },
+                  "/api/v1/auth/me":  {
+                                          "get":  {
+                                                      "tags":  [
+                                                                   "forep-controller"
+                                                               ],
+                                                      "operationId":  "me",
+                                                      "responses":  {
+                                                                        "200":  {
+                                                                                    "description":  "OK",
+                                                                                    "content":  {
+                                                                                                    "*/*":  {
+                                                                                                                "schema":  {
+                                                                                                                               "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                           }
+                                                                                                            }
+                                                                                                }
+                                                                                }
+                                                                    }
+                                                  }
+                                      },
+                  "/api/v1/analytics/workload":  {
+                                                     "get":  {
+                                                                 "tags":  [
+                                                                              "forep-controller"
+                                                                          ],
+                                                                 "operationId":  "workload",
+                                                                 "responses":  {
+                                                                                   "200":  {
+                                                                                               "description":  "OK",
+                                                                                               "content":  {
+                                                                                                               "*/*":  {
+                                                                                                                           "schema":  {
+                                                                                                                                          "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                      }
+                                                                                                                       }
+                                                                                                           }
+                                                                                           }
+                                                                               }
+                                                             }
+                                                 },
+                  "/api/v1/analytics/owner-dashboard":  {
+                                                            "get":  {
+                                                                        "tags":  [
+                                                                                     "forep-controller"
+                                                                                 ],
+                                                                        "operationId":  "ownerDashboard",
+                                                                        "responses":  {
+                                                                                          "200":  {
+                                                                                                      "description":  "OK",
+                                                                                                      "content":  {
+                                                                                                                      "*/*":  {
+                                                                                                                                  "schema":  {
+                                                                                                                                                 "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                             }
+                                                                                                                              }
+                                                                                                                  }
+                                                                                                  }
+                                                                                      }
+                                                                    }
+                                                        },
+                  "/api/v1/analytics/employees/{id}/workload":  {
+                                                                    "get":  {
+                                                                                "tags":  [
+                                                                                             "forep-controller"
+                                                                                         ],
+                                                                                "operationId":  "employeeWorkload",
+                                                                                "parameters":  [
+                                                                                                   {
+                                                                                                       "name":  "id",
+                                                                                                       "in":  "path",
+                                                                                                       "required":  true,
+                                                                                                       "schema":  {
+                                                                                                                      "type":  "string",
+                                                                                                                      "format":  "uuid"
+                                                                                                                  }
+                                                                                                   }
+                                                                                               ],
+                                                                                "responses":  {
+                                                                                                  "200":  {
+                                                                                                              "description":  "OK",
+                                                                                                              "content":  {
+                                                                                                                              "*/*":  {
+                                                                                                                                          "schema":  {
+                                                                                                                                                         "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                                     }
+                                                                                                                                      }
+                                                                                                                          }
+                                                                                                          }
+                                                                                              }
+                                                                            }
+                                                                },
+                  "/api/v1/ai/workload-summary":  {
+                                                      "get":  {
+                                                                  "tags":  [
+                                                                               "forep-controller"
+                                                                           ],
+                                                                  "operationId":  "workloadSummary",
+                                                                  "responses":  {
+                                                                                    "200":  {
+                                                                                                "description":  "OK",
+                                                                                                "content":  {
+                                                                                                                "*/*":  {
+                                                                                                                            "schema":  {
+                                                                                                                                           "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                       }
+                                                                                                                        }
+                                                                                                            }
+                                                                                            }
+                                                                                }
+                                                              }
+                                                  },
+                  "/api/v1/ai/suggestions":  {
+                                                 "get":  {
+                                                             "tags":  [
+                                                                          "forep-controller"
+                                                                      ],
+                                                             "operationId":  "aiSuggestions",
+                                                             "responses":  {
+                                                                               "200":  {
+                                                                                           "description":  "OK",
+                                                                                           "content":  {
+                                                                                                           "*/*":  {
+                                                                                                                       "schema":  {
+                                                                                                                                      "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                  }
+                                                                                                                   }
+                                                                                                       }
+                                                                                       }
+                                                                           }
+                                                         }
+                                             },
+                  "/api/v1/ai/delay-risks":  {
+                                                 "get":  {
+                                                             "tags":  [
+                                                                          "forep-controller"
+                                                                      ],
+                                                             "operationId":  "delayRisks",
+                                                             "responses":  {
+                                                                               "200":  {
+                                                                                           "description":  "OK",
+                                                                                           "content":  {
+                                                                                                           "*/*":  {
+                                                                                                                       "schema":  {
+                                                                                                                                      "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                  }
+                                                                                                                   }
+                                                                                                       }
+                                                                                       }
+                                                                           }
+                                                         }
+                                             },
+                  "/api/v1/ai/business-summary/weekly":  {
+                                                             "get":  {
+                                                                         "tags":  [
+                                                                                      "forep-controller"
+                                                                                  ],
+                                                                         "operationId":  "weeklyBusinessSummary",
+                                                                         "responses":  {
+                                                                                           "200":  {
+                                                                                                       "description":  "OK",
+                                                                                                       "content":  {
+                                                                                                                       "*/*":  {
+                                                                                                                                   "schema":  {
+                                                                                                                                                  "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                              }
+                                                                                                                               }
+                                                                                                                   }
+                                                                                                   }
+                                                                                       }
+                                                                     }
+                                                         },
+                  "/api/v1/ai/business-summary/monthly":  {
+                                                              "get":  {
+                                                                          "tags":  [
+                                                                                       "forep-controller"
+                                                                                   ],
+                                                                          "operationId":  "monthlyBusinessSummary",
+                                                                          "responses":  {
+                                                                                            "200":  {
+                                                                                                        "description":  "OK",
+                                                                                                        "content":  {
+                                                                                                                        "*/*":  {
+                                                                                                                                    "schema":  {
+                                                                                                                                                   "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                               }
+                                                                                                                                }
+                                                                                                                    }
+                                                                                                    }
+                                                                                        }
+                                                                      }
+                                                          },
+                  "/api/v1/ai/business-summary/daily":  {
+                                                            "get":  {
+                                                                        "tags":  [
+                                                                                     "forep-controller"
+                                                                                 ],
+                                                                        "operationId":  "dailyBusinessSummary",
+                                                                        "responses":  {
+                                                                                          "200":  {
+                                                                                                      "description":  "OK",
+                                                                                                      "content":  {
+                                                                                                                      "*/*":  {
+                                                                                                                                  "schema":  {
+                                                                                                                                                 "$ref":  "#/components/schemas/ApiResponseObject"
+                                                                                                                                             }
+                                                                                                                              }
+                                                                                                                  }
+                                                                                                  }
+                                                                                      }
+                                                                    }
+                                                        }
+              },
+    "components":  {
+                       "schemas":  {
+                                       "UpdateWorkspaceRequest":  {
+                                                                      "type":  "object",
+                                                                      "properties":  {
+                                                                                         "name":  {
+                                                                                                      "type":  "string"
+                                                                                                  },
+                                                                                         "logo":  {
+                                                                                                      "type":  "string"
+                                                                                                  },
+                                                                                         "address":  {
+                                                                                                         "type":  "string"
+                                                                                                     }
+                                                                                     }
+                                                                  },
+                                       "ApiError":  {
+                                                        "type":  "object",
+                                                        "properties":  {
+                                                                           "code":  {
+                                                                                        "type":  "string"
+                                                                                    },
+                                                                           "message":  {
+                                                                                           "type":  "string"
+                                                                                       },
+                                                                           "field":  {
+                                                                                         "type":  "string"
+                                                                                     }
+                                                                       }
+                                                    },
+                                       "ApiResponseObject":  {
+                                                                 "type":  "object",
+                                                                 "properties":  {
+                                                                                    "data":  {
+                                                                                                 "type":  "object"
+                                                                                             },
+                                                                                    "meta":  {
+                                                                                                 "type":  "object",
+                                                                                                 "additionalProperties":  {
+                                                                                                                              "type":  "object"
+                                                                                                                          }
+                                                                                             },
+                                                                                    "errors":  {
+                                                                                                   "type":  "array",
+                                                                                                   "items":  {
+                                                                                                                 "$ref":  "#/components/schemas/ApiError"
+                                                                                                             }
+                                                                                               }
+                                                                                }
+                                                             },
+                                       "UpdateTaskRequest":  {
+                                                                 "required":  [
+                                                                                  "assigneeId",
+                                                                                  "deadline",
+                                                                                  "requirements",
+                                                                                  "title"
+                                                                              ],
+                                                                 "type":  "object",
+                                                                 "properties":  {
+                                                                                    "title":  {
+                                                                                                  "type":  "string"
+                                                                                              },
+                                                                                    "requirements":  {
+                                                                                                         "type":  "string"
+                                                                                                     },
+                                                                                    "description":  {
+                                                                                                        "type":  "string"
+                                                                                                    },
+                                                                                    "assigneeId":  {
+                                                                                                       "type":  "string",
+                                                                                                       "format":  "uuid"
+                                                                                                   },
+                                                                                    "priority":  {
+                                                                                                     "type":  "string",
+                                                                                                     "enum":  [
+                                                                                                                  "LOW",
+                                                                                                                  "MEDIUM",
+                                                                                                                  "HIGH",
+                                                                                                                  "CRITICAL"
+                                                                                                              ]
+                                                                                                 },
+                                                                                    "deadline":  {
+                                                                                                     "type":  "string",
+                                                                                                     "format":  "date-time"
+                                                                                                 },
+                                                                                    "estimatedHours":  {
+                                                                                                           "type":  "number"
+                                                                                                       }
+                                                                                }
+                                                             },
+                                       "UpdateEmployeeRequest":  {
+                                                                     "required":  [
+                                                                                      "fullName"
+                                                                                  ],
+                                                                     "type":  "object",
+                                                                     "properties":  {
+                                                                                        "fullName":  {
+                                                                                                         "type":  "string"
+                                                                                                     },
+                                                                                        "email":  {
+                                                                                                      "type":  "string"
+                                                                                                  },
+                                                                                        "phone":  {
+                                                                                                      "type":  "string"
+                                                                                                  },
+                                                                                        "status":  {
+                                                                                                       "type":  "string",
+                                                                                                       "enum":  [
+                                                                                                                    "ACTIVE",
+                                                                                                                    "INACTIVE",
+                                                                                                                    "INVITED"
+                                                                                                                ]
+                                                                                                   }
+                                                                                    }
+                                                                 },
+                                       "RegisterWorkspaceRequest":  {
+                                                                        "required":  [
+                                                                                         "ownerFullName",
+                                                                                         "ownerPassword",
+                                                                                         "workspaceName"
+                                                                                     ],
+                                                                        "type":  "object",
+                                                                        "properties":  {
+                                                                                           "workspaceName":  {
+                                                                                                                 "type":  "string"
+                                                                                                             },
+                                                                                           "address":  {
+                                                                                                           "type":  "string"
+                                                                                                       },
+                                                                                           "ownerFullName":  {
+                                                                                                                 "type":  "string"
+                                                                                                             },
+                                                                                           "ownerEmail":  {
+                                                                                                              "type":  "string"
+                                                                                                          },
+                                                                                           "ownerPhone":  {
+                                                                                                              "type":  "string"
+                                                                                                          },
+                                                                                           "ownerPassword":  {
+                                                                                                                 "type":  "string"
+                                                                                                             }
+                                                                                       }
+                                                                    },
+                                       "CreateTaskRequest":  {
+                                                                 "required":  [
+                                                                                  "assigneeId",
+                                                                                  "deadline",
+                                                                                  "requirements",
+                                                                                  "title"
+                                                                              ],
+                                                                 "type":  "object",
+                                                                 "properties":  {
+                                                                                    "title":  {
+                                                                                                  "type":  "string"
+                                                                                              },
+                                                                                    "requirements":  {
+                                                                                                         "type":  "string"
+                                                                                                     },
+                                                                                    "description":  {
+                                                                                                        "type":  "string"
+                                                                                                    },
+                                                                                    "assigneeId":  {
+                                                                                                       "type":  "string",
+                                                                                                       "format":  "uuid"
+                                                                                                   },
+                                                                                    "priority":  {
+                                                                                                     "type":  "string",
+                                                                                                     "enum":  [
+                                                                                                                  "LOW",
+                                                                                                                  "MEDIUM",
+                                                                                                                  "HIGH",
+                                                                                                                  "CRITICAL"
+                                                                                                              ]
+                                                                                                 },
+                                                                                    "deadline":  {
+                                                                                                     "type":  "string",
+                                                                                                     "format":  "date-time"
+                                                                                                 },
+                                                                                    "estimatedHours":  {
+                                                                                                           "type":  "number"
+                                                                                                       }
+                                                                                }
+                                                             },
+                                       "UpdateProgressRequest":  {
+                                                                     "required":  [
+                                                                                      "content",
+                                                                                      "updateType"
+                                                                                  ],
+                                                                     "type":  "object",
+                                                                     "properties":  {
+                                                                                        "progressPercent":  {
+                                                                                                                "maximum":  100,
+                                                                                                                "minimum":  0,
+                                                                                                                "type":  "integer",
+                                                                                                                "format":  "int32"
+                                                                                                            },
+                                                                                        "content":  {
+                                                                                                        "type":  "string"
+                                                                                                    },
+                                                                                        "updateType":  {
+                                                                                                           "type":  "string",
+                                                                                                           "enum":  [
+                                                                                                                        "PROGRESS",
+                                                                                                                        "BLOCKER",
+                                                                                                                        "COMPLETION"
+                                                                                                                    ]
+                                                                                                       },
+                                                                                        "attachment":  {
+                                                                                                           "type":  "string"
+                                                                                                       }
+                                                                                    }
+                                                                 },
+                                       "CreateEmployeeRequest":  {
+                                                                     "required":  [
+                                                                                      "fullName"
+                                                                                  ],
+                                                                     "type":  "object",
+                                                                     "properties":  {
+                                                                                        "fullName":  {
+                                                                                                         "type":  "string"
+                                                                                                     },
+                                                                                        "email":  {
+                                                                                                      "type":  "string"
+                                                                                                  },
+                                                                                        "phone":  {
+                                                                                                      "type":  "string"
+                                                                                                  }
+                                                                                    }
+                                                                 },
+                                       "DailyReportRequest":  {
+                                                                  "required":  [
+                                                                                   "currentWork",
+                                                                                   "reportDate",
+                                                                                   "todayCompleted"
+                                                                               ],
+                                                                  "type":  "object",
+                                                                  "properties":  {
+                                                                                     "reportDate":  {
+                                                                                                        "type":  "string",
+                                                                                                        "format":  "date"
+                                                                                                    },
+                                                                                     "todayCompleted":  {
+                                                                                                            "type":  "string"
+                                                                                                        },
+                                                                                     "currentWork":  {
+                                                                                                         "type":  "string"
+                                                                                                     },
+                                                                                     "blockers":  {
+                                                                                                      "type":  "string"
+                                                                                                  },
+                                                                                     "tomorrowPlan":  {
+                                                                                                          "type":  "string"
+                                                                                                      }
+                                                                                 }
+                                                              },
+                                       "LoginRequest":  {
+                                                            "required":  [
+                                                                             "password"
+                                                                         ],
+                                                            "type":  "object",
+                                                            "properties":  {
+                                                                               "email":  {
+                                                                                             "type":  "string"
+                                                                                         },
+                                                                               "password":  {
+                                                                                                "type":  "string"
+                                                                                            }
+                                                                           }
+                                                        },
+                                       "RecommendAssigneeRequest":  {
+                                                                        "required":  [
+                                                                                         "deadline",
+                                                                                         "requirements",
+                                                                                         "title"
+                                                                                     ],
+                                                                        "type":  "object",
+                                                                        "properties":  {
+                                                                                           "title":  {
+                                                                                                         "type":  "string"
+                                                                                                     },
+                                                                                           "requirements":  {
+                                                                                                                "type":  "string"
+                                                                                                            },
+                                                                                           "deadline":  {
+                                                                                                            "type":  "string",
+                                                                                                            "format":  "date-time"
+                                                                                                        },
+                                                                                           "estimatedHours":  {
+                                                                                                                  "type":  "number"
+                                                                                                              }
+                                                                                       }
+                                                                    },
+                                       "UpdateTaskStatusRequest":  {
+                                                                       "required":  [
+                                                                                        "status"
+                                                                                    ],
+                                                                       "type":  "object",
+                                                                       "properties":  {
+                                                                                          "status":  {
+                                                                                                         "type":  "string",
+                                                                                                         "enum":  [
+                                                                                                                      "ASSIGNED",
+                                                                                                                      "IN_PROGRESS",
+                                                                                                                      "BLOCKED",
+                                                                                                                      "COMPLETED",
+                                                                                                                      "CANCELLED"
+                                                                                                                  ]
+                                                                                                     }
+                                                                                      }
+                                                                   },
+                                       "AssignTaskRequest":  {
+                                                                 "required":  [
+                                                                                  "assigneeId"
+                                                                              ],
+                                                                 "type":  "object",
+                                                                 "properties":  {
+                                                                                    "assigneeId":  {
+                                                                                                       "type":  "string",
+                                                                                                       "format":  "uuid"
+                                                                                                   }
+                                                                                }
+                                                             }
+                                   },
+                       "securitySchemes":  {
+                                               "bearerAuth":  {
+                                                                  "type":  "http",
+                                                                  "name":  "bearerAuth",
+                                                                  "scheme":  "bearer",
+                                                                  "bearerFormat":  "JWT"
+                                                              }
+                                           }
+                   }
+}
