@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -14,13 +14,13 @@ import { Field } from "@/components/common/Field";
 import { registerWorkspaceSchema } from "@/features/auth/schemas";
 import type { z } from "zod";
 
-type RegisterValues = z.infer<typeof registerWorkspaceSchema>;
+type RegisterValues = z.output<typeof registerWorkspaceSchema>;
 
 export default function RegisterWorkspacePage() {
   const router = useRouter();
   const form = useForm<RegisterValues>({
     resolver: zodResolver(registerWorkspaceSchema),
-    defaultValues: { workspaceName: "", address: "", ownerFullName: "", ownerEmail: "", ownerPhone: "", ownerPassword: "" },
+    defaultValues: { workspaceName: "", shortCode: "", address: "", ownerFullName: "", ownerEmail: "", ownerPhone: "", ownerPassword: "" },
   });
   const mutation = useMutation({
     mutationFn: registerWorkspace,
@@ -44,8 +44,9 @@ export default function RegisterWorkspacePage() {
           <h1 className="text-3xl font-black text-foreground">Tạo workspace mới</h1>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">Khởi tạo workspace và tài khoản chủ sở hữu đầu tiên. Sau khi tạo thành công, bạn sẽ đăng nhập bằng email và mật khẩu đã đăng ký.</p>
           {mutation.error ? <p className="mt-4 rounded-control bg-red-50 px-3 py-2 text-sm font-semibold text-destructive">{getErrorMessage(mutation.error)}</p> : null}
-          <form className="mt-6 grid gap-4 sm:grid-cols-2" onSubmit={form.handleSubmit((values) => mutation.mutate(values))}>
+          <form className="mt-6 grid gap-4 sm:grid-cols-2" onSubmit={form.handleSubmit((values) => mutation.mutate({ ...values, address: values.address || undefined, ownerEmail: values.ownerEmail || undefined, ownerPhone: values.ownerPhone || undefined }))}>
             <Field label="Tên workspace" error={form.formState.errors.workspaceName?.message} {...form.register("workspaceName")} />
+            <Field label="Mã viết tắt tổ chức" helper="Dùng 2 ký tự chữ hoặc số, ví dụ SE." maxLength={2} error={form.formState.errors.shortCode?.message} {...form.register("shortCode")} />
             <Field label="Địa chỉ" optional error={form.formState.errors.address?.message} {...form.register("address")} />
             <Field label="Họ tên chủ workspace" error={form.formState.errors.ownerFullName?.message} {...form.register("ownerFullName")} />
             <Field label="Email chủ workspace" type="email" error={form.formState.errors.ownerEmail?.message} {...form.register("ownerEmail")} />

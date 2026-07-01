@@ -1,69 +1,123 @@
-"use client";
+﻿"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { RequireRole } from "@/auth/require-role";
 import { getEmployee, getEmployeeWorkload, updateEmployee } from "@/api/employees.api";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
-import { Field, Select } from "@/components/common/Field";
+import { Field, Select, TextArea } from "@/components/common/Field";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatCard } from "@/components/common/StatCard";
 import { StatusBadge, WorkloadBadge } from "@/components/common/StatusBadge";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { LoadingState } from "@/components/feedback/LoadingState";
-import { employeeSchema } from "@/features/employees/schemas";
+import { employeeSchema, seniorityOptions, toEmployeePayload } from "@/features/employees/schemas";
+import { ratingLabel, seniorityLabel } from "@/lib/labels";
 import { queryKeys } from "@/lib/query-keys";
 import type { z } from "zod";
 
-type Values = z.infer<typeof employeeSchema>;
+type EmployeeInput = z.input<typeof employeeSchema>;
+type Values = z.output<typeof employeeSchema>;
+
+const emptyValues: EmployeeInput = {
+  fullName: "",
+  email: "",
+  phone: "",
+  jobTitle: "",
+  seniorityLevel: "" as const,
+  skillRating: "" as const,
+  yearsOfExperience: "" as const,
+  skills: "",
+  status: "ACTIVE" as const,
+};
 
 export default function EmployeeDetailPage() {
+  const [showInitialPassword, setShowInitialPassword] = useState(false);
   const params = useParams<{ id: string }>();
   const queryClient = useQueryClient();
   const employeeQuery = useQuery({ queryKey: queryKeys.employee(params.id), queryFn: () => getEmployee(params.id) });
-  const workloadQuery = useQuery({ queryKey: ["employees", params.id, "workload"], queryFn: () => getEmployeeWorkload(params.id) });
-  const form = useForm<Values>({ resolver: zodResolver(employeeSchema), defaultValues: { fullName: "", email: "", phone: "", status: "ACTIVE" } });
+  const workloadQuery = useQuery({ queryKey: queryKeys.employeeWorkload(params.id), queryFn: () => getEmployeeWorkload(params.id) });
+  const form = useForm<EmployeeInput, unknown, Values>({ resolver: zodResolver(employeeSchema), defaultValues: emptyValues });
+
   useEffect(() => {
-    if (employeeQuery.data) form.reset(employeeQuery.data);
+    if (!employeeQuery.data) return;
+    form.reset({
+      fullName: employeeQuery.data.fullName ?? "",
+      email: employeeQuery.data.email ?? "",
+      phone: employeeQuery.data.phone ?? "",
+      jobTitle: employeeQuery.data.jobTitle ?? "",
+      seniorityLevel: employeeQuery.data.seniorityLevel ?? "",
+      skillRating: employeeQuery.data.skillRating ?? "",
+      yearsOfExperience: employeeQuery.data.yearsOfExperience ?? "",
+      skills: employeeQuery.data.skills ?? "",
+      status: employeeQuery.data.status ?? "ACTIVE",
+    });
   }, [employeeQuery.data, form]);
+
   const mutation = useMutation({
-    mutationFn: (values: Values) => updateEmployee(params.id, values),
+    mutationFn: (values: Values) => updateEmployee(params.id, toEmployeePayload(values)),
     onSuccess: () => {
       toast.success("Đã cập nhật nhân viên");
       void queryClient.invalidateQueries({ queryKey: queryKeys.employee(params.id) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.employees });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.employeeWorkload(params.id) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.workload });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.ownerDashboard });
     },
   });
+
   return (
     <RequireRole role="OWNER">
       <PageHeader
         eyebrow="Nhân viên"
         title={employeeQuery.data?.fullName ?? "Chi tiết nhân viên"}
-        description="Cập nhật thông tin tài khoản và xem nhanh mức tải công việc cá nhân."
+        description="Cập nhật hồ sơ, năng lực chuyên môn và xem nhanh mức tải công việc cá nhân."
         secondaryAction={<Link href="/owner/employees" className="focus-ring rounded-control border border-border px-4 py-2.5 text-sm font-semibold hover:bg-surface-muted">Quay lại</Link>}
       />
       {employeeQuery.isLoading ? <LoadingState rows={4} /> : null}
       {employeeQuery.error ? <ErrorState title="Không thể tải nhân viên" error={employeeQuery.error} onRetry={() => void employeeQuery.refetch()} /> : null}
       {employeeQuery.data ? (
-        <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
+        <div className="grid gap-5 lg:grid-cols-[1fr_380px]">
           <Card>
-            <h2 className="text-lg font-black">Thông tin tài khoản</h2>
-            <form className="mt-4 grid gap-4 md:grid-cols-2" onSubmit={form.handleSubmit((values) => mutation.mutate(values))}>
-              <Field label="Họ tên" {...form.register("fullName")} error={form.formState.errors.fullName?.message} />
-              <Field label="Email" optional {...form.register("email")} />
-              <Field label="Số điện thoại" optional {...form.register("phone")} />
-              <Select label="Trạng thái" {...form.register("status")}>
-                <option value="ACTIVE">Đang hoạt động</option>
-                <option value="INACTIVE">Tạm ngưng</option>
-                <option value="INVITED">Đã mời</option>
-              </Select>
-              <div className="md:col-span-2 flex justify-end">
+            <h2 className="text-lg font-black">Hồ sơ nhân viên</h2>
+            <div className="mt-4 grid gap-3 rounded-control border border-border bg-surface-subtle p-4 md:grid-cols-3">
+              <div><p className="text-xs font-bold tracking-[0.14em] text-muted-foreground">Tên đăng nhập</p><p className="mt-1 font-bold text-foreground">{employeeQuery.data.username ?? "Chưa có"}</p></div>
+              <div><p className="text-xs font-bold tracking-[0.14em] text-muted-foreground">Mã nhân viên</p><p className="mt-1 font-bold text-foreground">{employeeQuery.data.employeeCode ?? "Chưa có"}</p></div>
+              {employeeQuery.data.initialPassword ? <div><p className="text-xs font-bold tracking-[0.14em] text-muted-foreground">Mật khẩu ban đầu</p><button type="button" className="mt-1 font-bold text-primary" onClick={() => setShowInitialPassword((value) => !value)}>{showInitialPassword ? employeeQuery.data.initialPassword : "••••••••"}</button></div> : null}
+            </div>
+            <form className="mt-4 grid gap-6" onSubmit={form.handleSubmit((values: Values) => mutation.mutate(values))}>
+              <section className="grid gap-4 md:grid-cols-2">
+                <div className="md:col-span-2"><h3 className="text-sm font-black text-foreground">Thông tin cơ bản</h3></div>
+                <Field label="Họ và tên" {...form.register("fullName")} error={form.formState.errors.fullName?.message} />
+                <Field label="Email" optional {...form.register("email")} error={form.formState.errors.email?.message} />
+                <Field label="Số điện thoại" optional {...form.register("phone")} />
+                <Select label="Trạng thái" {...form.register("status")}>
+                  <option value="ACTIVE">Đang hoạt động</option>
+                  <option value="INACTIVE">Tạm ngưng</option>
+                  <option value="INVITED">Đã mời</option>
+                </Select>
+              </section>
+              <section className="grid gap-4 md:grid-cols-2">
+                <div className="md:col-span-2"><h3 className="text-sm font-black text-foreground">Thông tin chuyên môn</h3></div>
+                <Field label="Chức danh" optional {...form.register("jobTitle")} />
+                <Select label="Cấp độ kinh nghiệm" optional error={form.formState.errors.seniorityLevel?.message} {...form.register("seniorityLevel")}>
+                  <option value="">Chưa chọn</option>
+                  {seniorityOptions.map((option) => <option key={option} value={option}>{seniorityLabel(option)}</option>)}
+                </Select>
+                <Field label="Số năm kinh nghiệm" type="number" min="0" optional error={form.formState.errors.yearsOfExperience?.message} {...form.register("yearsOfExperience")} />
+                <Select label="Mức kỹ năng" optional error={form.formState.errors.skillRating?.message} {...form.register("skillRating")}>
+                  <option value="">Chưa chọn</option>
+                  {[1, 2, 3, 4, 5].map((rating) => <option key={rating} value={rating}>{rating}/5</option>)}
+                </Select>
+                <div className="md:col-span-2"><TextArea label="Kỹ năng chuyên môn" optional {...form.register("skills")} /></div>
+              </section>
+              <div className="flex justify-end">
                 <Button type="submit" disabled={mutation.isPending}>{mutation.isPending ? "Đang lưu..." : "Lưu thay đổi"}</Button>
               </div>
             </form>
@@ -82,6 +136,12 @@ export default function EmployeeDetailPage() {
                   <StatusBadge value={employeeQuery.data.status} />
                   <p className="mb-2 mt-5 text-sm font-semibold text-muted-foreground">Mức tải ước tính</p>
                   <WorkloadBadge value={workloadQuery.data?.workloadLevel} />
+                  <p className="mb-2 mt-5 text-sm font-semibold text-muted-foreground">Cấp độ</p>
+                  <p className="font-bold text-foreground">{seniorityLabel(employeeQuery.data.seniorityLevel)}</p>
+                  <p className="mb-2 mt-5 text-sm font-semibold text-muted-foreground">Mức kỹ năng</p>
+                  <p className="font-bold text-foreground">{ratingLabel(employeeQuery.data.skillRating)}</p>
+                  <p className="mb-2 mt-5 text-sm font-semibold text-muted-foreground">Kỹ năng</p>
+                  <p className="text-sm leading-6 text-muted-foreground">{employeeQuery.data.skills || "Chưa cập nhật kỹ năng chuyên môn."}</p>
                 </Card>
               </>
             ) : null}
@@ -91,3 +151,5 @@ export default function EmployeeDetailPage() {
     </RequireRole>
   );
 }
+
+

@@ -3,6 +3,7 @@
   workspace: ["workspace"] as const,
   employees: ["employees"] as const,
   employee: (id: string) => ["employees", id] as const,
+  employeeWorkload: (id: string) => ["analytics", "employees", id, "workload"] as const,
   tasks: ["tasks"] as const,
   task: (id: string) => ["tasks", id] as const,
   taskUpdates: (id: string) => ["tasks", id, "updates"] as const,
@@ -11,6 +12,5 @@
   ownerDashboard: ["analytics", "owner-dashboard"] as const,
   workload: ["analytics", "workload"] as const,
   ai: ["ai"] as const,
+  aiSection: (section: string) => ["ai", section] as const,
 };
-
-

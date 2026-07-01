@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -22,7 +22,13 @@ type TaskFormValues = z.output<typeof taskSchema>;
 
 function toIsoWithTimezone(localValue: string): string {
   const date = new Date(localValue);
-  return Number.isFinite(date.getTime()) ? date.toISOString() : localValue;
+  if (!Number.isFinite(date.getTime())) return localValue;
+  const offsetMinutes = -date.getTimezoneOffset();
+  const sign = offsetMinutes >= 0 ? "+" : "-";
+  const absolute = Math.abs(offsetMinutes);
+  const hours = String(Math.floor(absolute / 60)).padStart(2, "0");
+  const minutes = String(absolute % 60).padStart(2, "0");
+  return `${localValue.length === 16 ? `${localValue}:00` : localValue}${sign}${hours}:${minutes}`;
 }
 
 export function TaskForm({
@@ -105,7 +111,7 @@ export function TaskForm({
               {!employees.isLoading && !employees.error ? (
                 <Select label="Người nhận" error={form.formState.errors.assigneeId?.message} {...form.register("assigneeId")}>
                   <option value="">Chọn nhân viên</option>
-                  {(employees.data ?? []).map((employee) => <option key={employee.id} value={employee.id}>{employee.fullName}</option>)}
+                  {(employees.data ?? []).filter((employee) => !employee.status || employee.status === "ACTIVE").map((employee) => <option key={employee.id} value={employee.id}>{employee.fullName}</option>)}
                 </Select>
               ) : null}
               <Button
@@ -169,3 +175,4 @@ export function TaskForm({
     </form>
   );
 }
+

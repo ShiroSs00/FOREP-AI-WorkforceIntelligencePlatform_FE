@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -26,10 +26,13 @@ export default function NewDailyReportPage() {
     defaultValues: { reportDate: format(new Date(), "yyyy-MM-dd"), todayCompleted: "", currentWork: "", blockers: "", tomorrowPlan: "" },
   });
   const mutation = useMutation({
-    mutationFn: createDailyReport,
+    mutationFn: (values: Values) => createDailyReport({ ...values, blockers: values.blockers || undefined, tomorrowPlan: values.tomorrowPlan || undefined }),
     onSuccess: () => {
       toast.success("Đã gửi báo cáo ngày");
       void queryClient.invalidateQueries({ queryKey: queryKeys.reports });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.ownerDashboard });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.notifications });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.ai });
       router.replace("/daily-reports");
     },
   });
@@ -53,3 +56,5 @@ export default function NewDailyReportPage() {
     </>
   );
 }
+
+

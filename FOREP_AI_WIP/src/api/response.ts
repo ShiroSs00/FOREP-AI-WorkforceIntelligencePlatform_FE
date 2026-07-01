@@ -1,7 +1,15 @@
 ﻿import type { ApiResponse, PageResult } from "@/types/api";
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function firstEnvelopeValue(payload: unknown): unknown {
+  if (!isRecord(payload)) return payload;
+  for (const key of ["data", "result", "payload"] as const) {
+    if (key in payload) return payload[key];
+  }
+  return payload;
 }
 
 export function unwrapApiResponse<T>(payload: unknown): T {
@@ -11,17 +19,13 @@ export function unwrapApiResponse<T>(payload: unknown): T {
     throw new Error(message);
   }
 
-  if (isRecord(payload) && "data" in payload) {
-    return payload.data as T;
-  }
-
-  return payload as T;
+  return firstEnvelopeValue(payload) as T;
 }
 
 export function normalizeApiResponse<T>(payload: unknown): ApiResponse<T> {
-  if (isRecord(payload) && "data" in payload) {
+  if (isRecord(payload) && ("data" in payload || "errors" in payload || "meta" in payload)) {
     return {
-      data: payload.data as T | null,
+      data: "data" in payload ? (payload.data as T | null) : null,
       meta: isRecord(payload.meta) ? payload.meta : {},
       errors: Array.isArray(payload.errors) ? payload.errors : [],
     };
@@ -34,7 +38,7 @@ export function normalizeArray<T>(payload: unknown): T[] {
   const value = unwrapApiResponse<unknown>(payload);
   if (Array.isArray(value)) return value as T[];
   if (isRecord(value)) {
-    for (const key of ["content", "items", "result", "payload"] as const) {
+    for (const key of ["content", "items", "result", "payload", "data"] as const) {
       const nested = value[key];
       if (Array.isArray(nested)) return nested as T[];
     }
@@ -61,20 +65,56 @@ export function normalizePage<T>(payload: unknown): PageResult<T> {
   };
 }
 
-export function extractToken(payload: unknown): string | null {
-  const value = unwrapApiResponse<unknown>(payload);
-  if (!isRecord(value)) return null;
-  for (const key of ["token", "accessToken", "jwt"] as const) {
-    if (typeof value[key] === "string") return value[key];
+function findStringDeep(payload: unknown, keys: readonly string[]): string | null {
+  if (!isRecord(payload)) return null;
+  for (const key of keys) {
+    if (typeof payload[key] === "string") return payload[key];
+  }
+  for (const key of ["data", "result", "payload"] as const) {
+    const nested = findStringDeep(payload[key], keys);
+    if (nested) return nested;
   }
   return null;
+}
+
+export function extractToken(payload: unknown): string | null {
+  return findStringDeep(payload, ["token", "accessToken", "jwt"]);
 }
 
 export function extractUser<T>(payload: unknown): T | null {
   const value = unwrapApiResponse<unknown>(payload);
   if (!isRecord(value)) return null;
-  if (isRecord(value.user)) return value.user as T;
+  for (const key of ["user", "currentUser", "account"] as const) {
+    if (isRecord(value[key])) return value[key] as T;
+  }
   return value as T;
 }
 
+export function safeParseJsonObject(value: unknown): Record<string, unknown> | null {
+  if (isRecord(value)) return value;
+  if (typeof value !== "string" || value.trim().length === 0) return null;
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return isRecord(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
 
+export function toReadableText(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (!isRecord(value)) return "Chưa có nội dung chi tiết.";
+  const preferred = ["summary", "content", "description", "reason", "recommendedAction", "message", "title"];
+  const lines = preferred
+    .map((key) => value[key])
+    .filter((item): item is string | number | boolean => ["string", "number", "boolean"].includes(typeof item))
+    .map(String);
+  return lines.length > 0 ? lines.join("\n") : "Backend đã trả dữ liệu, nhưng chưa có trường mô tả để hiển thị.";
+}
+
+export function formatConfidence(value?: number): string {
+  if (value === undefined || Number.isNaN(value)) return "—";
+  const normalized = value <= 1 ? value * 100 : value;
+  return `${Math.round(normalized)}%`;
+}

@@ -1,0 +1,716 @@
+﻿[
+    {
+        "method":  "GET",
+        "path":  "/api/v1/admin/dashboard",
+        "operationId":  "getAdminDashboard",
+        "tags":  "admin-dashboard-controller"
+    },
+    {
+        "method":  "POST",
+        "path":  "/api/v1/ai/generate/{employeeId}",
+        "operationId":  "generateInsight",
+        "tags":  "ai-insight-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/ai/insights/{employeeId}",
+        "operationId":  "getInsights",
+        "tags":  "ai-insight-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/ai/insights/managed-teams",
+        "operationId":  "getManagedTeamInsights",
+        "tags":  "ai-insight-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/ai/insights/my-insights",
+        "operationId":  "getMyInsights",
+        "tags":  "ai-insight-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/ai/insights/organization/{organizationId}",
+        "operationId":  "getOrganizationInsights",
+        "tags":  "ai-insight-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/ai/insights/team/{teamId}",
+        "operationId":  "getTeamInsights",
+        "tags":  "ai-insight-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/ai/runtime-status",
+        "operationId":  "getRuntimeStatus_1",
+        "tags":  "ai-insight-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/ai/suggestions",
+        "operationId":  "getSuggestions",
+        "tags":  "ai-suggestion-controller"
+    },
+    {
+        "method":  "POST",
+        "path":  "/api/v1/ai/suggestions/{id}/adopt",
+        "operationId":  "adoptSuggestion",
+        "tags":  "ai-suggestion-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/ai/suggestions/employee/{employeeId}",
+        "operationId":  "getSuggestionsForEmployee",
+        "tags":  "ai-suggestion-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/ai/suggestions/managed-teams",
+        "operationId":  "getSuggestionsForManagedTeams",
+        "tags":  "ai-suggestion-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/ai/suggestions/organization/{organizationId}",
+        "operationId":  "getSuggestionsForOrganization",
+        "tags":  "ai-suggestion-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/ai/suggestions/team/{teamId}",
+        "operationId":  "getSuggestionsForTeam",
+        "tags":  "ai-suggestion-controller"
+    },
+    {
+        "method":  "POST",
+        "path":  "/api/v1/attendance/check-in",
+        "operationId":  "checkIn",
+        "tags":  "attendance-controller"
+    },
+    {
+        "method":  "POST",
+        "path":  "/api/v1/attendance/check-out",
+        "operationId":  "checkOut",
+        "tags":  "attendance-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/attendance/employee/{employeeId}",
+        "operationId":  "getEmployeeAttendanceHistory",
+        "tags":  "attendance-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/attendance/managed-teams",
+        "operationId":  "getManagedTeamAttendanceHistory",
+        "tags":  "attendance-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/attendance/my-history",
+        "operationId":  "getMyAttendanceHistory",
+        "tags":  "attendance-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/attendance/organization/{organizationId}",
+        "operationId":  "getOrganizationAttendanceHistory",
+        "tags":  "attendance-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/attendance/team/{teamId}",
+        "operationId":  "getTeamAttendanceHistory",
+        "tags":  "attendance-controller"
+    },
+    {
+        "method":  "POST",
+        "path":  "/api/v1/auth/login",
+        "operationId":  "login",
+        "tags":  "auth-controller"
+    },
+    {
+        "method":  "POST",
+        "path":  "/api/v1/auth/logout",
+        "operationId":  "logout",
+        "tags":  "auth-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/auth/me",
+        "operationId":  "getMe",
+        "tags":  "auth-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/auth/oauth2/github",
+        "operationId":  "githubLogin",
+        "tags":  "auth-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/auth/oauth2/google",
+        "operationId":  "googleLogin",
+        "tags":  "auth-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/auth/oauth2/jira",
+        "operationId":  "jiraLogin",
+        "tags":  "auth-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/auth/oauth2/links",
+        "operationId":  "getOAuth2Links",
+        "tags":  "auth-controller"
+    },
+    {
+        "method":  "POST",
+        "path":  "/api/v1/auth/register",
+        "operationId":  "register",
+        "tags":  "auth-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/dashboard/employee/{employeeId}",
+        "operationId":  "getEmployeeDashboard",
+        "tags":  "dashboard-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/employees",
+        "operationId":  "getAllEmployees",
+        "tags":  "employee-controller"
+    },
+    {
+        "method":  "DELETE",
+        "path":  "/api/v1/employees/{id}",
+        "operationId":  "deleteEmployee",
+        "tags":  "employee-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/employees/{id}",
+        "operationId":  "getEmployeeById",
+        "tags":  "employee-controller"
+    },
+    {
+        "method":  "PUT",
+        "path":  "/api/v1/employees/{id}",
+        "operationId":  "updateEmployee",
+        "tags":  "employee-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/employees/organization/{organizationId}",
+        "operationId":  "getEmployeesByOrganization",
+        "tags":  "employee-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/employees/profile",
+        "operationId":  "getProfile",
+        "tags":  "employee-controller"
+    },
+    {
+        "method":  "PUT",
+        "path":  "/api/v1/employees/profile",
+        "operationId":  "updateProfile",
+        "tags":  "employee-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/employees/team/{teamId}",
+        "operationId":  "getEmployeesByTeam",
+        "tags":  "employee-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/leaves",
+        "operationId":  "getAllLeaveRequests",
+        "tags":  "leave-request-controller"
+    },
+    {
+        "method":  "POST",
+        "path":  "/api/v1/leaves",
+        "operationId":  "createLeaveRequest",
+        "tags":  "leave-request-controller"
+    },
+    {
+        "method":  "PUT",
+        "path":  "/api/v1/leaves/{id}/approve",
+        "operationId":  "approveLeaveRequest",
+        "tags":  "leave-request-controller"
+    },
+    {
+        "method":  "PUT",
+        "path":  "/api/v1/leaves/{id}/reject",
+        "operationId":  "rejectLeaveRequest",
+        "tags":  "leave-request-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/leaves/employee/{employeeId}",
+        "operationId":  "getEmployeeLeaveRequests",
+        "tags":  "leave-request-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/leaves/managed-teams",
+        "operationId":  "getManagedTeamLeaveRequests",
+        "tags":  "leave-request-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/leaves/my-history",
+        "operationId":  "getMyLeaveRequests",
+        "tags":  "leave-request-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/leaves/organization/{organizationId}",
+        "operationId":  "getOrganizationLeaveRequests",
+        "tags":  "leave-request-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/leaves/status/{status}",
+        "operationId":  "getLeaveRequestsByStatus",
+        "tags":  "leave-request-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/leaves/team/{teamId}",
+        "operationId":  "getTeamLeaveRequests",
+        "tags":  "leave-request-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/notifications",
+        "operationId":  "getNotifications",
+        "tags":  "notification-controller"
+    },
+    {
+        "method":  "DELETE",
+        "path":  "/api/v1/notifications/{id}",
+        "operationId":  "deleteNotification",
+        "tags":  "notification-controller"
+    },
+    {
+        "method":  "PUT",
+        "path":  "/api/v1/notifications/{id}/read",
+        "operationId":  "markAsRead",
+        "tags":  "notification-controller"
+    },
+    {
+        "method":  "PUT",
+        "path":  "/api/v1/notifications/read-all",
+        "operationId":  "markAllAsRead",
+        "tags":  "notification-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/notifications/unread",
+        "operationId":  "getUnreadNotifications",
+        "tags":  "notification-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/notifications/unread-count",
+        "operationId":  "getUnreadCount",
+        "tags":  "notification-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/organizations",
+        "operationId":  "getAllOrganizations",
+        "tags":  "organization-controller"
+    },
+    {
+        "method":  "POST",
+        "path":  "/api/v1/organizations",
+        "operationId":  "createOrganization",
+        "tags":  "organization-controller"
+    },
+    {
+        "method":  "DELETE",
+        "path":  "/api/v1/organizations/{id}",
+        "operationId":  "deleteOrganization",
+        "tags":  "organization-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/organizations/{id}",
+        "operationId":  "getOrganizationById",
+        "tags":  "organization-controller"
+    },
+    {
+        "method":  "PUT",
+        "path":  "/api/v1/organizations/{id}",
+        "operationId":  "updateOrganization",
+        "tags":  "organization-controller"
+    },
+    {
+        "method":  "POST",
+        "path":  "/api/v1/projects",
+        "operationId":  "createProject",
+        "tags":  "project-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/projects/{id}",
+        "operationId":  "getProject",
+        "tags":  "project-controller"
+    },
+    {
+        "method":  "PUT",
+        "path":  "/api/v1/projects/{id}",
+        "operationId":  "updateProject",
+        "tags":  "project-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/projects/organization/{organizationId}",
+        "operationId":  "getProjectsByOrganization",
+        "tags":  "project-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/projects/team/{teamId}",
+        "operationId":  "getProjectsByTeam",
+        "tags":  "project-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/sprints",
+        "operationId":  "getAllSprints",
+        "tags":  "sprint-controller"
+    },
+    {
+        "method":  "POST",
+        "path":  "/api/v1/sprints",
+        "operationId":  "createSprint",
+        "tags":  "sprint-controller"
+    },
+    {
+        "method":  "DELETE",
+        "path":  "/api/v1/sprints/{id}",
+        "operationId":  "deleteSprint",
+        "tags":  "sprint-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/sprints/{id}",
+        "operationId":  "getSprintById",
+        "tags":  "sprint-controller"
+    },
+    {
+        "method":  "PUT",
+        "path":  "/api/v1/sprints/{id}",
+        "operationId":  "updateSprint",
+        "tags":  "sprint-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/sprints/active",
+        "operationId":  "getActiveSprint",
+        "tags":  "sprint-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/sprints/organization/{organizationId}",
+        "operationId":  "getSprintsByOrganization",
+        "tags":  "sprint-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/sprints/organization/{organizationId}/active",
+        "operationId":  "getActiveSprintByOrganization",
+        "tags":  "sprint-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/tasks/{taskId}/comments",
+        "operationId":  "getComments",
+        "tags":  "task-comment-controller"
+    },
+    {
+        "method":  "POST",
+        "path":  "/api/v1/tasks/{taskId}/comments",
+        "operationId":  "addComment",
+        "tags":  "task-comment-controller"
+    },
+    {
+        "method":  "DELETE",
+        "path":  "/api/v1/tasks/{taskId}/comments/{commentId}",
+        "operationId":  "deleteComment",
+        "tags":  "task-comment-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/tasks",
+        "operationId":  "getAllTasks",
+        "tags":  "task-controller"
+    },
+    {
+        "method":  "POST",
+        "path":  "/api/v1/tasks",
+        "operationId":  "createTask",
+        "tags":  "task-controller"
+    },
+    {
+        "method":  "DELETE",
+        "path":  "/api/v1/tasks/{id}",
+        "operationId":  "deleteTask",
+        "tags":  "task-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/tasks/{id}",
+        "operationId":  "getTask",
+        "tags":  "task-controller"
+    },
+    {
+        "method":  "PUT",
+        "path":  "/api/v1/tasks/{id}",
+        "operationId":  "updateTask",
+        "tags":  "task-controller"
+    },
+    {
+        "method":  "POST",
+        "path":  "/api/v1/tasks/{id}/assess",
+        "operationId":  "assessTask",
+        "tags":  "task-controller"
+    },
+    {
+        "method":  "PATCH",
+        "path":  "/api/v1/tasks/{id}/status",
+        "operationId":  "updateTaskStatus",
+        "tags":  "task-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/tasks/employee/{employeeId}",
+        "operationId":  "getTasksByEmployee",
+        "tags":  "task-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/tasks/managed-teams",
+        "operationId":  "getTasksForManagedTeams",
+        "tags":  "task-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/tasks/my-tasks",
+        "operationId":  "getMyTasks",
+        "tags":  "task-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/tasks/organization/{organizationId}",
+        "operationId":  "getTasksByOrganization",
+        "tags":  "task-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/tasks/project/{projectId}",
+        "operationId":  "getTasksByProject",
+        "tags":  "task-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/tasks/reported-by/{reporterId}",
+        "operationId":  "getTasksByReporter",
+        "tags":  "task-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/tasks/sprint/{sprintId}",
+        "operationId":  "getTasksBySprint",
+        "tags":  "task-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/tasks/status/{status}",
+        "operationId":  "getTasksByStatus",
+        "tags":  "task-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/tasks/team/{teamId}",
+        "operationId":  "getTasksByTeam",
+        "tags":  "task-controller"
+    },
+    {
+        "method":  "POST",
+        "path":  "/api/v1/integrations",
+        "operationId":  "createConfig",
+        "tags":  "task-integration-controller"
+    },
+    {
+        "method":  "DELETE",
+        "path":  "/api/v1/integrations/{id}",
+        "operationId":  "deleteConfig",
+        "tags":  "task-integration-controller"
+    },
+    {
+        "method":  "PUT",
+        "path":  "/api/v1/integrations/{id}",
+        "operationId":  "updateConfig",
+        "tags":  "task-integration-controller"
+    },
+    {
+        "method":  "POST",
+        "path":  "/api/v1/integrations/{id}/sync",
+        "operationId":  "syncTasks",
+        "tags":  "task-integration-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/integrations/{id}/sync-logs",
+        "operationId":  "getSyncLogs",
+        "tags":  "task-integration-controller"
+    },
+    {
+        "method":  "POST",
+        "path":  "/api/v1/integrations/connect",
+        "operationId":  "connect",
+        "tags":  "task-integration-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/integrations/runtime-status",
+        "operationId":  "getRuntimeStatus",
+        "tags":  "task-integration-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/integrations/team/{teamId}",
+        "operationId":  "getConfigsByTeam",
+        "tags":  "task-integration-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/teams",
+        "operationId":  "getAllTeams",
+        "tags":  "team-controller"
+    },
+    {
+        "method":  "POST",
+        "path":  "/api/v1/teams",
+        "operationId":  "createTeam",
+        "tags":  "team-controller"
+    },
+    {
+        "method":  "DELETE",
+        "path":  "/api/v1/teams/{id}",
+        "operationId":  "deleteTeam",
+        "tags":  "team-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/teams/{id}",
+        "operationId":  "getTeamById",
+        "tags":  "team-controller"
+    },
+    {
+        "method":  "PUT",
+        "path":  "/api/v1/teams/{id}",
+        "operationId":  "updateTeam",
+        "tags":  "team-controller"
+    },
+    {
+        "method":  "PUT",
+        "path":  "/api/v1/teams/{id}/assign-employee",
+        "operationId":  "assignEmployeeToTeam",
+        "tags":  "team-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/teams/{id}/members",
+        "operationId":  "getTeamMembers",
+        "tags":  "team-controller"
+    },
+    {
+        "method":  "POST",
+        "path":  "/api/v1/teams/{id}/members/request",
+        "operationId":  "requestJoinTeam",
+        "tags":  "team-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/teams/managed-by/{managerId}",
+        "operationId":  "getTeamsByManager",
+        "tags":  "team-controller"
+    },
+    {
+        "method":  "POST",
+        "path":  "/api/v1/teams/members/{employeeId}/end-active",
+        "operationId":  "endActiveMembership",
+        "tags":  "team-controller"
+    },
+    {
+        "method":  "POST",
+        "path":  "/api/v1/teams/memberships/{membershipId}/approve",
+        "operationId":  "approveMembership",
+        "tags":  "team-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/teams/my-managed-teams",
+        "operationId":  "getMyManagedTeams",
+        "tags":  "team-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/teams/organization/{organizationId}",
+        "operationId":  "getTeamsByOrganization",
+        "tags":  "team-controller"
+    },
+    {
+        "method":  "POST",
+        "path":  "/api/v1/webhooks/github/{configId}",
+        "operationId":  "handleGithubWebhook",
+        "tags":  "webhook-controller"
+    },
+    {
+        "method":  "POST",
+        "path":  "/api/v1/webhooks/jira/{configId}",
+        "operationId":  "handleJiraWebhook",
+        "tags":  "webhook-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/analytics/workload-history/{employeeId}",
+        "operationId":  "getWorkloadHistory",
+        "tags":  "workload-analytics-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/analytics/workload-history/managed-teams",
+        "operationId":  "getManagedTeamWorkloadHistory",
+        "tags":  "workload-analytics-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/analytics/workload-history/my-history",
+        "operationId":  "getMyWorkloadHistory",
+        "tags":  "workload-analytics-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/analytics/workload-history/organization/{organizationId}",
+        "operationId":  "getOrganizationWorkloadHistory",
+        "tags":  "workload-analytics-controller"
+    },
+    {
+        "method":  "GET",
+        "path":  "/api/v1/analytics/workload-history/team/{teamId}",
+        "operationId":  "getTeamWorkloadHistory",
+        "tags":  "workload-analytics-controller"
+    }
+]

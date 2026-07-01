@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell, FileText, LogOut, Menu, Plus, X } from "lucide-react";
@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { logout } from "@/api/auth.api";
+import { getCurrentWorkspace } from "@/api/workspace.api";
 import { listNotifications } from "@/api/notifications.api";
 import { useAuthStore } from "@/auth/auth-store";
 import { Button } from "@/components/common/Button";
@@ -40,6 +41,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     queryFn: listNotifications,
     enabled: Boolean(user),
   });
+  const workspaceQuery = useQuery({
+    queryKey: queryKeys.workspace,
+    queryFn: getCurrentWorkspace,
+    enabled: Boolean(user),
+  });
   const unread = notificationsQuery.data?.filter((item) => !item.read).length ?? 0;
   const homeHref = user ? getHomeForRole(user.role) : "/login";
   const primaryAction =
@@ -66,8 +72,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         >
           <div className="grid h-11 w-11 shrink-0 place-items-center rounded-control bg-primary font-black text-primary-foreground">F</div>
           <div className="min-w-0">
-            <p className="truncate font-black text-foreground">FOREP EXE</p>
-            <p className="truncate text-xs font-medium text-muted-foreground">{roleLabel(user?.role)}</p>
+            <p className="truncate font-black text-foreground">{workspaceQuery.data?.name ?? "FOREP EXE"}</p>
+            <p className="truncate text-xs font-medium text-muted-foreground">{workspaceQuery.data?.shortCode ? `${workspaceQuery.data.shortCode} · ${roleLabel(user?.role)}` : roleLabel(user?.role)}</p>
           </div>
         </Link>
       </div>
@@ -104,7 +110,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <p className="truncate text-sm font-bold text-foreground">{user?.fullName ?? "Người dùng"}</p>
           <p className="truncate text-xs text-muted-foreground">{user?.email ?? roleLabel(user?.role)}</p>
         </div>
-        <Button variant="ghost" className="w-full justify-start" onClick={() => logoutMutation.mutate()} disabled={logoutMutation.isPending}>
+        <Button variant="ghost" className="w-full justify-start" onClick={() => window.confirm("Bạn muốn đăng xuất khỏi FOREP EXE?") ? logoutMutation.mutate() : undefined} disabled={logoutMutation.isPending}>
           <LogOut className="h-4 w-4" aria-hidden="true" />
           Đăng xuất
         </Button>
@@ -160,3 +166,5 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
+

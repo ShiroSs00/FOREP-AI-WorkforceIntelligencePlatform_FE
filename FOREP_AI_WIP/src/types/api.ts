@@ -13,6 +13,7 @@ export type ApiResponse<T> = {
 export type ApiFailure = {
   status?: number;
   message: string;
+  code?: string;
   details?: unknown;
   fieldErrors?: Record<string, string>;
 };
@@ -24,5 +25,6 @@ export type PageResult<T> = {
   page?: number;
   size?: number;
 };
+
 
 

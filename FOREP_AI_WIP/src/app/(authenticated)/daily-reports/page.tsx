@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
@@ -27,6 +27,9 @@ export default function DailyReportsPage() {
     onSuccess: () => {
       toast.success("Đã đánh dấu đã xem");
       void queryClient.invalidateQueries({ queryKey: queryKeys.reports });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.ownerDashboard });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.notifications });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.ai });
     },
   });
   const rows = useMemo(
@@ -95,3 +98,5 @@ export default function DailyReportsPage() {
     </>
   );
 }
+
+

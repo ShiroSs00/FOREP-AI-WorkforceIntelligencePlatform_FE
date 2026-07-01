@@ -1,0 +1,80 @@
+﻿[
+    {
+        "route":  "/",
+        "status":  200,
+        "ok":  true,
+        "message":  "OK"
+    },
+    {
+        "route":  "/login",
+        "status":  200,
+        "ok":  true,
+        "message":  "OK"
+    },
+    {
+        "route":  "/register",
+        "status":  200,
+        "ok":  true,
+        "message":  "OK"
+    },
+    {
+        "route":  "/dashboard",
+        "status":  200,
+        "ok":  true,
+        "message":  "OK"
+    },
+    {
+        "route":  "/tasks",
+        "status":  200,
+        "ok":  true,
+        "message":  "OK"
+    },
+    {
+        "route":  "/projects",
+        "status":  200,
+        "ok":  true,
+        "message":  "OK"
+    },
+    {
+        "route":  "/teams",
+        "status":  200,
+        "ok":  true,
+        "message":  "OK"
+    },
+    {
+        "route":  "/integrations",
+        "status":  200,
+        "ok":  true,
+        "message":  "OK"
+    },
+    {
+        "route":  "/ai-insights",
+        "status":  200,
+        "ok":  true,
+        "message":  "OK"
+    },
+    {
+        "route":  "/attendance",
+        "status":  200,
+        "ok":  true,
+        "message":  "OK"
+    },
+    {
+        "route":  "/leave",
+        "status":  200,
+        "ok":  true,
+        "message":  "OK"
+    },
+    {
+        "route":  "/notifications",
+        "status":  200,
+        "ok":  true,
+        "message":  "OK"
+    },
+    {
+        "route":  "/settings",
+        "status":  200,
+        "ok":  true,
+        "message":  "OK"
+    }
+]

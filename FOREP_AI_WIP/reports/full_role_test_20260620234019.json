@@ -1,0 +1,514 @@
+﻿{
+    "testedAt":  "2026-06-20T23:40:19",
+    "baseUrl":  "https://forep-ai-workforceintelligenceplatform.onrender.com",
+    "frontend":  {
+                     "routes":  {
+                                    "/":  {
+                                              "error":  "Unable to connect to the remote server",
+                                              "ok":  false
+                                          },
+                                    "/login":  {
+                                                   "error":  "Unable to connect to the remote server",
+                                                   "ok":  false
+                                               },
+                                    "/register":  {
+                                                      "error":  "Unable to connect to the remote server",
+                                                      "ok":  false
+                                                  },
+                                    "/dashboard":  {
+                                                       "error":  "Unable to connect to the remote server",
+                                                       "ok":  false
+                                                   },
+                                    "/tasks":  {
+                                                   "error":  "Unable to connect to the remote server",
+                                                   "ok":  false
+                                               },
+                                    "/projects":  {
+                                                      "error":  "Unable to connect to the remote server",
+                                                      "ok":  false
+                                                  },
+                                    "/teams":  {
+                                                   "error":  "Unable to connect to the remote server",
+                                                   "ok":  false
+                                               },
+                                    "/integrations":  {
+                                                          "error":  "Unable to connect to the remote server",
+                                                          "ok":  false
+                                                      },
+                                    "/ai-insights":  {
+                                                         "error":  "Unable to connect to the remote server",
+                                                         "ok":  false
+                                                     },
+                                    "/attendance":  {
+                                                        "error":  "Unable to connect to the remote server",
+                                                        "ok":  false
+                                                    },
+                                    "/leave":  {
+                                                   "error":  "Unable to connect to the remote server",
+                                                   "ok":  false
+                                               },
+                                    "/notifications":  {
+                                                           "error":  "Unable to connect to the remote server",
+                                                           "ok":  false
+                                                       },
+                                    "/settings":  {
+                                                      "error":  "Unable to connect to the remote server",
+                                                      "ok":  false
+                                                  }
+                                }
+                 },
+    "roles":  {
+                  "ADMIN":  {
+                                "email":  "codex.full.admin.20260620234019@forep.test",
+                                "register":  {
+                                                 "ok":  true,
+                                                 "status":  200,
+                                                 "message":  "Success",
+                                                 "count":  null,
+                                                 "details":  null
+                                             },
+                                "login":  {
+                                              "ok":  true,
+                                              "status":  200,
+                                              "message":  "Success",
+                                              "count":  null,
+                                              "details":  null
+                                          },
+                                "me":  {
+                                           "ok":  true,
+                                           "status":  200,
+                                           "message":  "Current User Details",
+                                           "count":  null,
+                                           "details":  null
+                                       },
+                                "actualRole":  "ADMIN",
+                                "employeeId":  "187d5f35-b685-4b52-af3c-721dc8c07d23",
+                                "tests":  {
+                                              "adminDashboard":  {
+                                                                     "ok":  true,
+                                                                     "status":  200,
+                                                                     "message":  "Success",
+                                                                     "count":  null,
+                                                                     "details":  null
+                                                                 },
+                                              "organizationsList":  {
+                                                                        "ok":  true,
+                                                                        "status":  200,
+                                                                        "message":  "Success",
+                                                                        "count":  2,
+                                                                        "details":  null
+                                                                    },
+                                              "employeesList":  {
+                                                                    "ok":  true,
+                                                                    "status":  200,
+                                                                    "message":  "Success",
+                                                                    "count":  14,
+                                                                    "details":  null
+                                                                },
+                                              "teamsList":  {
+                                                                "ok":  true,
+                                                                "status":  200,
+                                                                "message":  "Success",
+                                                                "count":  3,
+                                                                "details":  null
+                                                            },
+                                              "projectsByOrganization":  {
+                                                                             "ok":  true,
+                                                                             "status":  200,
+                                                                             "message":  "Success",
+                                                                             "count":  1,
+                                                                             "details":  null
+                                                                         },
+                                              "projectsByTeam":  {
+                                                                     "ok":  true,
+                                                                     "status":  200,
+                                                                     "message":  "Success",
+                                                                     "count":  1,
+                                                                     "details":  null
+                                                                 },
+                                              "integrationRuntime":  {
+                                                                         "ok":  true,
+                                                                         "status":  200,
+                                                                         "message":  "Success",
+                                                                         "count":  null,
+                                                                         "details":  null
+                                                                     },
+                                              "integrationsByTeam":  {
+                                                                         "ok":  true,
+                                                                         "status":  200,
+                                                                         "message":  "Success",
+                                                                         "count":  0,
+                                                                         "details":  null
+                                                                     },
+                                              "githubIntegrationCreate":  {
+                                                                              "ok":  true,
+                                                                              "status":  200,
+                                                                              "message":  "Success",
+                                                                              "count":  null,
+                                                                              "details":  null
+                                                                          },
+                                              "githubSync":  {
+                                                                 "ok":  true,
+                                                                 "status":  200,
+                                                                 "message":  "Success",
+                                                                 "count":  null,
+                                                                 "details":  null
+                                                             },
+                                              "githubLogs":  {
+                                                                 "ok":  true,
+                                                                 "status":  200,
+                                                                 "message":  "Success",
+                                                                 "count":  2,
+                                                                 "details":  null
+                                                             },
+                                              "jiraIntegrationCreate":  {
+                                                                            "ok":  true,
+                                                                            "status":  200,
+                                                                            "message":  "Success",
+                                                                            "count":  null,
+                                                                            "details":  null
+                                                                        },
+                                              "jiraSync":  {
+                                                               "ok":  true,
+                                                               "status":  200,
+                                                               "message":  "Success",
+                                                               "count":  null,
+                                                               "details":  null
+                                                           },
+                                              "jiraLogs":  {
+                                                               "ok":  true,
+                                                               "status":  200,
+                                                               "message":  "Success",
+                                                               "count":  2,
+                                                               "details":  null
+                                                           },
+                                              "tasksByProjectBeforeWebhook":  {
+                                                                                  "ok":  true,
+                                                                                  "status":  200,
+                                                                                  "message":  "Success",
+                                                                                  "count":  0,
+                                                                                  "details":  null
+                                                                              },
+                                              "githubWebhook":  {
+                                                                    "ok":  true,
+                                                                    "status":  200,
+                                                                    "message":  "Success",
+                                                                    "count":  null,
+                                                                    "details":  null
+                                                                },
+                                              "jiraWebhook":  {
+                                                                  "ok":  true,
+                                                                  "status":  200,
+                                                                  "message":  "Success",
+                                                                  "count":  null,
+                                                                  "details":  null
+                                                              },
+                                              "tasksByProjectAfterWebhook":  {
+                                                                                 "ok":  false,
+                                                                                 "status":  500,
+                                                                                 "message":  "The remote server returned an error: (500) Internal Server Error.",
+                                                                                 "count":  null,
+                                                                                 "details":  null
+                                                                             },
+                                              "notifications":  {
+                                                                    "ok":  true,
+                                                                    "status":  200,
+                                                                    "message":  "Success",
+                                                                    "count":  0,
+                                                                    "details":  null
+                                                                },
+                                              "aiRuntime":  {
+                                                                "ok":  true,
+                                                                "status":  200,
+                                                                "message":  "Success",
+                                                                "count":  null,
+                                                                "details":  null
+                                                            },
+                                              "aiSuggestions":  {
+                                                                    "ok":  true,
+                                                                    "status":  200,
+                                                                    "message":  "Success",
+                                                                    "count":  1,
+                                                                    "details":  null
+                                                                }
+                                          }
+                            },
+                  "MANAGER":  {
+                                  "email":  "codex.full.manager.20260620234019@forep.test",
+                                  "register":  {
+                                                   "ok":  true,
+                                                   "status":  200,
+                                                   "message":  "Success",
+                                                   "count":  null,
+                                                   "details":  null
+                                               },
+                                  "login":  {
+                                                "ok":  true,
+                                                "status":  200,
+                                                "message":  "Success",
+                                                "count":  null,
+                                                "details":  null
+                                            },
+                                  "me":  {
+                                             "ok":  true,
+                                             "status":  200,
+                                             "message":  "Current User Details",
+                                             "count":  null,
+                                             "details":  null
+                                         },
+                                  "actualRole":  "MANAGER",
+                                  "employeeId":  "f84620a6-b3d4-4b03-8f22-f45e50af0dab",
+                                  "tests":  {
+                                                "managedTeams":  {
+                                                                     "ok":  true,
+                                                                     "status":  200,
+                                                                     "message":  "Success",
+                                                                     "count":  0,
+                                                                     "details":  null
+                                                                 },
+                                                "managedTasks":  {
+                                                                     "ok":  true,
+                                                                     "status":  200,
+                                                                     "message":  "Success",
+                                                                     "count":  0,
+                                                                     "details":  null
+                                                                 },
+                                                "managedLeaves":  {
+                                                                      "ok":  true,
+                                                                      "status":  200,
+                                                                      "message":  "Success",
+                                                                      "count":  0,
+                                                                      "details":  null
+                                                                  },
+                                                "managedAttendance":  {
+                                                                          "ok":  true,
+                                                                          "status":  200,
+                                                                          "message":  "Success",
+                                                                          "count":  0,
+                                                                          "details":  null
+                                                                      },
+                                                "managedWorkload":  {
+                                                                        "ok":  true,
+                                                                        "status":  200,
+                                                                        "message":  "Success",
+                                                                        "count":  0,
+                                                                        "details":  null
+                                                                    },
+                                                "managedInsights":  {
+                                                                        "ok":  true,
+                                                                        "status":  200,
+                                                                        "message":  "Success",
+                                                                        "count":  0,
+                                                                        "details":  null
+                                                                    },
+                                                "managedSuggestions":  {
+                                                                           "ok":  true,
+                                                                           "status":  200,
+                                                                           "message":  "Success",
+                                                                           "count":  0,
+                                                                           "details":  null
+                                                                       },
+                                                "notifications":  {
+                                                                      "ok":  true,
+                                                                      "status":  200,
+                                                                      "message":  "Success",
+                                                                      "count":  0,
+                                                                      "details":  null
+                                                                  }
+                                            }
+                              },
+                  "HR":  {
+                             "email":  "codex.full.hr.20260620234019@forep.test",
+                             "register":  {
+                                              "ok":  true,
+                                              "status":  200,
+                                              "message":  "Success",
+                                              "count":  null,
+                                              "details":  null
+                                          },
+                             "login":  {
+                                           "ok":  true,
+                                           "status":  200,
+                                           "message":  "Success",
+                                           "count":  null,
+                                           "details":  null
+                                       },
+                             "me":  {
+                                        "ok":  true,
+                                        "status":  200,
+                                        "message":  "Current User Details",
+                                        "count":  null,
+                                        "details":  null
+                                    },
+                             "actualRole":  "EMPLOYEE",
+                             "employeeId":  "3067cbb3-2af6-45bd-ae24-cb9f0fb9d674",
+                             "tests":  {
+                                           "employees":  {
+                                                             "ok":  false,
+                                                             "status":  500,
+                                                             "message":  "The remote server returned an error: (500) Internal Server Error.",
+                                                             "count":  null,
+                                                             "details":  null
+                                                         },
+                                           "leaveRequests":  {
+                                                                 "ok":  false,
+                                                                 "status":  500,
+                                                                 "message":  "The remote server returned an error: (500) Internal Server Error.",
+                                                                 "count":  null,
+                                                                 "details":  null
+                                                             },
+                                           "notifications":  {
+                                                                 "ok":  true,
+                                                                 "status":  200,
+                                                                 "message":  "Success",
+                                                                 "count":  0,
+                                                                 "details":  null
+                                                             },
+                                           "aiSuggestions":  {
+                                                                 "ok":  true,
+                                                                 "status":  200,
+                                                                 "message":  "Success",
+                                                                 "count":  1,
+                                                                 "details":  null
+                                                             }
+                                       }
+                         },
+                  "EMPLOYEE":  {
+                                   "email":  "codex.full.employee.20260620234019@forep.test",
+                                   "register":  {
+                                                    "ok":  true,
+                                                    "status":  200,
+                                                    "message":  "Success",
+                                                    "count":  null,
+                                                    "details":  null
+                                                },
+                                   "login":  {
+                                                 "ok":  true,
+                                                 "status":  200,
+                                                 "message":  "Success",
+                                                 "count":  null,
+                                                 "details":  null
+                                             },
+                                   "me":  {
+                                              "ok":  true,
+                                              "status":  200,
+                                              "message":  "Current User Details",
+                                              "count":  null,
+                                              "details":  null
+                                          },
+                                   "actualRole":  "EMPLOYEE",
+                                   "employeeId":  "1e492bdb-2f68-4bd5-8bc3-11a9b151657f",
+                                   "tests":  {
+                                                 "profile":  {
+                                                                 "ok":  true,
+                                                                 "status":  200,
+                                                                 "message":  "Success",
+                                                                 "count":  null,
+                                                                 "details":  null
+                                                             },
+                                                 "myTasks":  {
+                                                                 "ok":  true,
+                                                                 "status":  200,
+                                                                 "message":  "Success",
+                                                                 "count":  0,
+                                                                 "details":  null
+                                                             },
+                                                 "myAttendance":  {
+                                                                      "ok":  true,
+                                                                      "status":  200,
+                                                                      "message":  "Success",
+                                                                      "count":  0,
+                                                                      "details":  null
+                                                                  },
+                                                 "checkIn":  {
+                                                                 "ok":  true,
+                                                                 "status":  200,
+                                                                 "message":  "Success",
+                                                                 "count":  null,
+                                                                 "details":  null
+                                                             },
+                                                 "checkOut":  {
+                                                                  "ok":  true,
+                                                                  "status":  200,
+                                                                  "message":  "Success",
+                                                                  "count":  null,
+                                                                  "details":  null
+                                                              },
+                                                 "myLeave":  {
+                                                                 "ok":  true,
+                                                                 "status":  200,
+                                                                 "message":  "Success",
+                                                                 "count":  0,
+                                                                 "details":  null
+                                                             },
+                                                 "createLeave":  {
+                                                                     "ok":  true,
+                                                                     "status":  200,
+                                                                     "message":  "Success",
+                                                                     "count":  null,
+                                                                     "details":  null
+                                                                 },
+                                                 "myInsights":  {
+                                                                    "ok":  true,
+                                                                    "status":  200,
+                                                                    "message":  "Success",
+                                                                    "count":  0,
+                                                                    "details":  null
+                                                                },
+                                                 "employeeDashboard":  {
+                                                                           "ok":  true,
+                                                                           "status":  200,
+                                                                           "message":  "Success",
+                                                                           "count":  null,
+                                                                           "details":  null
+                                                                       },
+                                                 "generateInsight":  {
+                                                                         "ok":  false,
+                                                                         "status":  500,
+                                                                         "message":  "The remote server returned an error: (500) Internal Server Error.",
+                                                                         "count":  null,
+                                                                         "details":  null
+                                                                     },
+                                                 "notifications":  {
+                                                                       "ok":  true,
+                                                                       "status":  200,
+                                                                       "message":  "Success",
+                                                                       "count":  0,
+                                                                       "details":  null
+                                                                   }
+                                             }
+                               }
+              },
+    "shared":  {
+                   "organization":  {
+                                        "id":  "d648e522-0e3d-48e0-a1b5-9344f6391e6e",
+                                        "result":  {
+                                                       "ok":  true,
+                                                       "status":  200,
+                                                       "message":  "Success",
+                                                       "count":  null,
+                                                       "details":  null
+                                                   }
+                                    },
+                   "team":  {
+                                "id":  "a9403d25-ff1d-4078-88e0-27b0309e10eb",
+                                "result":  {
+                                               "ok":  true,
+                                               "status":  200,
+                                               "message":  "Success",
+                                               "count":  null,
+                                               "details":  null
+                                           }
+                            },
+                   "project":  {
+                                   "id":  "da3c64f8-8764-433c-8721-c867ea56bff9",
+                                   "result":  {
+                                                  "ok":  true,
+                                                  "status":  200,
+                                                  "message":  "Success",
+                                                  "count":  null,
+                                                  "details":  null
+                                              }
+                               }
+               }
+}

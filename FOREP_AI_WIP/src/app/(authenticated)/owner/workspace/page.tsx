@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -14,20 +14,26 @@ import { Field } from "@/components/common/Field";
 import { PageHeader } from "@/components/common/PageHeader";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { LoadingState } from "@/components/feedback/LoadingState";
+import { shortCodeSchema } from "@/features/auth/schemas";
 import { queryKeys } from "@/lib/query-keys";
 
-const schema = z.object({ name: z.string().trim().optional(), logo: z.string().trim().optional(), address: z.string().trim().optional() });
-type Values = z.infer<typeof schema>;
+const schema = z.object({
+  name: z.string().trim().optional(),
+  shortCode: shortCodeSchema.optional().or(z.literal("")),
+  logo: z.string().trim().optional(),
+  address: z.string().trim().optional(),
+});
+type Values = z.output<typeof schema>;
 
 export default function WorkspacePage() {
   const queryClient = useQueryClient();
   const query = useQuery({ queryKey: queryKeys.workspace, queryFn: getCurrentWorkspace });
-  const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { name: "", logo: "", address: "" } });
+  const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { name: "", shortCode: "", logo: "", address: "" } });
   useEffect(() => {
-    if (query.data) form.reset({ name: query.data.name, logo: query.data.logo ?? "", address: query.data.address ?? "" });
+    if (query.data) form.reset({ name: query.data.name, shortCode: query.data.shortCode ?? "", logo: query.data.logo ?? "", address: query.data.address ?? "" });
   }, [form, query.data]);
   const mutation = useMutation({
-    mutationFn: updateCurrentWorkspace,
+    mutationFn: (values: Values) => updateCurrentWorkspace({ name: values.name || undefined, shortCode: values.shortCode || undefined, logo: values.logo || undefined, address: values.address || undefined }),
     onSuccess: () => {
       toast.success("Đã cập nhật workspace");
       void queryClient.invalidateQueries({ queryKey: queryKeys.workspace });
@@ -35,13 +41,14 @@ export default function WorkspacePage() {
   });
   return (
     <RequireRole role="OWNER">
-      <PageHeader eyebrow="Workspace" title="Cấu hình workspace" description="Quản lý thông tin cơ bản của không gian làm việc đang sử dụng." />
+      <PageHeader eyebrow="Workspace" title="Cấu hình workspace" description="Quản lý tên, mã viết tắt và thông tin cơ bản của không gian làm việc đang sử dụng." />
       {query.isLoading ? <LoadingState rows={3} /> : null}
       {query.error ? <ErrorState title="Không thể tải workspace" error={query.error} onRetry={() => void query.refetch()} /> : null}
       {!query.isLoading && !query.error ? (
         <Card className="max-w-2xl">
           <form className="grid gap-4" onSubmit={form.handleSubmit((values) => mutation.mutate(values))}>
             <Field label="Tên workspace" {...form.register("name")} />
+            <Field label="Mã viết tắt tổ chức" helper="Dùng 2 ký tự chữ hoặc số, ví dụ SE." maxLength={2} error={form.formState.errors.shortCode?.message} {...form.register("shortCode")} />
             <Field label="Logo URL hoặc ký hiệu" optional {...form.register("logo")} />
             <Field label="Địa chỉ" optional {...form.register("address")} />
             <div className="flex justify-end">

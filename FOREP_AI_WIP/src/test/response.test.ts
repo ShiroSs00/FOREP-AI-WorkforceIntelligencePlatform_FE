@@ -1,5 +1,5 @@
 ﻿import { describe, expect, it } from "vitest";
-import { normalizeArray, normalizeObject, normalizePage, unwrapApiResponse } from "@/api/response";
+import { extractToken, formatConfidence, normalizeArray, normalizeObject, normalizePage, safeParseJsonObject, unwrapApiResponse } from "@/api/response";
 
 const item = { id: "1", name: "A" };
 
@@ -12,6 +12,7 @@ describe("api response helpers", () => {
     expect(normalizeArray([item])).toHaveLength(1);
     expect(normalizeArray({ data: [item] })).toHaveLength(1);
     expect(normalizeArray({ data: { content: [item] } })).toHaveLength(1);
+    expect(normalizeArray({ payload: [item] })).toHaveLength(1);
   });
 
   it("normalizes objects", () => {
@@ -21,6 +22,15 @@ describe("api response helpers", () => {
   it("normalizes page metadata", () => {
     expect(normalizePage({ data: { content: [item], totalElements: 1, totalPages: 1 } }).totalElements).toBe(1);
   });
+
+  it("extracts nested token", () => {
+    expect(extractToken({ result: { accessToken: "abc" } })).toBe("abc");
+  });
+
+  it("parses AI JSON safely and formats confidence", () => {
+    expect(safeParseJsonObject('{"summary":"ok"}')?.summary).toBe("ok");
+    expect(safeParseJsonObject("not json")).toBeNull();
+    expect(formatConfidence(0.84)).toBe("84%");
+    expect(formatConfidence(84)).toBe("84%");
+  });
 });
-
-

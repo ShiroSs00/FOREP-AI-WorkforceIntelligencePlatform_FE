@@ -1,0 +1,2011 @@
+﻿{
+    "testedAt":  "2026-06-21T00:03:50",
+    "baseUrl":  "https://forep-ai-workforceintelligenceplatform.onrender.com",
+    "swaggerEndpointCount":  119,
+    "probeCount":  103,
+    "pass":  87,
+    "fail":  16,
+    "accounts":  {
+                     "admin":  {
+                                   "email":  "codex.fullapi.admin.20260621000244@forep.test",
+                                   "employeeId":  "355ee5f8-3e12-4de0-8ef3-269b2471e3cf",
+                                   "actualRole":  "ADMIN",
+                                   "expectedRole":  "ADMIN"
+                               },
+                     "employee":  {
+                                      "email":  "codex.fullapi.employee.20260621000244@forep.test",
+                                      "employeeId":  "5d904121-06f2-4179-b5d1-749a3463e600",
+                                      "actualRole":  "EMPLOYEE",
+                                      "expectedRole":  "EMPLOYEE"
+                                  },
+                     "hr":  {
+                                "email":  "codex.fullapi.hr.20260621000244@forep.test",
+                                "employeeId":  "60212686-eb2c-4533-a99b-16f853237eeb",
+                                "actualRole":  "EMPLOYEE",
+                                "expectedRole":  "HR"
+                            },
+                     "manager":  {
+                                     "email":  "codex.fullapi.manager.20260621000244@forep.test",
+                                     "employeeId":  "786e21ec-c15d-4239-a1ff-20ad3f6218a5",
+                                     "actualRole":  "MANAGER",
+                                     "expectedRole":  "MANAGER"
+                                 }
+                 },
+    "context":  {
+                    "organizationId":  "b68ffa2d-7b39-479a-a304-e7cf48f0ba30",
+                    "sprintId":  "bbdc73c8-063b-45bb-b551-e7c97ac30b2e",
+                    "teamId":  "5d977904-f454-40a3-9622-7bbd0781cc2d",
+                    "taskId":  null,
+                    "projectId":  "d2d78ca6-fc62-4bc4-a479-8c6e5aaee4a1"
+                },
+    "results":  [
+                    {
+                        "group":  "auth",
+                        "name":  "register ADMIN",
+                        "method":  "POST",
+                        "path":  "/api/v1/auth/register",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "auth",
+                        "name":  "login ADMIN",
+                        "method":  "POST",
+                        "path":  "/api/v1/auth/login",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "auth",
+                        "name":  "me ADMIN",
+                        "method":  "GET",
+                        "path":  "/api/v1/auth/me",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Current User Details",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "auth",
+                        "name":  "register MANAGER",
+                        "method":  "POST",
+                        "path":  "/api/v1/auth/register",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "auth",
+                        "name":  "login MANAGER",
+                        "method":  "POST",
+                        "path":  "/api/v1/auth/login",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "auth",
+                        "name":  "me MANAGER",
+                        "method":  "GET",
+                        "path":  "/api/v1/auth/me",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Current User Details",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "auth",
+                        "name":  "register HR",
+                        "method":  "POST",
+                        "path":  "/api/v1/auth/register",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "auth",
+                        "name":  "login HR",
+                        "method":  "POST",
+                        "path":  "/api/v1/auth/login",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "auth",
+                        "name":  "me HR",
+                        "method":  "GET",
+                        "path":  "/api/v1/auth/me",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Current User Details",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "auth",
+                        "name":  "register EMPLOYEE",
+                        "method":  "POST",
+                        "path":  "/api/v1/auth/register",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "auth",
+                        "name":  "login EMPLOYEE",
+                        "method":  "POST",
+                        "path":  "/api/v1/auth/login",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "auth",
+                        "name":  "me EMPLOYEE",
+                        "method":  "GET",
+                        "path":  "/api/v1/auth/me",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Current User Details",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "auth",
+                        "name":  "oauth2 links",
+                        "method":  "GET",
+                        "path":  "/api/v1/auth/oauth2/links",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "OAuth2 login links",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "auth",
+                        "name":  "oauth2 github redirect",
+                        "method":  "GET",
+                        "path":  "/api/v1/auth/oauth2/github",
+                        "ok":  false,
+                        "status":  503,
+                        "message":  "The remote server returned an error: (503) Server Unavailable.",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "auth",
+                        "name":  "oauth2 google redirect",
+                        "method":  "GET",
+                        "path":  "/api/v1/auth/oauth2/google",
+                        "ok":  false,
+                        "status":  503,
+                        "message":  "The remote server returned an error: (503) Server Unavailable.",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "auth",
+                        "name":  "oauth2 jira redirect",
+                        "method":  "GET",
+                        "path":  "/api/v1/auth/oauth2/jira",
+                        "ok":  false,
+                        "status":  503,
+                        "message":  "The remote server returned an error: (503) Server Unavailable.",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "dashboard",
+                        "name":  "admin dashboard",
+                        "method":  "GET",
+                        "path":  "/api/v1/admin/dashboard",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "organization",
+                        "name":  "create organization",
+                        "method":  "POST",
+                        "path":  "/api/v1/organizations",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "organization",
+                        "name":  "list organizations",
+                        "method":  "GET",
+                        "path":  "/api/v1/organizations",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  3,
+                        "details":  null
+                    },
+                    {
+                        "group":  "organization",
+                        "name":  "get organization",
+                        "method":  "GET",
+                        "path":  "/api/v1/organizations/b68ffa2d-7b39-479a-a304-e7cf48f0ba30",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "organization",
+                        "name":  "update organization",
+                        "method":  "PUT",
+                        "path":  "/api/v1/organizations/b68ffa2d-7b39-479a-a304-e7cf48f0ba30",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "employee",
+                        "name":  "list employees",
+                        "method":  "GET",
+                        "path":  "/api/v1/employees",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  18,
+                        "details":  null
+                    },
+                    {
+                        "group":  "employee",
+                        "name":  "profile employee",
+                        "method":  "GET",
+                        "path":  "/api/v1/employees/profile",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "employee",
+                        "name":  "update own profile",
+                        "method":  "PUT",
+                        "path":  "/api/v1/employees/profile",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "employee",
+                        "name":  "get employee by id",
+                        "method":  "GET",
+                        "path":  "/api/v1/employees/5d904121-06f2-4179-b5d1-749a3463e600",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "employee",
+                        "name":  "employees by organization",
+                        "method":  "GET",
+                        "path":  "/api/v1/employees/organization/b68ffa2d-7b39-479a-a304-e7cf48f0ba30",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "team",
+                        "name":  "create team",
+                        "method":  "POST",
+                        "path":  "/api/v1/teams",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "team",
+                        "name":  "list teams",
+                        "method":  "GET",
+                        "path":  "/api/v1/teams",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  4,
+                        "details":  null
+                    },
+                    {
+                        "group":  "team",
+                        "name":  "my managed teams",
+                        "method":  "GET",
+                        "path":  "/api/v1/teams/my-managed-teams",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "team",
+                        "name":  "get team",
+                        "method":  "GET",
+                        "path":  "/api/v1/teams/5d977904-f454-40a3-9622-7bbd0781cc2d",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "team",
+                        "name":  "update team",
+                        "method":  "PUT",
+                        "path":  "/api/v1/teams/5d977904-f454-40a3-9622-7bbd0781cc2d",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "team",
+                        "name":  "teams by org",
+                        "method":  "GET",
+                        "path":  "/api/v1/teams/organization/b68ffa2d-7b39-479a-a304-e7cf48f0ba30",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "team",
+                        "name":  "teams by manager",
+                        "method":  "GET",
+                        "path":  "/api/v1/teams/managed-by/786e21ec-c15d-4239-a1ff-20ad3f6218a5",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "team",
+                        "name":  "assign employee",
+                        "method":  "PUT",
+                        "path":  "/api/v1/teams/5d977904-f454-40a3-9622-7bbd0781cc2d/assign-employee",
+                        "ok":  false,
+                        "status":  500,
+                        "message":  "The remote server returned an error: (500) Internal Server Error.",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "team",
+                        "name":  "team members",
+                        "method":  "GET",
+                        "path":  "/api/v1/teams/5d977904-f454-40a3-9622-7bbd0781cc2d/members",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "team",
+                        "name":  "request join team",
+                        "method":  "POST",
+                        "path":  "/api/v1/teams/5d977904-f454-40a3-9622-7bbd0781cc2d/members/request",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "team",
+                        "name":  "end active membership",
+                        "method":  "POST",
+                        "path":  "/api/v1/teams/members/5d904121-06f2-4179-b5d1-749a3463e600/end-active",
+                        "ok":  false,
+                        "status":  404,
+                        "message":  "The remote server returned an error: (404) Not Found.",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "sprint",
+                        "name":  "create sprint",
+                        "method":  "POST",
+                        "path":  "/api/v1/sprints",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "sprint",
+                        "name":  "list sprints",
+                        "method":  "GET",
+                        "path":  "/api/v1/sprints",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  5,
+                        "details":  null
+                    },
+                    {
+                        "group":  "sprint",
+                        "name":  "active sprint",
+                        "method":  "GET",
+                        "path":  "/api/v1/sprints/active",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "sprint",
+                        "name":  "get sprint",
+                        "method":  "GET",
+                        "path":  "/api/v1/sprints/bbdc73c8-063b-45bb-b551-e7c97ac30b2e",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "sprint",
+                        "name":  "update sprint",
+                        "method":  "PUT",
+                        "path":  "/api/v1/sprints/bbdc73c8-063b-45bb-b551-e7c97ac30b2e",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "sprint",
+                        "name":  "sprints by org",
+                        "method":  "GET",
+                        "path":  "/api/v1/sprints/organization/b68ffa2d-7b39-479a-a304-e7cf48f0ba30",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "sprint",
+                        "name":  "active sprint by org",
+                        "method":  "GET",
+                        "path":  "/api/v1/sprints/organization/b68ffa2d-7b39-479a-a304-e7cf48f0ba30/active",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "project",
+                        "name":  "create project",
+                        "method":  "POST",
+                        "path":  "/api/v1/projects",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "project",
+                        "name":  "get project",
+                        "method":  "GET",
+                        "path":  "/api/v1/projects/d2d78ca6-fc62-4bc4-a479-8c6e5aaee4a1",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "project",
+                        "name":  "update project",
+                        "method":  "PUT",
+                        "path":  "/api/v1/projects/d2d78ca6-fc62-4bc4-a479-8c6e5aaee4a1",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "project",
+                        "name":  "projects by org",
+                        "method":  "GET",
+                        "path":  "/api/v1/projects/organization/b68ffa2d-7b39-479a-a304-e7cf48f0ba30",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "project",
+                        "name":  "projects by team",
+                        "method":  "GET",
+                        "path":  "/api/v1/projects/team/5d977904-f454-40a3-9622-7bbd0781cc2d",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "task",
+                        "name":  "create task",
+                        "method":  "POST",
+                        "path":  "/api/v1/tasks",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "task",
+                        "name":  "list all tasks",
+                        "method":  "GET",
+                        "path":  "/api/v1/tasks",
+                        "ok":  false,
+                        "status":  500,
+                        "message":  "The remote server returned an error: (500) Internal Server Error.",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "task",
+                        "name":  "my tasks",
+                        "method":  "GET",
+                        "path":  "/api/v1/tasks/my-tasks",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "task",
+                        "name":  "managed team tasks",
+                        "method":  "GET",
+                        "path":  "/api/v1/tasks/managed-teams",
+                        "ok":  false,
+                        "status":  500,
+                        "message":  "The remote server returned an error: (500) Internal Server Error.",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "attendance",
+                        "name":  "check in",
+                        "method":  "POST",
+                        "path":  "/api/v1/attendance/check-in",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "attendance",
+                        "name":  "check out",
+                        "method":  "POST",
+                        "path":  "/api/v1/attendance/check-out",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "attendance",
+                        "name":  "my history",
+                        "method":  "GET",
+                        "path":  "/api/v1/attendance/my-history",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "attendance",
+                        "name":  "managed teams history",
+                        "method":  "GET",
+                        "path":  "/api/v1/attendance/managed-teams",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "attendance",
+                        "name":  "team history",
+                        "method":  "GET",
+                        "path":  "/api/v1/attendance/team/5d977904-f454-40a3-9622-7bbd0781cc2d",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "attendance",
+                        "name":  "org history",
+                        "method":  "GET",
+                        "path":  "/api/v1/attendance/organization/b68ffa2d-7b39-479a-a304-e7cf48f0ba30",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "attendance",
+                        "name":  "employee history",
+                        "method":  "GET",
+                        "path":  "/api/v1/attendance/employee/5d904121-06f2-4179-b5d1-749a3463e600",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "leave",
+                        "name":  "create leave approve candidate",
+                        "method":  "POST",
+                        "path":  "/api/v1/leaves",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "leave",
+                        "name":  "create leave reject candidate",
+                        "method":  "POST",
+                        "path":  "/api/v1/leaves",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "leave",
+                        "name":  "all leave requests",
+                        "method":  "GET",
+                        "path":  "/api/v1/leaves",
+                        "ok":  false,
+                        "status":  500,
+                        "message":  "The remote server returned an error: (500) Internal Server Error.",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "leave",
+                        "name":  "my leave history",
+                        "method":  "GET",
+                        "path":  "/api/v1/leaves/my-history",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  2,
+                        "details":  null
+                    },
+                    {
+                        "group":  "leave",
+                        "name":  "managed team leaves",
+                        "method":  "GET",
+                        "path":  "/api/v1/leaves/managed-teams",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "leave",
+                        "name":  "leaves by status",
+                        "method":  "GET",
+                        "path":  "/api/v1/leaves/status/PENDING",
+                        "ok":  false,
+                        "status":  500,
+                        "message":  "The remote server returned an error: (500) Internal Server Error.",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "leave",
+                        "name":  "leaves by team",
+                        "method":  "GET",
+                        "path":  "/api/v1/leaves/team/5d977904-f454-40a3-9622-7bbd0781cc2d",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "leave",
+                        "name":  "leaves by organization",
+                        "method":  "GET",
+                        "path":  "/api/v1/leaves/organization/b68ffa2d-7b39-479a-a304-e7cf48f0ba30",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "leave",
+                        "name":  "leaves by employee",
+                        "method":  "GET",
+                        "path":  "/api/v1/leaves/employee/5d904121-06f2-4179-b5d1-749a3463e600",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  2,
+                        "details":  null
+                    },
+                    {
+                        "group":  "leave",
+                        "name":  "approve leave",
+                        "method":  "PUT",
+                        "path":  "/api/v1/leaves/5a6c2f25-dac4-46c2-9551-ea806742f531/approve",
+                        "ok":  false,
+                        "status":  500,
+                        "message":  "The remote server returned an error: (500) Internal Server Error.",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "leave",
+                        "name":  "reject leave",
+                        "method":  "PUT",
+                        "path":  "/api/v1/leaves/a0825439-53ed-4e15-b866-56869d5ab57e/reject",
+                        "ok":  false,
+                        "status":  500,
+                        "message":  "The remote server returned an error: (500) Internal Server Error.",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "notification",
+                        "name":  "list notifications",
+                        "method":  "GET",
+                        "path":  "/api/v1/notifications",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "notification",
+                        "name":  "unread notifications",
+                        "method":  "GET",
+                        "path":  "/api/v1/notifications/unread",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "notification",
+                        "name":  "unread count",
+                        "method":  "GET",
+                        "path":  "/api/v1/notifications/unread-count",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "notification",
+                        "name":  "mark all read",
+                        "method":  "PUT",
+                        "path":  "/api/v1/notifications/read-all",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "analytics",
+                        "name":  "employee workload",
+                        "method":  "GET",
+                        "path":  "/api/v1/analytics/workload-history/5d904121-06f2-4179-b5d1-749a3463e600",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "analytics",
+                        "name":  "my workload",
+                        "method":  "GET",
+                        "path":  "/api/v1/analytics/workload-history/my-history",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "analytics",
+                        "name":  "managed workload",
+                        "method":  "GET",
+                        "path":  "/api/v1/analytics/workload-history/managed-teams",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "analytics",
+                        "name":  "team workload",
+                        "method":  "GET",
+                        "path":  "/api/v1/analytics/workload-history/team/5d977904-f454-40a3-9622-7bbd0781cc2d",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "analytics",
+                        "name":  "org workload",
+                        "method":  "GET",
+                        "path":  "/api/v1/analytics/workload-history/organization/b68ffa2d-7b39-479a-a304-e7cf48f0ba30",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "ai",
+                        "name":  "runtime status",
+                        "method":  "GET",
+                        "path":  "/api/v1/ai/runtime-status",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "ai",
+                        "name":  "all suggestions",
+                        "method":  "GET",
+                        "path":  "/api/v1/ai/suggestions",
+                        "ok":  false,
+                        "status":  500,
+                        "message":  "The remote server returned an error: (500) Internal Server Error.",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "ai",
+                        "name":  "managed suggestions",
+                        "method":  "GET",
+                        "path":  "/api/v1/ai/suggestions/managed-teams",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "ai",
+                        "name":  "employee suggestions",
+                        "method":  "GET",
+                        "path":  "/api/v1/ai/suggestions/employee/5d904121-06f2-4179-b5d1-749a3463e600",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "ai",
+                        "name":  "team suggestions",
+                        "method":  "GET",
+                        "path":  "/api/v1/ai/suggestions/team/5d977904-f454-40a3-9622-7bbd0781cc2d",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "ai",
+                        "name":  "org suggestions",
+                        "method":  "GET",
+                        "path":  "/api/v1/ai/suggestions/organization/b68ffa2d-7b39-479a-a304-e7cf48f0ba30",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "ai",
+                        "name":  "my insights",
+                        "method":  "GET",
+                        "path":  "/api/v1/ai/insights/my-insights",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "ai",
+                        "name":  "managed insights",
+                        "method":  "GET",
+                        "path":  "/api/v1/ai/insights/managed-teams",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "ai",
+                        "name":  "employee insights",
+                        "method":  "GET",
+                        "path":  "/api/v1/ai/insights/5d904121-06f2-4179-b5d1-749a3463e600",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "ai",
+                        "name":  "generate insight",
+                        "method":  "POST",
+                        "path":  "/api/v1/ai/generate/5d904121-06f2-4179-b5d1-749a3463e600",
+                        "ok":  false,
+                        "status":  503,
+                        "message":  "The remote server returned an error: (503) Server Unavailable.",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "ai",
+                        "name":  "team insights",
+                        "method":  "GET",
+                        "path":  "/api/v1/ai/insights/team/5d977904-f454-40a3-9622-7bbd0781cc2d",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "ai",
+                        "name":  "org insights",
+                        "method":  "GET",
+                        "path":  "/api/v1/ai/insights/organization/b68ffa2d-7b39-479a-a304-e7cf48f0ba30",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "integration",
+                        "name":  "create github config",
+                        "method":  "POST",
+                        "path":  "/api/v1/integrations",
+                        "ok":  false,
+                        "status":  500,
+                        "message":  "The remote server returned an error: (500) Internal Server Error.",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "integration",
+                        "name":  "create jira config",
+                        "method":  "POST",
+                        "path":  "/api/v1/integrations",
+                        "ok":  false,
+                        "status":  500,
+                        "message":  "The remote server returned an error: (500) Internal Server Error.",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "integration",
+                        "name":  "configs by team",
+                        "method":  "GET",
+                        "path":  "/api/v1/integrations/team/5d977904-f454-40a3-9622-7bbd0781cc2d",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "integration",
+                        "name":  "runtime status",
+                        "method":  "GET",
+                        "path":  "/api/v1/integrations/runtime-status",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "sprint",
+                        "name":  "delete sprint",
+                        "method":  "DELETE",
+                        "path":  "/api/v1/sprints/bbdc73c8-063b-45bb-b551-e7c97ac30b2e",
+                        "ok":  false,
+                        "status":  500,
+                        "message":  "The remote server returned an error: (500) Internal Server Error.",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "organization",
+                        "name":  "create deletable organization",
+                        "method":  "POST",
+                        "path":  "/api/v1/organizations",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "organization",
+                        "name":  "delete empty organization",
+                        "method":  "DELETE",
+                        "path":  "/api/v1/organizations/845d36a4-fcde-4a3d-9ada-23ca081579eb",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "auth",
+                        "name":  "logout admin",
+                        "method":  "POST",
+                        "path":  "/api/v1/auth/logout",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "auth",
+                        "name":  "logout manager",
+                        "method":  "POST",
+                        "path":  "/api/v1/auth/logout",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "auth",
+                        "name":  "logout hr",
+                        "method":  "POST",
+                        "path":  "/api/v1/auth/logout",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    },
+                    {
+                        "group":  "auth",
+                        "name":  "logout employee",
+                        "method":  "POST",
+                        "path":  "/api/v1/auth/logout",
+                        "ok":  true,
+                        "status":  200,
+                        "message":  "Success",
+                        "count":  null,
+                        "details":  null
+                    }
+                ],
+    "swaggerCoverage":  [
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/teams/{id}",
+                                "operationId":  "getTeamById",
+                                "tags":  "team-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "PUT",
+                                "path":  "/api/v1/teams/{id}",
+                                "operationId":  "updateTeam",
+                                "tags":  "team-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "DELETE",
+                                "path":  "/api/v1/teams/{id}",
+                                "operationId":  "deleteTeam",
+                                "tags":  "team-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "PUT",
+                                "path":  "/api/v1/teams/{id}/assign-employee",
+                                "operationId":  "assignEmployeeToTeam",
+                                "tags":  "team-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/tasks/{id}",
+                                "operationId":  "getTask",
+                                "tags":  "task-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "PUT",
+                                "path":  "/api/v1/tasks/{id}",
+                                "operationId":  "updateTask",
+                                "tags":  "task-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "DELETE",
+                                "path":  "/api/v1/tasks/{id}",
+                                "operationId":  "deleteTask",
+                                "tags":  "task-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/sprints/{id}",
+                                "operationId":  "getSprintById",
+                                "tags":  "sprint-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "PUT",
+                                "path":  "/api/v1/sprints/{id}",
+                                "operationId":  "updateSprint",
+                                "tags":  "sprint-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "DELETE",
+                                "path":  "/api/v1/sprints/{id}",
+                                "operationId":  "deleteSprint",
+                                "tags":  "sprint-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/projects/{id}",
+                                "operationId":  "getProject",
+                                "tags":  "project-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "PUT",
+                                "path":  "/api/v1/projects/{id}",
+                                "operationId":  "updateProject",
+                                "tags":  "project-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/organizations/{id}",
+                                "operationId":  "getOrganizationById",
+                                "tags":  "organization-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "PUT",
+                                "path":  "/api/v1/organizations/{id}",
+                                "operationId":  "updateOrganization",
+                                "tags":  "organization-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "DELETE",
+                                "path":  "/api/v1/organizations/{id}",
+                                "operationId":  "deleteOrganization",
+                                "tags":  "organization-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "PUT",
+                                "path":  "/api/v1/notifications/{id}/read",
+                                "operationId":  "markAsRead",
+                                "tags":  "notification-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "PUT",
+                                "path":  "/api/v1/notifications/read-all",
+                                "operationId":  "markAllAsRead",
+                                "tags":  "notification-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "PUT",
+                                "path":  "/api/v1/leaves/{id}/reject",
+                                "operationId":  "rejectLeaveRequest",
+                                "tags":  "leave-request-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "PUT",
+                                "path":  "/api/v1/leaves/{id}/approve",
+                                "operationId":  "approveLeaveRequest",
+                                "tags":  "leave-request-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "PUT",
+                                "path":  "/api/v1/integrations/{id}",
+                                "operationId":  "updateConfig",
+                                "tags":  "task-integration-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "DELETE",
+                                "path":  "/api/v1/integrations/{id}",
+                                "operationId":  "deleteConfig",
+                                "tags":  "task-integration-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/employees/{id}",
+                                "operationId":  "getEmployeeById",
+                                "tags":  "employee-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "PUT",
+                                "path":  "/api/v1/employees/{id}",
+                                "operationId":  "updateEmployee",
+                                "tags":  "employee-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "DELETE",
+                                "path":  "/api/v1/employees/{id}",
+                                "operationId":  "deleteEmployee",
+                                "tags":  "employee-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/employees/profile",
+                                "operationId":  "getProfile",
+                                "tags":  "employee-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "PUT",
+                                "path":  "/api/v1/employees/profile",
+                                "operationId":  "updateProfile",
+                                "tags":  "employee-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "POST",
+                                "path":  "/api/v1/webhooks/jira/{configId}",
+                                "operationId":  "handleJiraWebhook",
+                                "tags":  "webhook-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "POST",
+                                "path":  "/api/v1/webhooks/github/{configId}",
+                                "operationId":  "handleGithubWebhook",
+                                "tags":  "webhook-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/teams",
+                                "operationId":  "getAllTeams",
+                                "tags":  "team-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "POST",
+                                "path":  "/api/v1/teams",
+                                "operationId":  "createTeam",
+                                "tags":  "team-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "POST",
+                                "path":  "/api/v1/teams/{id}/members/request",
+                                "operationId":  "requestJoinTeam",
+                                "tags":  "team-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "POST",
+                                "path":  "/api/v1/teams/memberships/{membershipId}/approve",
+                                "operationId":  "approveMembership",
+                                "tags":  "team-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "POST",
+                                "path":  "/api/v1/teams/members/{employeeId}/end-active",
+                                "operationId":  "endActiveMembership",
+                                "tags":  "team-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/tasks",
+                                "operationId":  "getAllTasks",
+                                "tags":  "task-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "POST",
+                                "path":  "/api/v1/tasks",
+                                "operationId":  "createTask",
+                                "tags":  "task-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/tasks/{taskId}/comments",
+                                "operationId":  "getComments",
+                                "tags":  "task-comment-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "POST",
+                                "path":  "/api/v1/tasks/{taskId}/comments",
+                                "operationId":  "addComment",
+                                "tags":  "task-comment-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "POST",
+                                "path":  "/api/v1/tasks/{id}/assess",
+                                "operationId":  "assessTask",
+                                "tags":  "task-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/sprints",
+                                "operationId":  "getAllSprints",
+                                "tags":  "sprint-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "POST",
+                                "path":  "/api/v1/sprints",
+                                "operationId":  "createSprint",
+                                "tags":  "sprint-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "POST",
+                                "path":  "/api/v1/projects",
+                                "operationId":  "createProject",
+                                "tags":  "project-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/organizations",
+                                "operationId":  "getAllOrganizations",
+                                "tags":  "organization-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "POST",
+                                "path":  "/api/v1/organizations",
+                                "operationId":  "createOrganization",
+                                "tags":  "organization-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/leaves",
+                                "operationId":  "getAllLeaveRequests",
+                                "tags":  "leave-request-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "POST",
+                                "path":  "/api/v1/leaves",
+                                "operationId":  "createLeaveRequest",
+                                "tags":  "leave-request-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "POST",
+                                "path":  "/api/v1/integrations",
+                                "operationId":  "createConfig",
+                                "tags":  "task-integration-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "POST",
+                                "path":  "/api/v1/integrations/{id}/sync",
+                                "operationId":  "syncTasks",
+                                "tags":  "task-integration-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "POST",
+                                "path":  "/api/v1/integrations/connect",
+                                "operationId":  "connect",
+                                "tags":  "task-integration-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "POST",
+                                "path":  "/api/v1/auth/register",
+                                "operationId":  "register",
+                                "tags":  "auth-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "POST",
+                                "path":  "/api/v1/auth/logout",
+                                "operationId":  "logout",
+                                "tags":  "auth-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "POST",
+                                "path":  "/api/v1/auth/login",
+                                "operationId":  "login",
+                                "tags":  "auth-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "POST",
+                                "path":  "/api/v1/attendance/check-out",
+                                "operationId":  "checkOut",
+                                "tags":  "attendance-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "POST",
+                                "path":  "/api/v1/attendance/check-in",
+                                "operationId":  "checkIn",
+                                "tags":  "attendance-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "POST",
+                                "path":  "/api/v1/ai/suggestions/{id}/adopt",
+                                "operationId":  "adoptSuggestion",
+                                "tags":  "ai-suggestion-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "POST",
+                                "path":  "/api/v1/ai/generate/{employeeId}",
+                                "operationId":  "generateInsight",
+                                "tags":  "ai-insight-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "PATCH",
+                                "path":  "/api/v1/tasks/{id}/status",
+                                "operationId":  "updateTaskStatus",
+                                "tags":  "task-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/teams/{id}/members",
+                                "operationId":  "getTeamMembers",
+                                "tags":  "team-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/teams/organization/{organizationId}",
+                                "operationId":  "getTeamsByOrganization",
+                                "tags":  "team-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/teams/my-managed-teams",
+                                "operationId":  "getMyManagedTeams",
+                                "tags":  "team-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/teams/managed-by/{managerId}",
+                                "operationId":  "getTeamsByManager",
+                                "tags":  "team-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/tasks/team/{teamId}",
+                                "operationId":  "getTasksByTeam",
+                                "tags":  "task-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/tasks/status/{status}",
+                                "operationId":  "getTasksByStatus",
+                                "tags":  "task-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/tasks/sprint/{sprintId}",
+                                "operationId":  "getTasksBySprint",
+                                "tags":  "task-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/tasks/reported-by/{reporterId}",
+                                "operationId":  "getTasksByReporter",
+                                "tags":  "task-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/tasks/project/{projectId}",
+                                "operationId":  "getTasksByProject",
+                                "tags":  "task-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/tasks/organization/{organizationId}",
+                                "operationId":  "getTasksByOrganization",
+                                "tags":  "task-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/tasks/my-tasks",
+                                "operationId":  "getMyTasks",
+                                "tags":  "task-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/tasks/managed-teams",
+                                "operationId":  "getTasksForManagedTeams",
+                                "tags":  "task-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/tasks/employee/{employeeId}",
+                                "operationId":  "getTasksByEmployee",
+                                "tags":  "task-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/sprints/organization/{organizationId}",
+                                "operationId":  "getSprintsByOrganization",
+                                "tags":  "sprint-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/sprints/organization/{organizationId}/active",
+                                "operationId":  "getActiveSprintByOrganization",
+                                "tags":  "sprint-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/sprints/active",
+                                "operationId":  "getActiveSprint",
+                                "tags":  "sprint-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/projects/team/{teamId}",
+                                "operationId":  "getProjectsByTeam",
+                                "tags":  "project-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/projects/organization/{organizationId}",
+                                "operationId":  "getProjectsByOrganization",
+                                "tags":  "project-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/notifications",
+                                "operationId":  "getNotifications",
+                                "tags":  "notification-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/notifications/unread",
+                                "operationId":  "getUnreadNotifications",
+                                "tags":  "notification-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/notifications/unread-count",
+                                "operationId":  "getUnreadCount",
+                                "tags":  "notification-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/leaves/team/{teamId}",
+                                "operationId":  "getTeamLeaveRequests",
+                                "tags":  "leave-request-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/leaves/status/{status}",
+                                "operationId":  "getLeaveRequestsByStatus",
+                                "tags":  "leave-request-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/leaves/organization/{organizationId}",
+                                "operationId":  "getOrganizationLeaveRequests",
+                                "tags":  "leave-request-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/leaves/my-history",
+                                "operationId":  "getMyLeaveRequests",
+                                "tags":  "leave-request-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/leaves/managed-teams",
+                                "operationId":  "getManagedTeamLeaveRequests",
+                                "tags":  "leave-request-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/leaves/employee/{employeeId}",
+                                "operationId":  "getEmployeeLeaveRequests",
+                                "tags":  "leave-request-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/integrations/{id}/sync-logs",
+                                "operationId":  "getSyncLogs",
+                                "tags":  "task-integration-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/integrations/team/{teamId}",
+                                "operationId":  "getConfigsByTeam",
+                                "tags":  "task-integration-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/integrations/runtime-status",
+                                "operationId":  "getRuntimeStatus",
+                                "tags":  "task-integration-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/employees",
+                                "operationId":  "getAllEmployees",
+                                "tags":  "employee-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/employees/team/{teamId}",
+                                "operationId":  "getEmployeesByTeam",
+                                "tags":  "employee-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/employees/organization/{organizationId}",
+                                "operationId":  "getEmployeesByOrganization",
+                                "tags":  "employee-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/dashboard/employee/{employeeId}",
+                                "operationId":  "getEmployeeDashboard",
+                                "tags":  "dashboard-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/auth/oauth2/links",
+                                "operationId":  "getOAuth2Links",
+                                "tags":  "auth-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/auth/oauth2/jira",
+                                "operationId":  "jiraLogin",
+                                "tags":  "auth-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/auth/oauth2/google",
+                                "operationId":  "googleLogin",
+                                "tags":  "auth-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/auth/oauth2/github",
+                                "operationId":  "githubLogin",
+                                "tags":  "auth-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/auth/me",
+                                "operationId":  "getMe",
+                                "tags":  "auth-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/attendance/team/{teamId}",
+                                "operationId":  "getTeamAttendanceHistory",
+                                "tags":  "attendance-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/attendance/organization/{organizationId}",
+                                "operationId":  "getOrganizationAttendanceHistory",
+                                "tags":  "attendance-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/attendance/my-history",
+                                "operationId":  "getMyAttendanceHistory",
+                                "tags":  "attendance-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/attendance/managed-teams",
+                                "operationId":  "getManagedTeamAttendanceHistory",
+                                "tags":  "attendance-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/attendance/employee/{employeeId}",
+                                "operationId":  "getEmployeeAttendanceHistory",
+                                "tags":  "attendance-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/analytics/workload-history/{employeeId}",
+                                "operationId":  "getWorkloadHistory",
+                                "tags":  "workload-analytics-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/analytics/workload-history/team/{teamId}",
+                                "operationId":  "getTeamWorkloadHistory",
+                                "tags":  "workload-analytics-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/analytics/workload-history/organization/{organizationId}",
+                                "operationId":  "getOrganizationWorkloadHistory",
+                                "tags":  "workload-analytics-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/analytics/workload-history/my-history",
+                                "operationId":  "getMyWorkloadHistory",
+                                "tags":  "workload-analytics-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/analytics/workload-history/managed-teams",
+                                "operationId":  "getManagedTeamWorkloadHistory",
+                                "tags":  "workload-analytics-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/ai/suggestions",
+                                "operationId":  "getSuggestions",
+                                "tags":  "ai-suggestion-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/ai/suggestions/team/{teamId}",
+                                "operationId":  "getSuggestionsForTeam",
+                                "tags":  "ai-suggestion-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/ai/suggestions/organization/{organizationId}",
+                                "operationId":  "getSuggestionsForOrganization",
+                                "tags":  "ai-suggestion-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/ai/suggestions/managed-teams",
+                                "operationId":  "getSuggestionsForManagedTeams",
+                                "tags":  "ai-suggestion-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/ai/suggestions/employee/{employeeId}",
+                                "operationId":  "getSuggestionsForEmployee",
+                                "tags":  "ai-suggestion-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/ai/runtime-status",
+                                "operationId":  "getRuntimeStatus_1",
+                                "tags":  "ai-insight-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/ai/insights/{employeeId}",
+                                "operationId":  "getInsights",
+                                "tags":  "ai-insight-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/ai/insights/team/{teamId}",
+                                "operationId":  "getTeamInsights",
+                                "tags":  "ai-insight-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/ai/insights/organization/{organizationId}",
+                                "operationId":  "getOrganizationInsights",
+                                "tags":  "ai-insight-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/ai/insights/my-insights",
+                                "operationId":  "getMyInsights",
+                                "tags":  "ai-insight-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/ai/insights/managed-teams",
+                                "operationId":  "getManagedTeamInsights",
+                                "tags":  "ai-insight-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "GET",
+                                "path":  "/api/v1/admin/dashboard",
+                                "operationId":  "getAdminDashboard",
+                                "tags":  "admin-dashboard-controller",
+                                "covered":  true
+                            },
+                            {
+                                "method":  "DELETE",
+                                "path":  "/api/v1/tasks/{taskId}/comments/{commentId}",
+                                "operationId":  "deleteComment",
+                                "tags":  "task-comment-controller",
+                                "covered":  false
+                            },
+                            {
+                                "method":  "DELETE",
+                                "path":  "/api/v1/notifications/{id}",
+                                "operationId":  "deleteNotification",
+                                "tags":  "notification-controller",
+                                "covered":  false
+                            }
+                        ]
+}

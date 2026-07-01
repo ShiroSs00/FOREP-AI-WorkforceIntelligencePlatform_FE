@@ -1,0 +1,108 @@
+﻿FOREP Full API Probe - 2026-06-21T00:03:50
+Base URL: https://forep-ai-workforceintelligenceplatform.onrender.com
+Swagger endpoints: 119
+Probe calls: 103
+PASS: 87
+FAIL: 16
+
+Accounts:
+- IsReadOnly:  expected= actual= employeeId=
+- IsFixedSize:  expected= actual= employeeId=
+- IsSynchronized:  expected= actual= employeeId=
+- Keys:  expected= actual= employeeId=
+- Values: codex.fullapi.admin.20260621000244@forep.test codex.fullapi.employee.20260621000244@forep.test codex.fullapi.hr.20260621000244@forep.test codex.fullapi.manager.20260621000244@forep.test expected=ADMIN EMPLOYEE HR MANAGER actual=ADMIN EMPLOYEE EMPLOYEE MANAGER employeeId=355ee5f8-3e12-4de0-8ef3-269b2471e3cf 5d904121-06f2-4179-b5d1-749a3463e600 60212686-eb2c-4533-a99b-16f853237eeb 786e21ec-c15d-4239-a1ff-20ad3f6218a5
+- SyncRoot:  expected= actual= employeeId=
+- Count:  expected= actual= employeeId=
+
+Failures:
+- [503] auth / oauth2 github redirect: GET /api/v1/auth/oauth2/github :: The remote server returned an error: (503) Server Unavailable.
+- [503] auth / oauth2 google redirect: GET /api/v1/auth/oauth2/google :: The remote server returned an error: (503) Server Unavailable.
+- [503] auth / oauth2 jira redirect: GET /api/v1/auth/oauth2/jira :: The remote server returned an error: (503) Server Unavailable.
+- [500] team / assign employee: PUT /api/v1/teams/5d977904-f454-40a3-9622-7bbd0781cc2d/assign-employee :: The remote server returned an error: (500) Internal Server Error.
+- [404] team / end active membership: POST /api/v1/teams/members/5d904121-06f2-4179-b5d1-749a3463e600/end-active :: The remote server returned an error: (404) Not Found.
+- [500] task / list all tasks: GET /api/v1/tasks :: The remote server returned an error: (500) Internal Server Error.
+- [500] task / managed team tasks: GET /api/v1/tasks/managed-teams :: The remote server returned an error: (500) Internal Server Error.
+- [500] leave / all leave requests: GET /api/v1/leaves :: The remote server returned an error: (500) Internal Server Error.
+- [500] leave / leaves by status: GET /api/v1/leaves/status/PENDING :: The remote server returned an error: (500) Internal Server Error.
+- [500] leave / approve leave: PUT /api/v1/leaves/5a6c2f25-dac4-46c2-9551-ea806742f531/approve :: The remote server returned an error: (500) Internal Server Error.
+- [500] leave / reject leave: PUT /api/v1/leaves/a0825439-53ed-4e15-b866-56869d5ab57e/reject :: The remote server returned an error: (500) Internal Server Error.
+- [500] ai / all suggestions: GET /api/v1/ai/suggestions :: The remote server returned an error: (500) Internal Server Error.
+- [503] ai / generate insight: POST /api/v1/ai/generate/5d904121-06f2-4179-b5d1-749a3463e600 :: The remote server returned an error: (503) Server Unavailable.
+- [500] integration / create github config: POST /api/v1/integrations :: The remote server returned an error: (500) Internal Server Error.
+- [500] integration / create jira config: POST /api/v1/integrations :: The remote server returned an error: (500) Internal Server Error.
+- [500] sprint / delete sprint: DELETE /api/v1/sprints/bbdc73c8-063b-45bb-b551-e7c97ac30b2e :: The remote server returned an error: (500) Internal Server Error.
+
+Untested Swagger operations:
+- GET /api/v1/teams/{id} (getTeamById)
+- PUT /api/v1/teams/{id} (updateTeam)
+- DELETE /api/v1/teams/{id} (deleteTeam)
+- PUT /api/v1/teams/{id}/assign-employee (assignEmployeeToTeam)
+- GET /api/v1/tasks/{id} (getTask)
+- PUT /api/v1/tasks/{id} (updateTask)
+- DELETE /api/v1/tasks/{id} (deleteTask)
+- GET /api/v1/sprints/{id} (getSprintById)
+- PUT /api/v1/sprints/{id} (updateSprint)
+- DELETE /api/v1/sprints/{id} (deleteSprint)
+- GET /api/v1/projects/{id} (getProject)
+- PUT /api/v1/projects/{id} (updateProject)
+- GET /api/v1/organizations/{id} (getOrganizationById)
+- PUT /api/v1/organizations/{id} (updateOrganization)
+- DELETE /api/v1/organizations/{id} (deleteOrganization)
+- PUT /api/v1/notifications/{id}/read (markAsRead)
+- PUT /api/v1/leaves/{id}/reject (rejectLeaveRequest)
+- PUT /api/v1/leaves/{id}/approve (approveLeaveRequest)
+- PUT /api/v1/integrations/{id} (updateConfig)
+- DELETE /api/v1/integrations/{id} (deleteConfig)
+- GET /api/v1/employees/{id} (getEmployeeById)
+- PUT /api/v1/employees/{id} (updateEmployee)
+- DELETE /api/v1/employees/{id} (deleteEmployee)
+- POST /api/v1/webhooks/jira/{configId} (handleJiraWebhook)
+- POST /api/v1/webhooks/github/{configId} (handleGithubWebhook)
+- POST /api/v1/teams/{id}/members/request (requestJoinTeam)
+- POST /api/v1/teams/memberships/{membershipId}/approve (approveMembership)
+- POST /api/v1/teams/members/{employeeId}/end-active (endActiveMembership)
+- GET /api/v1/tasks/{taskId}/comments (getComments)
+- POST /api/v1/tasks/{taskId}/comments (addComment)
+- POST /api/v1/tasks/{id}/assess (assessTask)
+- POST /api/v1/integrations/{id}/sync (syncTasks)
+- POST /api/v1/integrations/connect (connect)
+- POST /api/v1/ai/suggestions/{id}/adopt (adoptSuggestion)
+- POST /api/v1/ai/generate/{employeeId} (generateInsight)
+- PATCH /api/v1/tasks/{id}/status (updateTaskStatus)
+- GET /api/v1/teams/{id}/members (getTeamMembers)
+- GET /api/v1/teams/organization/{organizationId} (getTeamsByOrganization)
+- GET /api/v1/teams/managed-by/{managerId} (getTeamsByManager)
+- GET /api/v1/tasks/team/{teamId} (getTasksByTeam)
+- GET /api/v1/tasks/status/{status} (getTasksByStatus)
+- GET /api/v1/tasks/sprint/{sprintId} (getTasksBySprint)
+- GET /api/v1/tasks/reported-by/{reporterId} (getTasksByReporter)
+- GET /api/v1/tasks/project/{projectId} (getTasksByProject)
+- GET /api/v1/tasks/organization/{organizationId} (getTasksByOrganization)
+- GET /api/v1/tasks/employee/{employeeId} (getTasksByEmployee)
+- GET /api/v1/sprints/organization/{organizationId} (getSprintsByOrganization)
+- GET /api/v1/sprints/organization/{organizationId}/active (getActiveSprintByOrganization)
+- GET /api/v1/projects/team/{teamId} (getProjectsByTeam)
+- GET /api/v1/projects/organization/{organizationId} (getProjectsByOrganization)
+- GET /api/v1/leaves/team/{teamId} (getTeamLeaveRequests)
+- GET /api/v1/leaves/status/{status} (getLeaveRequestsByStatus)
+- GET /api/v1/leaves/organization/{organizationId} (getOrganizationLeaveRequests)
+- GET /api/v1/leaves/employee/{employeeId} (getEmployeeLeaveRequests)
+- GET /api/v1/integrations/{id}/sync-logs (getSyncLogs)
+- GET /api/v1/integrations/team/{teamId} (getConfigsByTeam)
+- GET /api/v1/employees/team/{teamId} (getEmployeesByTeam)
+- GET /api/v1/employees/organization/{organizationId} (getEmployeesByOrganization)
+- GET /api/v1/dashboard/employee/{employeeId} (getEmployeeDashboard)
+- GET /api/v1/attendance/team/{teamId} (getTeamAttendanceHistory)
+- GET /api/v1/attendance/organization/{organizationId} (getOrganizationAttendanceHistory)
+- GET /api/v1/attendance/employee/{employeeId} (getEmployeeAttendanceHistory)
+- GET /api/v1/analytics/workload-history/{employeeId} (getWorkloadHistory)
+- GET /api/v1/analytics/workload-history/team/{teamId} (getTeamWorkloadHistory)
+- GET /api/v1/analytics/workload-history/organization/{organizationId} (getOrganizationWorkloadHistory)
+- GET /api/v1/ai/suggestions/team/{teamId} (getSuggestionsForTeam)
+- GET /api/v1/ai/suggestions/organization/{organizationId} (getSuggestionsForOrganization)
+- GET /api/v1/ai/suggestions/employee/{employeeId} (getSuggestionsForEmployee)
+- GET /api/v1/ai/insights/{employeeId} (getInsights)
+- GET /api/v1/ai/insights/team/{teamId} (getTeamInsights)
+- GET /api/v1/ai/insights/organization/{organizationId} (getOrganizationInsights)
+- DELETE /api/v1/tasks/{taskId}/comments/{commentId} (deleteComment)
+- DELETE /api/v1/notifications/{id} (deleteNotification)

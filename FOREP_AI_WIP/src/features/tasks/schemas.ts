@@ -15,6 +15,13 @@ export const progressSchema = z.object({
   content: z.string().trim().min(1, "Vui lòng nhập nội dung cập nhật"),
   updateType: z.enum(["PROGRESS", "BLOCKER", "COMPLETION"]),
   attachment: z.string().trim().optional(),
+}).superRefine((value, ctx) => {
+  if (value.updateType === "COMPLETION" && value.progressPercent !== undefined && value.progressPercent !== 100) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["progressPercent"], message: "Hoàn thành cần tiến độ 100%" });
+  }
 });
 
-
+export const extractTasksSchema = z.object({
+  text: z.string().trim().min(1, "Vui lòng nhập nội dung cần tách task"),
+  defaultDeadline: z.string().optional(),
+});

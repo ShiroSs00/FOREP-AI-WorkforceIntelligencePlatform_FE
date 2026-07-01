@@ -1,15 +1,25 @@
-﻿import type { TaskPriority, TaskStatus, UpdateType, UserStatus } from "./domain";
+﻿import type { SeniorityLevel, TaskPriority, TaskStatus, UpdateType, UserStatus } from "./domain";
 
-export type LoginRequest = { email?: string; password: string };
+export type LoginRequest = { email?: string; username?: string; password: string };
 export type RegisterWorkspaceRequest = {
   workspaceName: string;
+  shortCode: string;
   address?: string;
   ownerFullName: string;
   ownerEmail?: string;
   ownerPhone?: string;
   ownerPassword: string;
 };
-export type CreateEmployeeRequest = { fullName: string; email?: string; phone?: string };
+export type CreateEmployeeRequest = {
+  fullName: string;
+  email?: string;
+  phone?: string;
+  jobTitle?: string;
+  seniorityLevel?: SeniorityLevel;
+  skillRating?: number;
+  yearsOfExperience?: number;
+  skills?: string;
+};
 export type UpdateEmployeeRequest = CreateEmployeeRequest & { status?: UserStatus };
 export type CreateTaskRequest = {
   title: string;
@@ -42,6 +52,9 @@ export type RecommendAssigneeRequest = {
   deadline: string;
   estimatedHours?: number;
 };
-export type UpdateWorkspaceRequest = { name?: string; logo?: string; address?: string };
-
+export type ExtractTasksRequest = {
+  text: string;
+  defaultDeadline?: string;
+};
+export type UpdateWorkspaceRequest = { name?: string; shortCode?: string; logo?: string; address?: string };
 
