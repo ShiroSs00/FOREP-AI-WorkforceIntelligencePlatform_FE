@@ -1,22 +1,28 @@
 ﻿import { describe, expect, it } from "vitest";
-import { seniorityLabel } from "@/lib/labels";
-import { canAccessEmployee, canAccessOwner, getHomeForRole } from "@/lib/role";
+import { paymentStatusLabel, registrationStatusLabel, roleFitLabel, seniorityLabel, workspaceStatusLabel } from "@/lib/labels";
+import { canAccessEmployee, canAccessOwner, canAccessSystemAdmin, getHomeForRole } from "@/lib/role";
 import { isTaskOverdue } from "@/lib/tasks";
 
 describe("domain helpers", () => {
   it("redirects by role", () => {
+    expect(getHomeForRole("SYSTEM_ADMIN")).toBe("/admin/dashboard");
     expect(getHomeForRole("OWNER")).toBe("/owner/dashboard");
     expect(getHomeForRole("EMPLOYEE")).toBe("/employee/home");
   });
 
   it("checks role helpers", () => {
+    expect(canAccessSystemAdmin("SYSTEM_ADMIN")).toBe(true);
     expect(canAccessOwner("OWNER")).toBe(true);
     expect(canAccessEmployee("EMPLOYEE")).toBe(true);
   });
 
-  it("maps seniority labels", () => {
+  it("maps status labels", () => {
     expect(seniorityLabel("INTERN")).toBe("Thực tập sinh");
     expect(seniorityLabel(null)).toBe("Chưa cập nhật");
+    expect(workspaceStatusLabel("PENDING_PAYMENT")).toBe("Chờ thanh toán");
+    expect(paymentStatusLabel("CORRECTION_REQUESTED")).toBe("Cần bổ sung");
+    expect(registrationStatusLabel("APPROVED")).toBe("Đã duyệt");
+    expect(roleFitLabel("STRONG")).toBe("Phù hợp cao");
   });
 
   it("detects overdue tasks only for active statuses", () => {
@@ -25,3 +31,4 @@ describe("domain helpers", () => {
     expect(isTaskOverdue({ id: "1", title: "A", requirements: "R", deadline: "2026-06-28T10:00:00+07:00", status: "COMPLETED" }, now)).toBe(false);
   });
 });
+

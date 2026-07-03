@@ -1,4 +1,12 @@
-﻿import type { SeniorityLevel, UserStatus, WorkloadLevel } from "@/types/domain";
+﻿import type {
+  PaymentStatus,
+  RegistrationStatus,
+  RoleFit,
+  SeniorityLevel,
+  UserStatus,
+  WorkloadLevel,
+  WorkspaceStatus,
+} from "@/types/domain";
 
 export const seniorityLabels: Record<SeniorityLevel, string> = {
   INTERN: "Thực tập sinh",
@@ -22,10 +30,55 @@ export const workloadLabels: Record<WorkloadLevel, string> = {
   OVERLOADED: "Quá tải",
 };
 
+export const workspaceStatusLabels: Record<WorkspaceStatus, string> = {
+  PENDING_PAYMENT: "Chờ thanh toán",
+  ACTIVE: "Đang hoạt động",
+  INACTIVE: "Chưa kích hoạt",
+  SUSPENDED: "Tạm dừng",
+  EXPIRED: "Hết hạn",
+};
+
+export const paymentStatusLabels: Record<PaymentStatus, string> = {
+  PENDING: "Chờ kiểm tra",
+  CONFIRMED: "Đã xác nhận",
+  REJECTED: "Bị từ chối",
+  CORRECTION_REQUESTED: "Cần bổ sung",
+};
+
+export const registrationStatusLabels: Record<RegistrationStatus, string> = {
+  SUBMITTED: "Đã gửi hồ sơ",
+  PAYMENT_PENDING: "Chờ thanh toán",
+  PAYMENT_SUBMITTED: "Đã gửi thanh toán",
+  APPROVED: "Đã duyệt",
+  REJECTED: "Bị từ chối",
+};
+
+export const roleFitLabels: Record<RoleFit, string> = {
+  STRONG: "Phù hợp cao",
+  PARTIAL: "Phù hợp một phần",
+  UNCERTAIN: "Chưa đủ dữ liệu",
+};
+
 export function seniorityLabel(value?: SeniorityLevel | null): string {
   return value ? seniorityLabels[value] : "Chưa cập nhật";
 }
 
 export function ratingLabel(value?: number | null): string {
   return typeof value === "number" ? `${value}/5` : "Chưa cập nhật";
+}
+
+export function workspaceStatusLabel(value?: WorkspaceStatus | null): string {
+  return value ? workspaceStatusLabels[value] : "Chưa cập nhật";
+}
+
+export function paymentStatusLabel(value?: PaymentStatus | null): string {
+  return value ? paymentStatusLabels[value] : "Chưa cập nhật";
+}
+
+export function registrationStatusLabel(value?: RegistrationStatus | null): string {
+  return value ? registrationStatusLabels[value] : "Chưa cập nhật";
+}
+
+export function roleFitLabel(value?: RoleFit | null): string {
+  return value ? roleFitLabels[value] : "Chưa đủ dữ liệu";
 }

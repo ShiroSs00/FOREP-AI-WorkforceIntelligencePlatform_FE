@@ -16,6 +16,7 @@ export type ApiFailure = {
   code?: string;
   details?: unknown;
   fieldErrors?: Record<string, string>;
+  retryAfter?: number;
 };
 
 export type PageResult<T> = {
@@ -25,6 +26,3 @@ export type PageResult<T> = {
   page?: number;
   size?: number;
 };
-
-
-

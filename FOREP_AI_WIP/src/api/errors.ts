@@ -28,6 +28,15 @@ function extractCode(data: unknown): string | undefined {
   return typeof first?.code === "string" ? first.code : undefined;
 }
 
+function parseRetryAfter(value: unknown): number | undefined {
+  if (typeof value !== "string") return undefined;
+  const seconds = Number(value);
+  if (Number.isFinite(seconds)) return seconds;
+  const timestamp = Date.parse(value);
+  if (!Number.isFinite(timestamp)) return undefined;
+  return Math.max(0, Math.ceil((timestamp - Date.now()) / 1000));
+}
+
 export function normalizeApiError(error: unknown): ApiFailure {
   if (axios.isAxiosError(error)) {
     if (error.code === "ECONNABORTED") {
@@ -38,8 +47,10 @@ export function normalizeApiError(error: unknown): ApiFailure {
     const details = error.response?.data;
     const fieldErrors = extractFieldErrors(details);
     const code = extractCode(details);
+    const retryAfter = parseRetryAfter(error.response?.headers?.["retry-after"]);
     if (status === 401) return { status, message: backendMessage ?? "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", details, fieldErrors, code };
     if (status === 403) return { status, message: backendMessage ?? "Bạn không có quyền thực hiện thao tác này.", details, fieldErrors, code };
+    if (status === 429 || code === "AI_RATE_LIMITED") return { status, message: "Hệ thống AI đang xử lý nhiều yêu cầu. Vui lòng thử lại sau.", details, fieldErrors, code: code ?? "AI_RATE_LIMITED", retryAfter };
     if (status === 404) return { status, message: backendMessage ?? "Chức năng này chưa có trên backend.", details, fieldErrors, code };
     if (status && status >= 500) return { status, message: backendMessage ?? "Backend đang lỗi. Vui lòng kiểm tra lại sau.", details, fieldErrors, code };
     if (status) return { status, message: backendMessage ?? "Yêu cầu không hợp lệ.", details, fieldErrors, code };

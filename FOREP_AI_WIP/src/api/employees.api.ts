@@ -28,6 +28,11 @@ export async function updateEmployeeStatus(id: string, status: UserStatus): Prom
   return unwrapApiResponse<Employee>(response.data);
 }
 
+export async function resetEmployeePassword(id: string): Promise<Employee> {
+  const response = await apiClient.patch(`/employees/${id}/reset-password`);
+  return unwrapApiResponse<Employee>(response.data);
+}
+
 export async function getEmployeeWorkload(id: string): Promise<WorkloadRecord> {
   const response = await apiClient.get(`/analytics/employees/${id}/workload`);
   return unwrapApiResponse<WorkloadRecord>(response.data);

@@ -1,4 +1,5 @@
-import type { TaskPriority, TaskStatus, UserStatus, WorkloadLevel } from "@/types/domain";
+﻿import type { PaymentStatus, RegistrationStatus, RoleFit, TaskPriority, TaskStatus, UserStatus, WorkloadLevel, WorkspaceStatus } from "@/types/domain";
+import { paymentStatusLabels, registrationStatusLabels, roleFitLabels, workspaceStatusLabels } from "@/lib/labels";
 import { Badge } from "./Badge";
 
 type Tone = "neutral" | "blue" | "green" | "amber" | "red" | "teal";
@@ -32,6 +33,35 @@ const workload: Record<WorkloadLevel, { label: string; tone: Tone }> = {
   OVERLOADED: { label: "Quá tải", tone: "red" },
 };
 
+const workspaceTone: Record<WorkspaceStatus, Tone> = {
+  PENDING_PAYMENT: "amber",
+  ACTIVE: "green",
+  INACTIVE: "neutral",
+  SUSPENDED: "red",
+  EXPIRED: "red",
+};
+
+const paymentTone: Record<PaymentStatus, Tone> = {
+  PENDING: "amber",
+  CONFIRMED: "green",
+  REJECTED: "red",
+  CORRECTION_REQUESTED: "amber",
+};
+
+const registrationTone: Record<RegistrationStatus, Tone> = {
+  SUBMITTED: "blue",
+  PAYMENT_PENDING: "amber",
+  PAYMENT_SUBMITTED: "amber",
+  APPROVED: "green",
+  REJECTED: "red",
+};
+
+const roleFitTone: Record<RoleFit, Tone> = {
+  STRONG: "green",
+  PARTIAL: "amber",
+  UNCERTAIN: "neutral",
+};
+
 function fallback(value?: string) {
   return value ? value.replaceAll("_", " ").toLowerCase() : "Chưa rõ";
 }
@@ -49,4 +79,20 @@ export function PriorityBadge({ value }: { value?: TaskPriority }) {
 export function WorkloadBadge({ value }: { value?: WorkloadLevel | string }) {
   const config = value ? workload[value as WorkloadLevel] : undefined;
   return <Badge tone={config?.tone ?? "neutral"}>{config?.label ?? fallback(value)}</Badge>;
+}
+
+export function WorkspaceStatusBadge({ value }: { value?: WorkspaceStatus }) {
+  return <Badge tone={value ? workspaceTone[value] : "neutral"}>{value ? workspaceStatusLabels[value] : "Chưa cập nhật"}</Badge>;
+}
+
+export function PaymentStatusBadge({ value }: { value?: PaymentStatus }) {
+  return <Badge tone={value ? paymentTone[value] : "neutral"}>{value ? paymentStatusLabels[value] : "Chưa cập nhật"}</Badge>;
+}
+
+export function RegistrationStatusBadge({ value }: { value?: RegistrationStatus }) {
+  return <Badge tone={value ? registrationTone[value] : "neutral"}>{value ? registrationStatusLabels[value] : "Chưa cập nhật"}</Badge>;
+}
+
+export function RoleFitBadge({ value }: { value?: RoleFit | null }) {
+  return <Badge tone={value ? roleFitTone[value] : "neutral"}>{value ? roleFitLabels[value] : "Chưa đủ dữ liệu"}</Badge>;
 }

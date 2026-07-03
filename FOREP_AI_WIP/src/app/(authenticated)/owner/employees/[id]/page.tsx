@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { RequireRole } from "@/auth/require-role";
-import { getEmployee, getEmployeeWorkload, updateEmployee } from "@/api/employees.api";
+import { getEmployee, getEmployeeWorkload, resetEmployeePassword, updateEmployee } from "@/api/employees.api";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import { Field, Select, TextArea } from "@/components/common/Field";
@@ -17,9 +17,11 @@ import { StatCard } from "@/components/common/StatCard";
 import { StatusBadge, WorkloadBadge } from "@/components/common/StatusBadge";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { LoadingState } from "@/components/feedback/LoadingState";
+import { EmployeeCredentialsDialog } from "@/components/forms/EmployeeCredentialsDialog";
 import { employeeSchema, seniorityOptions, toEmployeePayload } from "@/features/employees/schemas";
 import { ratingLabel, seniorityLabel } from "@/lib/labels";
 import { queryKeys } from "@/lib/query-keys";
+import type { Employee } from "@/types/domain";
 import type { z } from "zod";
 
 type EmployeeInput = z.input<typeof employeeSchema>;
@@ -39,6 +41,7 @@ const emptyValues: EmployeeInput = {
 
 export default function EmployeeDetailPage() {
   const [showInitialPassword, setShowInitialPassword] = useState(false);
+  const [resetCredential, setResetCredential] = useState<Employee | null>(null);
   const params = useParams<{ id: string }>();
   const queryClient = useQueryClient();
   const employeeQuery = useQuery({ queryKey: queryKeys.employee(params.id), queryFn: () => getEmployee(params.id) });
@@ -71,6 +74,13 @@ export default function EmployeeDetailPage() {
       void queryClient.invalidateQueries({ queryKey: queryKeys.ownerDashboard });
     },
   });
+  const resetPasswordMutation = useMutation({
+    mutationFn: resetEmployeePassword,
+    onSuccess: (employee) => {
+      toast.success("Đã reset mật khẩu nhân viên");
+      setResetCredential(employee);
+    },
+  });
 
   return (
     <RequireRole role="OWNER">
@@ -78,7 +88,7 @@ export default function EmployeeDetailPage() {
         eyebrow="Nhân viên"
         title={employeeQuery.data?.fullName ?? "Chi tiết nhân viên"}
         description="Cập nhật hồ sơ, năng lực chuyên môn và xem nhanh mức tải công việc cá nhân."
-        secondaryAction={<Link href="/owner/employees" className="focus-ring rounded-control border border-border px-4 py-2.5 text-sm font-semibold hover:bg-surface-muted">Quay lại</Link>}
+        secondaryAction={<div className="flex flex-wrap gap-2"><Button variant="secondary" disabled={resetPasswordMutation.isPending || !employeeQuery.data?.id} onClick={() => employeeQuery.data?.id && window.confirm("Reset mật khẩu nhân viên này?") ? resetPasswordMutation.mutate(employeeQuery.data.id) : undefined}>Reset mật khẩu</Button><Link href="/owner/employees" className="focus-ring rounded-control border border-border px-4 py-2.5 text-sm font-semibold hover:bg-surface-muted">Quay lại</Link></div>}
       />
       {employeeQuery.isLoading ? <LoadingState rows={4} /> : null}
       {employeeQuery.error ? <ErrorState title="Không thể tải nhân viên" error={employeeQuery.error} onRetry={() => void employeeQuery.refetch()} /> : null}
@@ -148,6 +158,7 @@ export default function EmployeeDetailPage() {
           </div>
         </div>
       ) : null}
+      <EmployeeCredentialsDialog employee={resetCredential} onClose={() => setResetCredential(null)} />
     </RequireRole>
   );
 }

@@ -1,5 +1,5 @@
 ﻿import { describe, expect, it } from "vitest";
-import { loginSchema, registerWorkspaceSchema, toLoginPayload } from "@/features/auth/schemas";
+import { changePasswordSchema, loginSchema, submitPaymentSchema, toChangePasswordPayload, toLoginPayload, toWorkspaceRegistrationPayload, workspaceRegistrationSchema } from "@/features/auth/schemas";
 import { employeeSchema, toEmployeePayload } from "@/features/employees/schemas";
 import { dailyReportSchema } from "@/features/reports/schemas";
 import { extractTasksSchema, progressSchema, taskSchema } from "@/features/tasks/schemas";
@@ -17,11 +17,35 @@ describe("form schemas", () => {
     expect(toLoginPayload({ identifier: "SE0001", password: "secret" })).toEqual({ username: "SE0001", password: "secret" });
   });
 
-  it("validates workspace short code", () => {
-    expect(registerWorkspaceSchema.safeParse({ workspaceName: "Apex", shortCode: "se", ownerFullName: "Quan", ownerPassword: "123456" }).data?.shortCode).toBe("SE");
-    expect(registerWorkspaceSchema.safeParse({ workspaceName: "Apex", shortCode: "S", ownerFullName: "Quan", ownerPassword: "123456" }).success).toBe(false);
-    expect(registerWorkspaceSchema.safeParse({ workspaceName: "Apex", shortCode: "ABC", ownerFullName: "Quan", ownerPassword: "123456" }).success).toBe(false);
-    expect(registerWorkspaceSchema.safeParse({ workspaceName: "Apex", shortCode: "A-", ownerFullName: "Quan", ownerPassword: "123456" }).success).toBe(false);
+  it("validates public workspace registration and excludes maxUsers", () => {
+    const values = {
+      businessName: "Apex",
+      workspaceName: "Apex Ops",
+      workspaceIdentifier: "se",
+      contactEmail: "contact@forep.vn",
+      contactPhone: "0900000000",
+      subscriptionPlanId: "550e8400-e29b-41d4-a716-446655440000",
+      ownerFullName: "Quan Ho",
+      ownerEmail: "owner@forep.vn",
+      ownerPassword: "12345678",
+    };
+    const result = workspaceRegistrationSchema.safeParse(values);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.workspaceIdentifier).toBe("SE");
+      expect("maxUsers" in toWorkspaceRegistrationPayload(result.data)).toBe(false);
+    }
+    expect(workspaceRegistrationSchema.safeParse({ ...values, workspaceIdentifier: "S" }).success).toBe(false);
+    expect(workspaceRegistrationSchema.safeParse({ ...values, workspaceIdentifier: "ABC" }).success).toBe(false);
+    expect(workspaceRegistrationSchema.safeParse({ ...values, workspaceIdentifier: "A-" }).success).toBe(false);
+  });
+
+  it("validates payment and change password payloads", () => {
+    expect(submitPaymentSchema.safeParse({ paymentProofUrl: "https://example.com/proof.png" }).success).toBe(true);
+    const password = changePasswordSchema.safeParse({ currentPassword: "old-pass", newPassword: "new-pass-123", confirmPassword: "new-pass-123" });
+    expect(password.success).toBe(true);
+    if (password.success) expect(toChangePasswordPayload(password.data)).toEqual({ currentPassword: "old-pass", newPassword: "new-pass-123" });
+    expect(changePasswordSchema.safeParse({ currentPassword: "old-pass", newPassword: "new-pass-123", confirmPassword: "different" }).success).toBe(false);
   });
 
   it("validates employee capability fields and excludes generated fields", () => {
@@ -51,3 +75,4 @@ describe("form schemas", () => {
     expect(extractTasksSchema.safeParse({ text: "Create onboarding task" }).success).toBe(true);
   });
 });
+

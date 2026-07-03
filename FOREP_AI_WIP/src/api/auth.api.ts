@@ -1,7 +1,7 @@
 ﻿import { apiClient } from "./client";
 import { unwrapApiResponse } from "./response";
 import type { User } from "@/types/domain";
-import type { LoginRequest, RegisterWorkspaceRequest } from "@/types/requests";
+import type { ChangePasswordRequest, LoginRequest } from "@/types/requests";
 
 export type LoginResult = { token?: string; accessToken?: string; jwt?: string; user?: User };
 
@@ -19,8 +19,8 @@ export async function getCurrentUser(): Promise<User> {
   return unwrapApiResponse<User>(response.data);
 }
 
-export async function registerWorkspace(payload: RegisterWorkspaceRequest): Promise<unknown> {
-  const response = await apiClient.post("/workspaces/register", payload);
+export async function changePassword(payload: ChangePasswordRequest): Promise<unknown> {
+  const response = await apiClient.patch("/auth/change-password", payload);
   return unwrapApiResponse<unknown>(response.data);
 }
 

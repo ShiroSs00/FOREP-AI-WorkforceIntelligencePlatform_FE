@@ -8,12 +8,13 @@ import { listEmployees } from "@/api/employees.api";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import { Field, Select, TextArea } from "@/components/common/Field";
-import { WorkloadBadge } from "@/components/common/StatusBadge";
+import { RoleFitBadge, WorkloadBadge } from "@/components/common/StatusBadge";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { LoadingState } from "@/components/feedback/LoadingState";
 import { taskSchema } from "@/features/tasks/schemas";
 import { queryKeys } from "@/lib/query-keys";
+import type { ApiFailure } from "@/types/api";
 import type { CreateTaskRequest } from "@/types/requests";
 import type { z } from "zod";
 
@@ -56,6 +57,7 @@ export function TaskForm({
     },
   });
   const recommendation = useMutation({ mutationFn: recommendAssignee });
+  const recommendationError = recommendation.error as ApiFailure | null;
   const values = useWatch({ control: form.control });
   const watchedTitle = values.title ?? "";
   const watchedRequirements = values.requirements ?? "";
@@ -136,17 +138,27 @@ export function TaskForm({
             <p className="text-xs font-bold tracking-[0.18em] text-teal-300">AI GỢI Ý</p>
             <h2 className="mt-2 text-lg font-black">Chọn người phù hợp</h2>
             <p className="mt-1 text-sm leading-6 text-slate-300">AI chỉ đưa ra khuyến nghị dựa trên dữ liệu hiện có. Owner vẫn là người quyết định cuối cùng.</p>
-            {recommendation.error ? <div className="mt-4"><ErrorState title="Không thể lấy gợi ý" error={recommendation.error} /></div> : null}
+            {recommendation.error ? (
+              <div className="mt-4">
+                <ErrorState
+                  title={recommendationError?.code === "AI_RATE_LIMITED" || recommendationError?.status === 429 ? "AI đang quá tải" : "Không thể lấy gợi ý"}
+                  error={recommendation.error}
+                />
+              </div>
+            ) : null}
             {recommendation.data ? (
               <div className="mt-4 grid gap-3">
                 {recommendation.data.length === 0 ? <EmptyState title="AI chưa có gợi ý phù hợp" description="Thử bổ sung yêu cầu, deadline hoặc dữ liệu workload." /> : null}
                 {recommendation.data.map((item) => (
                   <div key={item.employeeId ?? item.employeeName} className="rounded-control border border-white/10 bg-white/5 p-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="font-bold">{item.employeeName ?? item.employeeId ?? "Nhân viên"}</p>
+                      <p className="font-bold">{item.fullName ?? item.employeeName ?? item.employeeId ?? "Nhân viên"}</p>
                       <span className="rounded-full bg-white/10 px-2 py-1 text-xs font-semibold">Điểm {item.score ?? "—"}</span>
                     </div>
-                    <div className="mt-2"><WorkloadBadge value={item.workloadLevel} /></div>
+                    <div className="mt-2 flex flex-wrap gap-2"><WorkloadBadge value={item.workloadLevel} /><RoleFitBadge value={item.roleFit} />{item.source === "RULE_BASED_FALLBACK" || item.aiProviderFailed ? <span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800">Phân tích dự phòng</span> : null}</div>
+                    {item.requiredRole ? <p className="mt-2 text-xs font-semibold text-slate-300">Vai trò cần: {item.requiredRole}</p> : null}
+                    {item.roleFitReason ? <p className="mt-1 text-xs leading-5 text-slate-400">{item.roleFitReason}</p> : null}
+                    {item.source === "RULE_BASED_FALLBACK" || item.aiProviderFailed ? <p className="mt-2 rounded-control bg-amber-100/10 px-2 py-1 text-xs leading-5 text-amber-100">Dịch vụ AI tạm thời không phản hồi. Hệ thống đang hiển thị kết quả dựa trên quy tắc nghiệp vụ.{item.fallbackReason ? ` ${item.fallbackReason}` : ""}</p> : null}
                     <p className="mt-2 text-sm leading-6 text-slate-300">{item.reason ?? item.risk ?? "Backend chưa trả lý do chi tiết."}</p>
                     <Button
                       type="button"

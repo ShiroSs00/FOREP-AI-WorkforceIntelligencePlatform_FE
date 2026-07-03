@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { RequireRole } from "@/auth/require-role";
-import { createEmployee, listEmployees, updateEmployeeStatus } from "@/api/employees.api";
+import { createEmployee, listEmployees, resetEmployeePassword, updateEmployeeStatus } from "@/api/employees.api";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import { Field, Select, TextArea } from "@/components/common/Field";
@@ -66,7 +66,13 @@ export default function EmployeesPage() {
       void queryClient.invalidateQueries({ queryKey: queryKeys.workload });
     },
   });
-  const rows = useMemo(
+  const resetPasswordMutation = useMutation({
+    mutationFn: resetEmployeePassword,
+    onSuccess: (employee) => {
+      toast.success("Đã reset mật khẩu nhân viên");
+      setCredentialEmployee(employee);
+    },
+  });  const rows = useMemo(
     () =>
       (query.data ?? []).filter((employee) => {
         const haystack = `${employee.fullName} ${employee.email ?? ""} ${employee.phone ?? ""} ${employee.jobTitle ?? ""} ${employee.skills ?? ""}`.toLowerCase();
@@ -176,6 +182,7 @@ export default function EmployeesPage() {
                             >
                               {employee.status === "ACTIVE" ? "Tạm ngưng" : "Kích hoạt"}
                             </Button>
+                            <Button variant="secondary" disabled={resetPasswordMutation.isPending} onClick={() => window.confirm("Reset mật khẩu nhân viên này?") ? resetPasswordMutation.mutate(employee.id) : undefined}>Reset mật khẩu</Button>
                             <Link className="focus-ring rounded-control border border-border px-3 py-2.5 text-sm font-semibold hover:bg-surface-muted" href={`/owner/employees/${employee.id}`}>Chi tiết</Link>
                             <Link className="focus-ring rounded-control border border-border px-3 py-2.5 text-sm font-semibold hover:bg-surface-muted" href={`/owner/employees/${employee.id}`}>Xem workload</Link>
                           </div>
@@ -218,5 +225,7 @@ export default function EmployeesPage() {
     </RequireRole>
   );
 }
+
+
 
 

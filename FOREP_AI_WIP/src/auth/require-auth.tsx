@@ -30,6 +30,18 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
   }, [meQuery.data, setUser]);
 
   useEffect(() => {
+    const role = meQuery.data?.role ?? user?.role;
+    if (!role) return;
+    const isAdminRoute = pathname.startsWith("/admin");
+    if (role === "SYSTEM_ADMIN" && !isAdminRoute && pathname !== "/forbidden") {
+      router.replace("/forbidden");
+    }
+    if (role !== "SYSTEM_ADMIN" && isAdminRoute) {
+      router.replace("/forbidden");
+    }
+  }, [meQuery.data?.role, pathname, router, user?.role]);
+
+  useEffect(() => {
     const status = typeof meQuery.error === "object" && meQuery.error !== null && "status" in meQuery.error ? Number(meQuery.error.status) : undefined;
     if (status === 401) {
       clearAuth();

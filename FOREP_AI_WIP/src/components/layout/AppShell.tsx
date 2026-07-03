@@ -18,6 +18,7 @@ import { getHomeForRole } from "@/lib/role";
 import { getNavigation } from "./nav";
 
 function roleLabel(role?: string | null) {
+  if (role === "SYSTEM_ADMIN") return "Quản trị nền tảng";
   return role === "OWNER" ? "Chủ workspace" : "Nhân viên";
 }
 
@@ -39,19 +40,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const notificationsQuery = useQuery({
     queryKey: queryKeys.notifications,
     queryFn: listNotifications,
-    enabled: Boolean(user),
+    enabled: Boolean(user) && user?.role !== "SYSTEM_ADMIN",
   });
   const workspaceQuery = useQuery({
     queryKey: queryKeys.workspace,
     queryFn: getCurrentWorkspace,
-    enabled: Boolean(user),
+    enabled: Boolean(user) && user?.role !== "SYSTEM_ADMIN",
   });
   const unread = notificationsQuery.data?.filter((item) => !item.read).length ?? 0;
   const homeHref = user ? getHomeForRole(user.role) : "/login";
   const primaryAction =
-    user?.role === "OWNER"
-      ? { href: "/owner/tasks/new", label: "Tạo task", icon: Plus }
-      : { href: "/daily-reports/new", label: "Gửi báo cáo", icon: FileText };
+    user?.role === "SYSTEM_ADMIN"
+      ? { href: "/admin/registrations", label: "Duyệt hồ sơ", icon: FileText }
+      : user?.role === "OWNER"
+        ? { href: "/owner/tasks/new", label: "Tạo task", icon: Plus }
+        : { href: "/daily-reports/new", label: "Gửi báo cáo", icon: FileText };
 
   const logoutMutation = useMutation({
     mutationFn: logout,
@@ -72,8 +75,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         >
           <div className="grid h-11 w-11 shrink-0 place-items-center rounded-control bg-primary font-black text-primary-foreground">F</div>
           <div className="min-w-0">
-            <p className="truncate font-black text-foreground">{workspaceQuery.data?.name ?? "FOREP EXE"}</p>
-            <p className="truncate text-xs font-medium text-muted-foreground">{workspaceQuery.data?.shortCode ? `${workspaceQuery.data.shortCode} · ${roleLabel(user?.role)}` : roleLabel(user?.role)}</p>
+            <p className="truncate font-black text-foreground">{user?.role === "SYSTEM_ADMIN" ? "FOREP Admin" : workspaceQuery.data?.name ?? "FOREP EXE"}</p>
+            <p className="truncate text-xs font-medium text-muted-foreground">{user?.role === "SYSTEM_ADMIN" ? "Platform operations" : workspaceQuery.data?.shortCode ? `${workspaceQuery.data.shortCode} · ${roleLabel(user?.role)}` : roleLabel(user?.role)}</p>
           </div>
         </Link>
       </div>
@@ -154,11 +157,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <primaryAction.icon className="h-4 w-4" aria-hidden="true" />
               {primaryAction.label}
             </Link>
-            <Link href="/notifications" className="focus-ring relative rounded-control border border-border bg-surface p-2.5 text-muted-foreground hover:text-foreground" aria-label={`${unread} thông báo chưa đọc`}>
-              <Bell className="h-5 w-5" aria-hidden="true" />
-              {unread > 0 ? <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-destructive px-1 text-center text-xs font-bold text-white">{unread}</span> : null}
-            </Link>
-            <Badge tone={user?.role === "OWNER" ? "teal" : "blue"}>{roleLabel(user?.role)}</Badge>
+            {user?.role !== "SYSTEM_ADMIN" ? (
+              <Link href="/notifications" className="focus-ring relative rounded-control border border-border bg-surface p-2.5 text-muted-foreground hover:text-foreground" aria-label={`${unread} thông báo chưa đọc`}>
+                <Bell className="h-5 w-5" aria-hidden="true" />
+                {unread > 0 ? <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-destructive px-1 text-center text-xs font-bold text-white">{unread}</span> : null}
+              </Link>
+            ) : null}
+            <Badge tone={user?.role === "SYSTEM_ADMIN" ? "amber" : user?.role === "OWNER" ? "teal" : "blue"}>{roleLabel(user?.role)}</Badge>
           </div>
         </header>
         <main className="mx-auto w-full max-w-[1500px] p-4 sm:p-6">{children}</main>
@@ -166,5 +171,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
 
 

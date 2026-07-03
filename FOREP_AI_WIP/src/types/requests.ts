@@ -1,6 +1,16 @@
-﻿import type { SeniorityLevel, TaskPriority, TaskStatus, UpdateType, UserStatus } from "./domain";
+﻿import type {
+  PaymentStatus,
+  SeniorityLevel,
+  SubscriptionPlanStatus,
+  TaskPriority,
+  TaskStatus,
+  UpdateType,
+  UserStatus,
+  WorkspaceStatus,
+} from "./domain";
 
 export type LoginRequest = { email?: string; username?: string; password: string };
+export type ChangePasswordRequest = { currentPassword: string; newPassword: string };
 export type RegisterWorkspaceRequest = {
   workspaceName: string;
   shortCode: string;
@@ -10,6 +20,22 @@ export type RegisterWorkspaceRequest = {
   ownerPhone?: string;
   ownerPassword: string;
 };
+export type WorkspaceRegistrationRequest = {
+  businessName: string;
+  workspaceName: string;
+  workspaceIdentifier: string;
+  contactEmail: string;
+  contactPhone: string;
+  businessAddress?: string;
+  subscriptionPlanId: string;
+  ownerFullName: string;
+  ownerEmail: string;
+  ownerPhone?: string;
+  ownerPassword: string;
+  paymentProofUrl?: string;
+  paymentNote?: string;
+};
+export type SubmitPaymentRequest = { paymentProofUrl: string; paymentNote?: string };
 export type CreateEmployeeRequest = {
   fullName: string;
   email?: string;
@@ -57,4 +83,41 @@ export type ExtractTasksRequest = {
   defaultDeadline?: string;
 };
 export type UpdateWorkspaceRequest = { name?: string; shortCode?: string; logo?: string; address?: string };
-
+export type AdminCreateWorkspaceRequest = {
+  businessName: string;
+  workspaceName: string;
+  workspaceIdentifier: string;
+  contactEmail: string;
+  contactPhone: string;
+  businessAddress?: string;
+  subscriptionPlanId: string;
+  maxUsers?: number;
+  activationDate?: string;
+  expirationDate?: string;
+  status?: WorkspaceStatus;
+};
+export type AdminUpdateWorkspaceRequest = Partial<Omit<AdminCreateWorkspaceRequest, "workspaceIdentifier">>;
+export type AdminWorkspaceStatusRequest = { status: WorkspaceStatus } | WorkspaceStatus;
+export type CreateBusinessOwnerRequest = {
+  fullName: string;
+  email: string;
+  username?: string;
+  temporaryPassword?: string;
+  phone?: string;
+  status?: UserStatus;
+};
+export type CreateSubscriptionPlanRequest = {
+  name: string;
+  price: number;
+  durationDays?: number;
+  maxUsers?: number;
+  maxWorkspaces?: number;
+  aiUsageLimit?: number;
+  features?: string;
+  status?: SubscriptionPlanStatus;
+};
+export type UpdateSubscriptionPlanRequest = Partial<CreateSubscriptionPlanRequest>;
+export type ReviewRegistrationRequest = { note?: string };
+export type ReviewBusinessFeedbackRequest = { supportNote?: string };
+export type BusinessFeedbackRequest = { title: string; content: string };
+export type PaymentStatusQuery = PaymentStatus | "ALL";
