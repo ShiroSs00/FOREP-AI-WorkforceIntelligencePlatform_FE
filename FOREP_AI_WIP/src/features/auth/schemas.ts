@@ -27,17 +27,12 @@ export const changePasswordSchema = z
 export const workspaceRegistrationSchema = z.object({
   businessName: z.string().trim().min(1, "Vui lòng nhập tên doanh nghiệp"),
   workspaceName: z.string().trim().min(1, "Vui lòng nhập tên workspace"),
-  workspaceIdentifier: shortCodeSchema,
   contactEmail: z.string().trim().email("Email liên hệ không hợp lệ"),
-  contactPhone: z.string().trim().min(1, "Vui lòng nhập số điện thoại liên hệ"),
+  contactPhone: z.string().trim().optional(),
   businessAddress: z.string().trim().optional(),
-  subscriptionPlanId: z.string().uuid("Vui lòng chọn gói dịch vụ"),
-  ownerFullName: z.string().trim().min(1, "Vui lòng nhập họ tên owner"),
-  ownerEmail: z.string().trim().email("Email owner không hợp lệ"),
-  ownerPhone: z.string().trim().optional(),
-  ownerPassword: z.string().min(8, "Mật khẩu owner tối thiểu 8 ký tự"),
-  paymentProofUrl: z.string().trim().url("URL minh chứng thanh toán không hợp lệ").optional().or(z.literal("")),
-  paymentNote: z.string().trim().optional(),
+  representativeFullName: z.string().trim().min(1, "Vui lòng nhập họ tên người đại diện"),
+  representativeEmail: z.string().trim().email("Email người đại diện không hợp lệ"),
+  representativePhone: z.string().trim().optional(),
 });
 
 export const submitPaymentSchema = z.object({
@@ -59,16 +54,11 @@ export function toWorkspaceRegistrationPayload(values: z.output<typeof workspace
   return {
     businessName: values.businessName,
     workspaceName: values.workspaceName,
-    workspaceIdentifier: values.workspaceIdentifier,
     contactEmail: values.contactEmail,
-    contactPhone: values.contactPhone,
-    businessAddress: values.businessAddress || undefined,
-    subscriptionPlanId: values.subscriptionPlanId,
-    ownerFullName: values.ownerFullName,
-    ownerEmail: values.ownerEmail,
-    ownerPhone: values.ownerPhone || undefined,
-    ownerPassword: values.ownerPassword,
-    paymentProofUrl: values.paymentProofUrl || undefined,
-    paymentNote: values.paymentNote || undefined,
+    ...(values.contactPhone ? { contactPhone: values.contactPhone } : {}),
+    ...(values.businessAddress ? { businessAddress: values.businessAddress } : {}),
+    representativeFullName: values.representativeFullName,
+    representativeEmail: values.representativeEmail,
+    ...(values.representativePhone ? { representativePhone: values.representativePhone } : {}),
   };
 }

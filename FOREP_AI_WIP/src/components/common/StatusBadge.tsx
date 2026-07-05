@@ -43,17 +43,23 @@ const workspaceTone: Record<WorkspaceStatus, Tone> = {
 
 const paymentTone: Record<PaymentStatus, Tone> = {
   PENDING: "amber",
+  SUCCESS: "green",
+  FAILED: "red",
+  EXPIRED: "red",
   CONFIRMED: "green",
   REJECTED: "red",
   CORRECTION_REQUESTED: "amber",
 };
 
 const registrationTone: Record<RegistrationStatus, Tone> = {
+  PENDING_PLAN_SELECTION: "blue",
+  PENDING_PAYMENT: "amber",
   SUBMITTED: "blue",
   PAYMENT_PENDING: "amber",
   PAYMENT_SUBMITTED: "amber",
   APPROVED: "green",
   REJECTED: "red",
+  ACTIVE: "green",
 };
 
 const roleFitTone: Record<RoleFit, Tone> = {
@@ -86,11 +92,11 @@ export function WorkspaceStatusBadge({ value }: { value?: WorkspaceStatus }) {
 }
 
 export function PaymentStatusBadge({ value }: { value?: PaymentStatus }) {
-  return <Badge tone={value ? paymentTone[value] : "neutral"}>{value ? paymentStatusLabels[value] : "Chưa cập nhật"}</Badge>;
+  return <Badge tone={value ? paymentTone[value] ?? "neutral" : "neutral"}>{value ? paymentStatusLabels[value] ?? fallback(value) : "Chưa cập nhật"}</Badge>;
 }
 
 export function RegistrationStatusBadge({ value }: { value?: RegistrationStatus }) {
-  return <Badge tone={value ? registrationTone[value] : "neutral"}>{value ? registrationStatusLabels[value] : "Chưa cập nhật"}</Badge>;
+  return <Badge tone={value ? registrationTone[value] ?? "neutral" : "neutral"}>{value ? registrationStatusLabels[value] ?? fallback(value) : "Chưa cập nhật"}</Badge>;
 }
 
 export function RoleFitBadge({ value }: { value?: RoleFit | null }) {

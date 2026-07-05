@@ -1,4 +1,5 @@
-﻿import type {
+import type {
+  PaymentMethod,
   PaymentStatus,
   SeniorityLevel,
   SubscriptionPlanStatus,
@@ -23,18 +24,15 @@ export type RegisterWorkspaceRequest = {
 export type WorkspaceRegistrationRequest = {
   businessName: string;
   workspaceName: string;
-  workspaceIdentifier: string;
   contactEmail: string;
-  contactPhone: string;
-  businessAddress?: string;
-  subscriptionPlanId: string;
-  ownerFullName: string;
-  ownerEmail: string;
-  ownerPhone?: string;
-  ownerPassword: string;
-  paymentProofUrl?: string;
-  paymentNote?: string;
+  contactPhone?: string;
+  businessAddress?: string | null;
+  representativeFullName: string;
+  representativeEmail: string;
+  representativePhone?: string | null;
 };
+export type SelectSubscriptionPlanRequest = { subscriptionPlanId: string };
+export type CreatePaymentRequest = { paymentMethod: PaymentMethod };
 export type SubmitPaymentRequest = { paymentProofUrl: string; paymentNote?: string };
 export type CreateEmployeeRequest = {
   fullName: string;
@@ -108,9 +106,14 @@ export type CreateBusinessOwnerRequest = {
 };
 export type CreateSubscriptionPlanRequest = {
   name: string;
+  description?: string;
   price: number;
   durationDays?: number;
+  durationInMonths?: number;
   maxUsers?: number;
+  maxOwnerAccounts?: number;
+  maxEmployeeAccounts?: number;
+  hasFullFeatures?: boolean;
   maxWorkspaces?: number;
   aiUsageLimit?: number;
   features?: string;

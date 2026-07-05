@@ -32,7 +32,8 @@ export default function AdminSubscriptionPlansPage() {
   const form = useForm<Input, unknown, Values>({ resolver: zodResolver(subscriptionPlanSchema), defaultValues: { name: "", price: 0, durationDays: 30, maxUsers: 10, maxWorkspaces: "", aiUsageLimit: "", features: "", status: "ACTIVE" } });
   useEffect(() => {
     if (!editing) return;
-    form.reset({ name: editing.name, price: editing.price, durationDays: editing.durationDays, maxUsers: editing.maxUsers, maxWorkspaces: editing.maxWorkspaces ?? "", aiUsageLimit: editing.aiUsageLimit ?? "", features: editing.features ?? "", status: editing.status });
+    const features = typeof editing.features === "string" ? editing.features : editing.features ? JSON.stringify(editing.features) : "";
+    form.reset({ name: editing.name, price: editing.price, durationDays: editing.durationDays ?? 30, maxUsers: editing.maxUsers ?? 1, maxWorkspaces: editing.maxWorkspaces ?? "", aiUsageLimit: editing.aiUsageLimit ?? "", features, status: editing.status });
   }, [editing, form]);
   const mutation = useMutation({
     mutationFn: (values: Values) => {
@@ -45,6 +46,7 @@ export default function AdminSubscriptionPlansPage() {
       form.reset({ name: "", price: 0, durationDays: 30, maxUsers: 10, maxWorkspaces: "", aiUsageLimit: "", features: "", status: "ACTIVE" });
       void queryClient.invalidateQueries({ queryKey: queryKeys.adminSubscriptionPlans });
       void queryClient.invalidateQueries({ queryKey: queryKeys.publicSubscriptionPlans });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.activeSubscriptionPlans });
     },
   });
 

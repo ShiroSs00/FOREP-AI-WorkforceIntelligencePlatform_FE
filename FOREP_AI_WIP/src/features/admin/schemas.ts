@@ -5,8 +5,8 @@ const optionalText = z.string().trim().optional().or(z.literal(""));
 const optionalNumber = z.coerce.number().optional().or(z.literal(""));
 
 export const workspaceStatuses = ["PENDING_PAYMENT", "ACTIVE", "INACTIVE", "SUSPENDED", "EXPIRED"] as const;
-export const paymentStatuses = ["PENDING", "CONFIRMED", "REJECTED", "CORRECTION_REQUESTED"] as const;
-export const registrationStatuses = ["SUBMITTED", "PAYMENT_PENDING", "PAYMENT_SUBMITTED", "APPROVED", "REJECTED"] as const;
+export const paymentStatuses = ["PENDING", "SUCCESS", "FAILED", "EXPIRED", "CONFIRMED", "REJECTED", "CORRECTION_REQUESTED"] as const;
+export const registrationStatuses = ["PENDING_PLAN_SELECTION", "PENDING_PAYMENT", "SUBMITTED", "PAYMENT_PENDING", "PAYMENT_SUBMITTED", "APPROVED", "REJECTED", "ACTIVE"] as const;
 export const planStatuses = ["ACTIVE", "INACTIVE"] as const;
 
 export const subscriptionPlanSchema = z.object({

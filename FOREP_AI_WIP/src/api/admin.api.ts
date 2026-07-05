@@ -1,6 +1,6 @@
 ﻿import { apiClient } from "./client";
 import { normalizeArray, unwrapApiResponse } from "./response";
-import type { AdminBusinessOwner, AdminMonitoring, BusinessFeedback, PlatformWorkspace, SubscriptionPlan, UserStatus, WorkspaceRegistration, WorkspaceStatus } from "@/types/domain";
+import type { AdminBusinessOwner, AdminMonitoring, BusinessFeedback, PaymentTransaction, PlatformWorkspace, SubscriptionPlan, UserStatus, WorkspaceRegistration, WorkspaceStatus } from "@/types/domain";
 import type {
   AdminCreateWorkspaceRequest,
   AdminUpdateWorkspaceRequest,
@@ -90,6 +90,16 @@ export const confirmRegistrationPayment = (id: string, payload: ReviewRegistrati
 export const requestRegistrationPaymentCorrection = (id: string, payload: ReviewRegistrationRequest) => reviewRegistration(`/admin/workspace-registrations/${id}/request-payment-correction`, payload);
 export const approveWorkspaceRegistration = (id: string, payload: ReviewRegistrationRequest) => reviewRegistration(`/admin/workspace-registrations/${id}/approve`, payload);
 export const rejectWorkspaceRegistration = (id: string, payload: ReviewRegistrationRequest) => reviewRegistration(`/admin/workspace-registrations/${id}/reject`, payload);
+
+export async function confirmAdminPayment(paymentId: string, payload?: ReviewRegistrationRequest): Promise<PaymentTransaction> {
+  const response = await apiClient.patch(`/admin/payments/${paymentId}/confirm`, payload ?? {});
+  return unwrapApiResponse<PaymentTransaction>(response.data);
+}
+
+export async function rejectAdminPayment(paymentId: string, payload?: ReviewRegistrationRequest): Promise<PaymentTransaction> {
+  const response = await apiClient.patch(`/admin/payments/${paymentId}/reject`, payload ?? {});
+  return unwrapApiResponse<PaymentTransaction>(response.data);
+}
 
 export async function listBusinessFeedback(): Promise<BusinessFeedback[]> {
   const response = await apiClient.get("/admin/business-feedback");

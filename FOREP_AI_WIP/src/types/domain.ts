@@ -8,8 +8,9 @@ export type UpdateType = "PROGRESS" | "BLOCKER" | "COMPLETION";
 export type WorkloadLevel = "NO_WORK" | "LOW" | "NORMAL" | "HIGH" | "OVERLOADED";
 export type AiSuggestionStatus = "GENERATED" | "ACCEPTED" | "REJECTED";
 export type WorkspaceStatus = "PENDING_PAYMENT" | "ACTIVE" | "INACTIVE" | "SUSPENDED" | "EXPIRED";
-export type PaymentStatus = "PENDING" | "CONFIRMED" | "REJECTED" | "CORRECTION_REQUESTED";
-export type RegistrationStatus = "SUBMITTED" | "PAYMENT_PENDING" | "PAYMENT_SUBMITTED" | "APPROVED" | "REJECTED";
+export type PaymentMethod = "MOMO" | "BANK_TRANSFER";
+export type PaymentStatus = "PENDING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CONFIRMED" | "REJECTED" | "CORRECTION_REQUESTED";
+export type RegistrationStatus = "PENDING_PLAN_SELECTION" | "PENDING_PAYMENT" | "SUBMITTED" | "PAYMENT_PENDING" | "PAYMENT_SUBMITTED" | "APPROVED" | "REJECTED" | "ACTIVE";
 export type SubscriptionPlanStatus = "ACTIVE" | "INACTIVE";
 export type RoleFit = "STRONG" | "PARTIAL" | "UNCERTAIN";
 
@@ -47,15 +48,43 @@ export type Workspace = {
 export type SubscriptionPlan = {
   id: string;
   name: string;
+  description?: string | null;
   price: number;
-  durationDays: number;
-  maxUsers: number;
+  durationDays?: number | null;
+  durationInMonths?: number | null;
+  maxUsers?: number | null;
+  maxOwnerAccounts?: number | null;
+  maxEmployeeAccounts?: number | null;
+  hasFullFeatures?: boolean | null;
   maxWorkspaces: number | null;
   aiUsageLimit: number | null;
-  features: string | null;
+  features: unknown;
   status: SubscriptionPlanStatus;
   createdAt: string;
   updatedAt: string;
+};
+
+export type PaymentTransaction = {
+  id: string;
+  registrationId?: string | null;
+  workspaceRegistrationId?: string | null;
+  paymentMethod?: PaymentMethod | string | null;
+  status?: PaymentStatus | string | null;
+  amount?: number | null;
+  orderCode?: string | null;
+  providerPaymentUrl?: string | null;
+  providerDeeplink?: string | null;
+  providerQrCodeUrl?: string | null;
+  qrCodeUrl?: string | null;
+  bankCode?: string | null;
+  bankName?: string | null;
+  bankAccountNumber?: string | null;
+  bankAccountName?: string | null;
+  transferContent?: string | null;
+  providerReference?: string | null;
+  createdAt?: string | null;
+  expiresAt?: string | null;
+  message?: string | null;
 };
 
 export type WorkspaceRegistration = {
@@ -66,13 +95,21 @@ export type WorkspaceRegistration = {
   contactEmail: string;
   contactPhone: string;
   businessAddress: string | null;
-  subscriptionPlanId: string;
-  maxUsers: number;
-  ownerFullName: string;
-  ownerEmail: string;
+  subscriptionPlanId?: string | null;
+  subscriptionPlan?: SubscriptionPlan | null;
+  maxUsers?: number | null;
+  ownerFullName?: string | null;
+  ownerEmail?: string | null;
   ownerPhone: string | null;
+  representativeFullName?: string | null;
+  representativeEmail?: string | null;
+  representativePhone?: string | null;
   paymentProofUrl: string | null;
-  paymentStatus: PaymentStatus;
+  paymentStatus?: PaymentStatus | null;
+  paymentId?: string | null;
+  latestPaymentId?: string | null;
+  payment?: PaymentTransaction | null;
+  latestPayment?: PaymentTransaction | null;
   registrationStatus: RegistrationStatus;
   workspaceId: string | null;
   reviewedBy: string | null;

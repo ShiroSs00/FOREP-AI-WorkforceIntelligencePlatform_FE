@@ -4,9 +4,11 @@ export function formatMoney(value?: number | null): string {
   return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(value ?? 0);
 }
 
-export function parseFeatures(value?: string | null): string[] {
+export function parseFeatures(value?: unknown): string[] {
   if (!value) return [];
-  const trimmed = value.trim();
+  if (Array.isArray(value)) return value.map(String).map((item) => item.trim()).filter(Boolean);
+  if (typeof value === "object") return Object.entries(value).map(([key, item]) => `${key}: ${String(item)}`);
+  const trimmed = String(value).trim();
   if (!trimmed) return [];
   try {
     const parsed: unknown = JSON.parse(trimmed);
@@ -19,8 +21,14 @@ export function parseFeatures(value?: string | null): string[] {
 }
 
 export function planLimitText(plan: SubscriptionPlan): string {
-  const parts = [`${plan.maxUsers} người dùng`, `${plan.durationDays} ngày`];
+  const parts: string[] = [];
+  if (typeof plan.maxOwnerAccounts === "number") parts.push(`${plan.maxOwnerAccounts} owner`);
+  if (typeof plan.maxEmployeeAccounts === "number") parts.push(`${plan.maxEmployeeAccounts} nhân viên`);
+  if (typeof plan.maxUsers === "number") parts.push(`${plan.maxUsers} người dùng`);
+  if (typeof plan.durationInMonths === "number") parts.push(`${plan.durationInMonths} tháng`);
+  else if (typeof plan.durationDays === "number") parts.push(`${plan.durationDays} ngày`);
   if (typeof plan.maxWorkspaces === "number") parts.push(`${plan.maxWorkspaces} workspace`);
   if (typeof plan.aiUsageLimit === "number") parts.push(`${plan.aiUsageLimit} lượt AI`);
+  if (plan.hasFullFeatures) parts.push("Đầy đủ tính năng");
   return parts.join(" · ");
 }

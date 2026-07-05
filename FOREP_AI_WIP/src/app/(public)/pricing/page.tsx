@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { listPublicSubscriptionPlans } from "@/api/public.api";
+import { getActiveSubscriptionPlans } from "@/api/public.api";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import { EmptyState } from "@/components/feedback/EmptyState";
@@ -12,7 +12,7 @@ import { queryKeys } from "@/lib/query-keys";
 import { formatMoney, parseFeatures, planLimitText } from "@/lib/plans";
 
 export default function PricingPage() {
-  const plans = useQuery({ queryKey: queryKeys.publicSubscriptionPlans, queryFn: listPublicSubscriptionPlans });
+  const plans = useQuery({ queryKey: queryKeys.activeSubscriptionPlans, queryFn: getActiveSubscriptionPlans });
 
   return (
     <main className="min-h-screen bg-background px-4 py-10 text-foreground">
@@ -21,7 +21,7 @@ export default function PricingPage() {
           <div>
             <p className="text-xs font-black tracking-[0.25em] text-primary">FOREP EXE</p>
             <h1 className="mt-3 text-4xl font-black">Chọn gói dịch vụ</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Các gói được tải trực tiếp từ backend. Workspace chỉ hoạt động sau khi thanh toán được SYSTEM_ADMIN xác nhận.</p>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Các gói ACTIVE được tải trực tiếp từ backend. Bạn sẽ chọn gói sau khi gửi thông tin doanh nghiệp.</p>
           </div>
           <Link className="text-sm font-bold text-primary" href="/login">Đăng nhập</Link>
         </div>
@@ -41,8 +41,8 @@ export default function PricingPage() {
                       {parseFeatures(plan.features).length ? parseFeatures(plan.features).map((feature) => <li key={feature}>• {feature}</li>) : <li>• Backend chưa mô tả tính năng chi tiết.</li>}
                     </ul>
                   </div>
-                  <Link href={`/register-workspace?planId=${plan.id}`} className="mt-6">
-                    <Button className="w-full">Chọn gói</Button>
+                  <Link href="/workspace-registration" className="mt-6">
+                    <Button className="w-full">Bắt đầu đăng ký</Button>
                   </Link>
                 </Card>
               ))}

@@ -1,8 +1,10 @@
-﻿import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
+import { publicApiPaths } from "@/api/public.api";
 import { changePasswordSchema, loginSchema, submitPaymentSchema, toChangePasswordPayload, toLoginPayload, toWorkspaceRegistrationPayload, workspaceRegistrationSchema } from "@/features/auth/schemas";
 import { employeeSchema, toEmployeePayload } from "@/features/employees/schemas";
 import { dailyReportSchema } from "@/features/reports/schemas";
 import { extractTasksSchema, progressSchema, taskSchema } from "@/features/tasks/schemas";
+import { getPaymentIdFromRegistration, isTerminalPaymentStatus, shouldPollPayment } from "@/lib/payments";
 
 describe("form schemas", () => {
   it("validates login identifier for email or username", () => {
@@ -17,27 +19,47 @@ describe("form schemas", () => {
     expect(toLoginPayload({ identifier: "SE0001", password: "secret" })).toEqual({ username: "SE0001", password: "secret" });
   });
 
-  it("validates public workspace registration and excludes maxUsers", () => {
+  it("validates staged public workspace registration and excludes plan, owner and payment fields", () => {
     const values = {
       businessName: "Apex",
       workspaceName: "Apex Ops",
-      workspaceIdentifier: "se",
       contactEmail: "contact@forep.vn",
       contactPhone: "0900000000",
-      subscriptionPlanId: "550e8400-e29b-41d4-a716-446655440000",
-      ownerFullName: "Quan Ho",
-      ownerEmail: "owner@forep.vn",
-      ownerPassword: "12345678",
+      businessAddress: "",
+      representativeFullName: "Quan Ho",
+      representativeEmail: "owner@forep.vn",
+      representativePhone: "",
     };
     const result = workspaceRegistrationSchema.safeParse(values);
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.workspaceIdentifier).toBe("SE");
-      expect("maxUsers" in toWorkspaceRegistrationPayload(result.data)).toBe(false);
+      const payload = toWorkspaceRegistrationPayload(result.data);
+      expect(payload).toEqual({
+        businessName: "Apex",
+        workspaceName: "Apex Ops",
+        contactEmail: "contact@forep.vn",
+        contactPhone: "0900000000",
+        representativeFullName: "Quan Ho",
+        representativeEmail: "owner@forep.vn",
+      });
+      expect("subscriptionPlanId" in payload).toBe(false);
+      expect("maxUsers" in payload).toBe(false);
+      expect("ownerPassword" in payload).toBe(false);
+      expect("paymentProofUrl" in payload).toBe(false);
     }
-    expect(workspaceRegistrationSchema.safeParse({ ...values, workspaceIdentifier: "S" }).success).toBe(false);
-    expect(workspaceRegistrationSchema.safeParse({ ...values, workspaceIdentifier: "ABC" }).success).toBe(false);
-    expect(workspaceRegistrationSchema.safeParse({ ...values, workspaceIdentifier: "A-" }).success).toBe(false);
+    expect(workspaceRegistrationSchema.safeParse({ ...values, representativeEmail: "bad-email" }).success).toBe(false);
+  });
+
+  it("uses staged payment endpoints and terminal status helpers", () => {
+    expect(publicApiPaths.activeSubscriptionPlans).toBe("/subscription-plans/active");
+    expect(publicApiPaths.selectPlan("reg-1")).toBe("/workspace-registrations/reg-1/select-plan");
+    expect(publicApiPaths.createPayment("reg-1")).toBe("/workspace-registrations/reg-1/payments");
+    expect(publicApiPaths.payment("pay-1")).toBe("/payments/pay-1");
+    expect(shouldPollPayment("PENDING")).toBe(true);
+    expect(isTerminalPaymentStatus("SUCCESS")).toBe(true);
+    expect(isTerminalPaymentStatus("FAILED")).toBe(true);
+    expect(isTerminalPaymentStatus("EXPIRED")).toBe(true);
+    expect(getPaymentIdFromRegistration({ id: "reg-1", latestPaymentId: "pay-1" } as never)).toBe("pay-1");
   });
 
   it("validates payment and change password payloads", () => {
@@ -75,4 +97,3 @@ describe("form schemas", () => {
     expect(extractTasksSchema.safeParse({ text: "Create onboarding task" }).success).toBe(true);
   });
 });
-

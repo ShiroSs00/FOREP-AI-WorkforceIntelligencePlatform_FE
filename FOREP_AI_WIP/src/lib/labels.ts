@@ -39,18 +39,24 @@ export const workspaceStatusLabels: Record<WorkspaceStatus, string> = {
 };
 
 export const paymentStatusLabels: Record<PaymentStatus, string> = {
-  PENDING: "Chờ kiểm tra",
+  PENDING: "Đang chờ thanh toán",
+  SUCCESS: "Thanh toán thành công",
+  FAILED: "Thanh toán thất bại",
+  EXPIRED: "Đã hết hạn",
   CONFIRMED: "Đã xác nhận",
   REJECTED: "Bị từ chối",
   CORRECTION_REQUESTED: "Cần bổ sung",
 };
 
 export const registrationStatusLabels: Record<RegistrationStatus, string> = {
+  PENDING_PLAN_SELECTION: "Chờ chọn gói",
+  PENDING_PAYMENT: "Chờ thanh toán",
   SUBMITTED: "Đã gửi hồ sơ",
   PAYMENT_PENDING: "Chờ thanh toán",
   PAYMENT_SUBMITTED: "Đã gửi thanh toán",
   APPROVED: "Đã duyệt",
   REJECTED: "Bị từ chối",
+  ACTIVE: "Đang hoạt động",
 };
 
 export const roleFitLabels: Record<RoleFit, string> = {
