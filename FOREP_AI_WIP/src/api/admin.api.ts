@@ -76,6 +76,16 @@ export async function updateSubscriptionPlan(id: string, payload: UpdateSubscrip
   return unwrapApiResponse<SubscriptionPlan>(response.data);
 }
 
+export async function activateSubscriptionPlan(id: string): Promise<SubscriptionPlan> {
+  const response = await apiClient.patch(`/admin/subscription-plans/${id}/activate`);
+  return unwrapApiResponse<SubscriptionPlan>(response.data);
+}
+
+export async function deactivateSubscriptionPlan(id: string): Promise<SubscriptionPlan> {
+  const response = await apiClient.patch(`/admin/subscription-plans/${id}/deactivate`);
+  return unwrapApiResponse<SubscriptionPlan>(response.data);
+}
+
 export async function listWorkspaceRegistrations(): Promise<WorkspaceRegistration[]> {
   const response = await apiClient.get("/admin/workspace-registrations");
   return normalizeArray<WorkspaceRegistration>(response.data);
@@ -90,6 +100,10 @@ export const confirmRegistrationPayment = (id: string, payload: ReviewRegistrati
 export const requestRegistrationPaymentCorrection = (id: string, payload: ReviewRegistrationRequest) => reviewRegistration(`/admin/workspace-registrations/${id}/request-payment-correction`, payload);
 export const approveWorkspaceRegistration = (id: string, payload: ReviewRegistrationRequest) => reviewRegistration(`/admin/workspace-registrations/${id}/approve`, payload);
 export const rejectWorkspaceRegistration = (id: string, payload: ReviewRegistrationRequest) => reviewRegistration(`/admin/workspace-registrations/${id}/reject`, payload);
+export async function activateWorkspaceRegistration(id: string, payload: ReviewRegistrationRequest): Promise<WorkspaceRegistration> {
+  const response = await apiClient.post(`/admin/workspace-registrations/${id}/activate`, payload);
+  return unwrapApiResponse<WorkspaceRegistration>(response.data);
+}
 
 export async function confirmAdminPayment(paymentId: string, payload?: ReviewRegistrationRequest): Promise<PaymentTransaction> {
   const response = await apiClient.patch(`/admin/payments/${paymentId}/confirm`, payload ?? {});

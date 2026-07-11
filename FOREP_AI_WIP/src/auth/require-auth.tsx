@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { getCurrentUser } from "@/api/auth.api";
 import { LoadingState } from "@/components/feedback/LoadingState";
 import { queryKeys } from "@/lib/query-keys";
+import { normalizeRole } from "@/lib/role";
 import { useAuthStore } from "./auth-store";
 
 export function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -32,13 +33,11 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const role = meQuery.data?.role ?? user?.role;
     if (!role) return;
-    const isAdminRoute = pathname.startsWith("/admin");
-    if (role === "SYSTEM_ADMIN" && !isAdminRoute && pathname !== "/forbidden") {
-      router.replace("/forbidden");
-    }
-    if (role !== "SYSTEM_ADMIN" && isAdminRoute) {
-      router.replace("/forbidden");
-    }
+    const normalized = normalizeRole(role);
+    const namespace = pathname.split("/").filter(Boolean)[0];
+    const expectedNamespace = normalized === "PLATFORM_ADMIN" ? "admin" : normalized === "BUSINESS_OWNER" ? "owner" : normalized === "HR" ? "hr" : normalized === "MANAGER" ? "manager" : normalized === "EMPLOYEE" ? "employee" : null;
+    if (normalized === "SYSTEM" && pathname !== "/forbidden") router.replace("/forbidden");
+    if (["admin", "owner", "hr", "manager", "employee"].includes(namespace) && namespace !== expectedNamespace) router.replace("/forbidden");
   }, [meQuery.data?.role, pathname, router, user?.role]);
 
   useEffect(() => {

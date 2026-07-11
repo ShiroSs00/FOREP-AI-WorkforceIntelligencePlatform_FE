@@ -4,10 +4,20 @@ export const taskSchema = z.object({
   title: z.string().trim().min(1, "Vui lòng nhập tiêu đề"),
   requirements: z.string().trim().min(1, "Vui lòng nhập yêu cầu"),
   description: z.string().trim().optional(),
-  assigneeId: z.string().uuid("Cần chọn nhân viên hợp lệ"),
+  assignmentType: z.enum(["INDIVIDUAL", "TEAM"]).default("INDIVIDUAL"),
+  assigneeId: z.string().optional(),
+  teamLeaderId: z.string().optional(),
+  teamMemberIds: z.array(z.string().uuid()).default([]),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).optional(),
   deadline: z.string().min(1, "Vui lòng chọn hạn xử lý"),
-  estimatedHours: z.coerce.number().min(0, "Số giờ không được âm").optional(),
+  estimatedHours: z.coerce.number().min(1, "Số giờ phải từ 1 trở lên"),
+}).superRefine((value, ctx) => {
+  if (value.assignmentType === "INDIVIDUAL" && !z.string().uuid().safeParse(value.assigneeId).success) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["assigneeId"], message: "Cần chọn nhân viên hợp lệ" });
+  }
+  if (value.assignmentType === "TEAM" && !z.string().uuid().safeParse(value.teamLeaderId).success) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["teamLeaderId"], message: "Cần chọn trưởng nhóm hợp lệ" });
+  }
 });
 
 export const progressSchema = z.object({

@@ -14,12 +14,18 @@ import { Button } from "@/components/common/Button";
 import { Badge } from "@/components/common/Badge";
 import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/query-keys";
-import { getHomeForRole } from "@/lib/role";
+import { getHomeForRole, normalizeRole } from "@/lib/role";
 import { getNavigation } from "./nav";
 
 function roleLabel(role?: string | null) {
-  if (role === "SYSTEM_ADMIN") return "Quản trị nền tảng";
-  return role === "OWNER" ? "Chủ workspace" : "Nhân viên";
+  if (!role) return "Người dùng";
+  const normalized = normalizeRole(role as import("@/types/domain").Role);
+  if (normalized === "PLATFORM_ADMIN") return "Quản trị nền tảng";
+  if (normalized === "BUSINESS_OWNER") return "Chủ doanh nghiệp";
+  if (normalized === "HR") return "Nhân sự";
+  if (normalized === "MANAGER") return "Quản lý";
+  if (normalized === "SYSTEM") return "Hệ thống";
+  return "Nhân viên";
 }
 
 function pageFallback(pathname: string) {
@@ -35,26 +41,29 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((state) => state.user);
   const clearAuth = useAuthStore((state) => state.clearAuth);
   const [open, setOpen] = useState(false);
+  const normalizedRole = user ? normalizeRole(user.role) : null;
   const nav = useMemo(() => getNavigation(user?.role), [user?.role]);
   const currentPage = [...nav].reverse().find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
   const notificationsQuery = useQuery({
     queryKey: queryKeys.notifications,
     queryFn: listNotifications,
-    enabled: Boolean(user) && user?.role !== "SYSTEM_ADMIN",
+    enabled: Boolean(user) && normalizedRole !== "PLATFORM_ADMIN" && normalizedRole !== "SYSTEM",
   });
   const workspaceQuery = useQuery({
     queryKey: queryKeys.workspace,
     queryFn: getCurrentWorkspace,
-    enabled: Boolean(user) && user?.role !== "SYSTEM_ADMIN",
+    enabled: Boolean(user) && normalizedRole !== "PLATFORM_ADMIN" && normalizedRole !== "SYSTEM",
   });
   const unread = notificationsQuery.data?.filter((item) => !item.read).length ?? 0;
   const homeHref = user ? getHomeForRole(user.role) : "/login";
   const primaryAction =
-    user?.role === "SYSTEM_ADMIN"
+    normalizedRole === "PLATFORM_ADMIN"
       ? { href: "/admin/registrations", label: "Duyệt hồ sơ", icon: FileText }
-      : user?.role === "OWNER"
+      : normalizedRole === "BUSINESS_OWNER" || normalizedRole === "MANAGER"
         ? { href: "/owner/tasks/new", label: "Tạo task", icon: Plus }
-        : { href: "/daily-reports/new", label: "Gửi báo cáo", icon: FileText };
+        : normalizedRole === "HR"
+          ? { href: "/hr/job-positions", label: "Vị trí công việc", icon: FileText }
+          : { href: "/daily-reports/new", label: "Gửi báo cáo", icon: FileText };
 
   const logoutMutation = useMutation({
     mutationFn: logout,
@@ -75,8 +84,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         >
           <div className="grid h-11 w-11 shrink-0 place-items-center rounded-control bg-primary font-black text-primary-foreground">F</div>
           <div className="min-w-0">
-            <p className="truncate font-black text-foreground">{user?.role === "SYSTEM_ADMIN" ? "FOREP Admin" : workspaceQuery.data?.name ?? "FOREP EXE"}</p>
-            <p className="truncate text-xs font-medium text-muted-foreground">{user?.role === "SYSTEM_ADMIN" ? "Platform operations" : workspaceQuery.data?.shortCode ? `${workspaceQuery.data.shortCode} · ${roleLabel(user?.role)}` : roleLabel(user?.role)}</p>
+            <p className="truncate font-black text-foreground">{normalizedRole === "PLATFORM_ADMIN" ? "FOREP Admin" : workspaceQuery.data?.name ?? "FOREP EXE"}</p>
+            <p className="truncate text-xs font-medium text-muted-foreground">{normalizedRole === "PLATFORM_ADMIN" ? "Vận hành nền tảng" : workspaceQuery.data?.shortCode ? `${workspaceQuery.data.shortCode} · ${roleLabel(user?.role)}` : roleLabel(user?.role)}</p>
           </div>
         </Link>
       </div>
@@ -157,13 +166,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <primaryAction.icon className="h-4 w-4" aria-hidden="true" />
               {primaryAction.label}
             </Link>
-            {user?.role !== "SYSTEM_ADMIN" ? (
+            {normalizedRole !== "PLATFORM_ADMIN" && normalizedRole !== "SYSTEM" ? (
               <Link href="/notifications" className="focus-ring relative rounded-control border border-border bg-surface p-2.5 text-muted-foreground hover:text-foreground" aria-label={`${unread} thông báo chưa đọc`}>
                 <Bell className="h-5 w-5" aria-hidden="true" />
                 {unread > 0 ? <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-destructive px-1 text-center text-xs font-bold text-white">{unread}</span> : null}
               </Link>
             ) : null}
-            <Badge tone={user?.role === "SYSTEM_ADMIN" ? "amber" : user?.role === "OWNER" ? "teal" : "blue"}>{roleLabel(user?.role)}</Badge>
+            <Badge tone={normalizedRole === "PLATFORM_ADMIN" ? "amber" : normalizedRole === "BUSINESS_OWNER" ? "teal" : "blue"}>{roleLabel(user?.role)}</Badge>
           </div>
         </header>
         <main className="mx-auto w-full max-w-[1500px] p-4 sm:p-6">{children}</main>

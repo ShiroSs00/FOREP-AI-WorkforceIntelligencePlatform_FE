@@ -1,4 +1,6 @@
-﻿export type Role = "SYSTEM_ADMIN" | "OWNER" | "EMPLOYEE";
+﻿
+export type CanonicalRole = "PLATFORM_ADMIN" | "BUSINESS_OWNER" | "HR" | "MANAGER" | "EMPLOYEE" | "SYSTEM";
+export type Role = CanonicalRole | "SYSTEM_ADMIN" | "OWNER";
 export type UserStatus = "ACTIVE" | "INACTIVE" | "INVITED";
 export type SeniorityLevel = "INTERN" | "JUNIOR" | "MIDDLE" | "SENIOR" | "LEAD";
 export type SkillRating = 1 | 2 | 3 | 4 | 5;
@@ -9,8 +11,8 @@ export type WorkloadLevel = "NO_WORK" | "LOW" | "NORMAL" | "HIGH" | "OVERLOADED"
 export type AiSuggestionStatus = "GENERATED" | "ACCEPTED" | "REJECTED";
 export type WorkspaceStatus = "PENDING_PAYMENT" | "ACTIVE" | "INACTIVE" | "SUSPENDED" | "EXPIRED";
 export type PaymentMethod = "MOMO" | "BANK_TRANSFER";
-export type PaymentStatus = "PENDING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CONFIRMED" | "REJECTED" | "CORRECTION_REQUESTED";
-export type RegistrationStatus = "PENDING_PLAN_SELECTION" | "PENDING_PAYMENT" | "SUBMITTED" | "PAYMENT_PENDING" | "PAYMENT_SUBMITTED" | "APPROVED" | "REJECTED" | "ACTIVE";
+export type PaymentStatus = "PENDING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "CONFIRMED" | "REJECTED" | "CORRECTION_REQUESTED";
+export type RegistrationStatus = "PENDING_PLAN_SELECTION" | "PENDING_PAYMENT" | "PAYMENT_CONFIRMED" | "SUBMITTED" | "PAYMENT_PENDING" | "PAYMENT_SUBMITTED" | "APPROVED" | "REJECTED" | "CANCELLED" | "ACTIVE";
 export type SubscriptionPlanStatus = "ACTIVE" | "INACTIVE";
 export type RoleFit = "STRONG" | "PARTIAL" | "UNCERTAIN";
 
@@ -129,8 +131,12 @@ export type PlatformWorkspace = {
   businessAddress: string | null;
   subscriptionPlanId: string | null;
   subscriptionPlan?: SubscriptionPlan | null;
-  maxUsers: number;
-  currentUsers: number;
+  maxUsers?: number | null;
+  maxOwnerAccounts?: number | null;
+  maxEmployeeAccounts?: number | null;
+  currentUsers?: number | null;
+  currentOwnerAccounts?: number | null;
+  currentEmployeeAccounts?: number | null;
   status: WorkspaceStatus;
   paymentStatus: PaymentStatus;
   ownerId: string | null;
@@ -188,6 +194,11 @@ export type Task = {
   description?: string | null;
   assigneeId?: string;
   assigneeName?: string;
+  assignmentType?: "INDIVIDUAL" | "TEAM";
+  teamLeaderId?: string | null;
+  teamLeaderName?: string | null;
+  teamMemberIds?: string[];
+  teamMembers?: Array<{ id?: string; fullName?: string; progressPercent?: number; status?: TaskStatus }>;
   creatorId?: string;
   creatorName?: string;
   priority?: TaskPriority;
@@ -208,6 +219,29 @@ export type TaskUpdate = {
   attachment?: string | null;
   createdAt?: string;
   createdByName?: string;
+};
+
+export type TaskAttachmentType = "REQUIREMENT" | "REFERENCE" | "RESULT" | "OTHER";
+export type TaskAttachment = {
+  id?: string;
+  fileName: string;
+  fileUrl: string;
+  contentType?: string | null;
+  fileSize?: number | null;
+  attachmentType?: TaskAttachmentType | null;
+  uploadedBy?: string | null;
+  createdAt?: string | null;
+};
+
+export type JobPosition = {
+  id: string;
+  title: string;
+  departmentName?: string | null;
+  description?: string | null;
+  requiredSkills?: string | null;
+  status?: "ACTIVE" | "INACTIVE";
+  createdAt?: string | null;
+  updatedAt?: string | null;
 };
 
 export type DailyReport = {
@@ -257,6 +291,14 @@ export type WorkloadRecord = {
   estimatedWorkload?: number;
   workloadScore?: number;
   workloadLevel?: WorkloadLevel;
+};
+
+export type MonthlyWorkload = WorkloadRecord & {
+  year?: number;
+  month?: number;
+  assignedTasks?: number;
+  completedHours?: number;
+  estimatedHours?: number;
 };
 
 export type AiFallbackMetadata = {

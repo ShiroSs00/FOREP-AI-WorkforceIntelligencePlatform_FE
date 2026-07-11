@@ -3,17 +3,21 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import type { Role } from "@/types/domain";
+import { hasRole } from "@/lib/role";
 import { useAuthStore } from "./auth-store";
 
-export function RequireRole({ role, children }: { role: Role; children: React.ReactNode }) {
+export function RequireRole({ role, allowedRoles, children }: { role?: Role; allowedRoles?: Role[]; children: React.ReactNode }) {
   const router = useRouter();
   const userRole = useAuthStore((state) => state.user?.role);
 
-  useEffect(() => {
-    if (userRole && userRole !== role) router.replace("/forbidden");
-  }, [role, router, userRole]);
+  const configuredRoles = allowedRoles ?? (role ? [role] : []);
+  const allowed = hasRole(userRole, configuredRoles);
 
-  if (!userRole || userRole !== role) return null;
+  useEffect(() => {
+    if (userRole && !allowed) router.replace("/forbidden");
+  }, [allowed, router, userRole]);
+
+  if (!userRole || !allowed) return null;
   return <>{children}</>;
 }
 

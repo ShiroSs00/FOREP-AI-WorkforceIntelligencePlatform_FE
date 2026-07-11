@@ -1,10 +1,13 @@
-﻿import { BarChart3, Bell, Bot, Building2, ClipboardCheck, ClipboardList, CreditCard, FileText, Home, LayoutDashboard, MessageSquareText, UserRound, UsersRound } from "lucide-react";
+﻿import { BarChart3, Bell, Bot, BriefcaseBusiness, Building2, ClipboardCheck, ClipboardList, CreditCard, FileText, Home, LayoutDashboard, MessageSquareText, UserRound, UsersRound } from "lucide-react";
 import type { Role } from "@/types/domain";
+import { normalizeRole } from "@/lib/role";
 
 export type NavItem = { href: string; label: string; icon: typeof Home };
 
 export function getNavigation(role?: Role | null): NavItem[] {
-  if (role === "SYSTEM_ADMIN") {
+  if (!role || normalizeRole(role) === "SYSTEM") return [];
+  const normalized = normalizeRole(role);
+  if (normalized === "PLATFORM_ADMIN") {
     return [
       { href: "/admin/dashboard", label: "Tổng quan nền tảng", icon: LayoutDashboard },
       { href: "/admin/workspaces", label: "Workspace", icon: Building2 },
@@ -15,7 +18,7 @@ export function getNavigation(role?: Role | null): NavItem[] {
     ];
   }
 
-  if (role === "OWNER") {
+  if (normalized === "BUSINESS_OWNER") {
     return [
       { href: "/owner/dashboard", label: "Tổng quan", icon: LayoutDashboard },
       { href: "/tasks", label: "Công việc", icon: ClipboardList },
@@ -25,6 +28,26 @@ export function getNavigation(role?: Role | null): NavItem[] {
       { href: "/daily-reports", label: "Báo cáo ngày", icon: FileText },
       { href: "/notifications", label: "Thông báo", icon: Bell },
       { href: "/owner/workspace", label: "Workspace", icon: Home },
+    ];
+  }
+
+  if (normalized === "HR") {
+    return [
+      { href: "/hr/employees", label: "Nhân sự", icon: UsersRound },
+      { href: "/hr/job-positions", label: "Vị trí công việc", icon: BriefcaseBusiness },
+      { href: "/notifications", label: "Thông báo", icon: Bell },
+      { href: "/profile", label: "Hồ sơ", icon: UserRound },
+    ];
+  }
+
+  if (normalized === "MANAGER") {
+    return [
+      { href: "/manager/tasks", label: "Công việc", icon: ClipboardList },
+      { href: "/manager/tasks/new", label: "Giao việc", icon: ClipboardCheck },
+      { href: "/manager/workload", label: "Workload theo tháng", icon: BarChart3 },
+      { href: "/manager/recommendations", label: "Gợi ý phân công", icon: Bot },
+      { href: "/notifications", label: "Thông báo", icon: Bell },
+      { href: "/profile", label: "Hồ sơ", icon: UserRound },
     ];
   }
 

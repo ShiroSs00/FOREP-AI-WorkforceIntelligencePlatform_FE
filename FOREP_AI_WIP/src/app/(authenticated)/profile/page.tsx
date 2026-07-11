@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { ChangePasswordForm } from "@/components/forms/ChangePasswordForm";
 import { useAuthStore } from "@/auth/auth-store";
 import { ratingLabel, seniorityLabel } from "@/lib/labels";
+import { normalizeRole } from "@/lib/role";
 
 function fallback(value?: string | null) {
   return value && value.trim() ? value : "Chưa cập nhật";
@@ -14,7 +15,8 @@ function fallback(value?: string | null) {
 
 export default function ProfilePage() {
   const user = useAuthStore((state) => state.user);
-  const role = user?.role === "SYSTEM_ADMIN" ? "Quản trị nền tảng" : user?.role === "OWNER" ? "Chủ workspace" : "Nhân viên";
+  const normalizedRole = user ? normalizeRole(user.role) : null;
+  const role = normalizedRole === "PLATFORM_ADMIN" ? "Quản trị nền tảng" : normalizedRole === "BUSINESS_OWNER" ? "Chủ doanh nghiệp" : normalizedRole === "HR" ? "Nhân sự" : normalizedRole === "MANAGER" ? "Quản lý" : normalizedRole === "SYSTEM" ? "Hệ thống" : "Nhân viên";
   return (
     <>
       <PageHeader eyebrow="Hồ sơ" title="Thông tin tài khoản" description="Thông tin tài khoản đang đăng nhập từ backend. Hồ sơ chỉ đọc vì Swagger chưa có endpoint cập nhật người dùng hiện tại." />
@@ -25,7 +27,7 @@ export default function ProfilePage() {
           <div><dt className="text-sm font-semibold text-muted-foreground">Số điện thoại</dt><dd className="mt-1 font-bold text-foreground">{fallback(user?.phone)}</dd></div>
           <div><dt className="text-sm font-semibold text-muted-foreground">Tên đăng nhập</dt><dd className="mt-1 font-bold text-foreground">{fallback(user?.username)}</dd></div>
           <div><dt className="text-sm font-semibold text-muted-foreground">Mã nhân viên</dt><dd className="mt-1 font-bold text-foreground">{fallback(user?.employeeCode)}</dd></div>
-          <div><dt className="text-sm font-semibold text-muted-foreground">Vai trò</dt><dd className="mt-2"><Badge tone={user?.role === "SYSTEM_ADMIN" ? "amber" : user?.role === "OWNER" ? "teal" : "blue"}>{role}</Badge></dd></div>
+          <div><dt className="text-sm font-semibold text-muted-foreground">Vai trò</dt><dd className="mt-2"><Badge tone={normalizedRole === "PLATFORM_ADMIN" ? "amber" : normalizedRole === "BUSINESS_OWNER" ? "teal" : "blue"}>{role}</Badge></dd></div>
           <div><dt className="text-sm font-semibold text-muted-foreground">Trạng thái tài khoản</dt><dd className="mt-2"><StatusBadge value={user?.status} /></dd></div>
           <div><dt className="text-sm font-semibold text-muted-foreground">Chức danh</dt><dd className="mt-1 font-bold text-foreground">{fallback(user?.jobTitle)}</dd></div>
           <div><dt className="text-sm font-semibold text-muted-foreground">Cấp độ</dt><dd className="mt-1 font-bold text-foreground">{seniorityLabel(user?.seniorityLevel)}</dd></div>

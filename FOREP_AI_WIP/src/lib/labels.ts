@@ -43,6 +43,7 @@ export const paymentStatusLabels: Record<PaymentStatus, string> = {
   SUCCESS: "Thanh toán thành công",
   FAILED: "Thanh toán thất bại",
   EXPIRED: "Đã hết hạn",
+  CANCELLED: "Đã hủy",
   CONFIRMED: "Đã xác nhận",
   REJECTED: "Bị từ chối",
   CORRECTION_REQUESTED: "Cần bổ sung",
@@ -51,11 +52,13 @@ export const paymentStatusLabels: Record<PaymentStatus, string> = {
 export const registrationStatusLabels: Record<RegistrationStatus, string> = {
   PENDING_PLAN_SELECTION: "Chờ chọn gói",
   PENDING_PAYMENT: "Chờ thanh toán",
+  PAYMENT_CONFIRMED: "Đã xác nhận thanh toán",
   SUBMITTED: "Đã gửi hồ sơ",
   PAYMENT_PENDING: "Chờ thanh toán",
   PAYMENT_SUBMITTED: "Đã gửi thanh toán",
   APPROVED: "Đã duyệt",
   REJECTED: "Bị từ chối",
+  CANCELLED: "Đã hủy",
   ACTIVE: "Đang hoạt động",
 };
 

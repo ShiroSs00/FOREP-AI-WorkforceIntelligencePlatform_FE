@@ -59,6 +59,7 @@ describe("form schemas", () => {
     expect(isTerminalPaymentStatus("SUCCESS")).toBe(true);
     expect(isTerminalPaymentStatus("FAILED")).toBe(true);
     expect(isTerminalPaymentStatus("EXPIRED")).toBe(true);
+    expect(isTerminalPaymentStatus("CANCELLED")).toBe(true);
     expect(getPaymentIdFromRegistration({ id: "reg-1", latestPaymentId: "pay-1" } as never)).toBe("pay-1");
   });
 
@@ -85,6 +86,8 @@ describe("form schemas", () => {
 
   it("validates task payload", () => {
     expect(taskSchema.safeParse({ title: "Task", requirements: "Req", assigneeId: "550e8400-e29b-41d4-a716-446655440000", priority: "HIGH", deadline: "2026-06-29T10:00", estimatedHours: 2 }).success).toBe(true);
+    expect(taskSchema.safeParse({ title: "Task nhóm", requirements: "Req", assignmentType: "TEAM", teamLeaderId: "550e8400-e29b-41d4-a716-446655440000", teamMemberIds: ["550e8400-e29b-41d4-a716-446655440001"], deadline: "2026-06-29T10:00", estimatedHours: 2 }).success).toBe(true);
+    expect(taskSchema.safeParse({ title: "Task nhóm", requirements: "Req", assignmentType: "TEAM", deadline: "2026-06-29T10:00", estimatedHours: 2 }).success).toBe(false);
   });
 
   it("rejects invalid progress and completion below 100", () => {

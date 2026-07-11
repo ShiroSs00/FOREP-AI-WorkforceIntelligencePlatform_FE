@@ -46,6 +46,7 @@ const paymentTone: Record<PaymentStatus, Tone> = {
   SUCCESS: "green",
   FAILED: "red",
   EXPIRED: "red",
+  CANCELLED: "neutral",
   CONFIRMED: "green",
   REJECTED: "red",
   CORRECTION_REQUESTED: "amber",
@@ -54,11 +55,13 @@ const paymentTone: Record<PaymentStatus, Tone> = {
 const registrationTone: Record<RegistrationStatus, Tone> = {
   PENDING_PLAN_SELECTION: "blue",
   PENDING_PAYMENT: "amber",
+  PAYMENT_CONFIRMED: "green",
   SUBMITTED: "blue",
   PAYMENT_PENDING: "amber",
   PAYMENT_SUBMITTED: "amber",
   APPROVED: "green",
   REJECTED: "red",
+  CANCELLED: "neutral",
   ACTIVE: "green",
 };
 

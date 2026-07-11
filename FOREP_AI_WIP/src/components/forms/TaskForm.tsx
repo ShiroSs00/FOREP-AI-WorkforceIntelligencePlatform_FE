@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useForm, useWatch } from "react-hook-form";
-import { recommendAssignee } from "@/api/tasks.api";
+import { recommendIndividuals, recommendTeamLeaders } from "@/api/tasks.api";
 import { listEmployees } from "@/api/employees.api";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
@@ -50,15 +50,19 @@ export function TaskForm({
       title: initialValues?.title ?? "",
       requirements: initialValues?.requirements ?? "",
       description: initialValues?.description ?? "",
+      assignmentType: initialValues?.assignmentType ?? "INDIVIDUAL",
       assigneeId: initialValues?.assigneeId ?? "",
+      teamLeaderId: initialValues?.teamLeaderId ?? "",
+      teamMemberIds: initialValues?.teamMemberIds ?? [],
       priority: initialValues?.priority ?? "MEDIUM",
       deadline: initialValues?.deadline ? initialValues.deadline.slice(0, 16) : "",
-      estimatedHours: initialValues?.estimatedHours ?? undefined,
+      estimatedHours: initialValues?.estimatedHours ?? 1,
     },
   });
-  const recommendation = useMutation({ mutationFn: recommendAssignee });
-  const recommendationError = recommendation.error as ApiFailure | null;
   const values = useWatch({ control: form.control });
+  const assignmentType = values.assignmentType ?? "INDIVIDUAL";
+  const recommendation = useMutation({ mutationFn: assignmentType === "TEAM" ? recommendTeamLeaders : recommendIndividuals });
+  const recommendationError = recommendation.error as ApiFailure | null;
   const watchedTitle = values.title ?? "";
   const watchedRequirements = values.requirements ?? "";
   const watchedDeadline = values.deadline ?? "";
@@ -72,7 +76,10 @@ export function TaskForm({
           ...data,
           deadline: toIsoWithTimezone(data.deadline),
           description: data.description || undefined,
-          estimatedHours: data.estimatedHours ?? undefined,
+          estimatedHours: data.estimatedHours,
+          assigneeId: data.assignmentType === "INDIVIDUAL" ? data.assigneeId : undefined,
+          teamLeaderId: data.assignmentType === "TEAM" ? data.teamLeaderId : undefined,
+          teamMemberIds: data.assignmentType === "TEAM" ? data.teamMemberIds : undefined,
         }),
       )}
     >
@@ -82,6 +89,10 @@ export function TaskForm({
             <h2 className="text-lg font-black">Thông tin task</h2>
             <p className="mt-1 text-sm text-muted-foreground">Viết ngắn gọn để người nhận hiểu việc cần làm và tiêu chí hoàn thành.</p>
             <div className="mt-4 grid gap-4">
+              <Select label="Chế độ giao việc" {...form.register("assignmentType")}>
+                <option value="INDIVIDUAL">Cá nhân</option>
+                <option value="TEAM">Nhóm</option>
+              </Select>
               <Field label="Tiêu đề" error={form.formState.errors.title?.message} {...form.register("title")} />
               <TextArea label="Yêu cầu" error={form.formState.errors.requirements?.message} {...form.register("requirements")} />
               <TextArea label="Mô tả" optional {...form.register("description")} />
@@ -111,10 +122,16 @@ export function TaskForm({
               {employees.isLoading ? <LoadingState label="Đang tải nhân viên..." rows={2} /> : null}
               {employees.error ? <ErrorState title="Không thể tải nhân viên" error={employees.error} onRetry={() => void employees.refetch()} /> : null}
               {!employees.isLoading && !employees.error ? (
-                <Select label="Người nhận" error={form.formState.errors.assigneeId?.message} {...form.register("assigneeId")}>
+                assignmentType === "INDIVIDUAL" ? <Select label="Người nhận" error={form.formState.errors.assigneeId?.message} {...form.register("assigneeId")}>
                   <option value="">Chọn nhân viên</option>
                   {(employees.data ?? []).filter((employee) => !employee.status || employee.status === "ACTIVE").map((employee) => <option key={employee.id} value={employee.id}>{employee.fullName}</option>)}
-                </Select>
+                </Select> : <>
+                  <Select label="Trưởng nhóm" error={form.formState.errors.teamLeaderId?.message} {...form.register("teamLeaderId")}>
+                    <option value="">Chọn trưởng nhóm</option>
+                    {(employees.data ?? []).filter((employee) => !employee.status || employee.status === "ACTIVE").map((employee) => <option key={employee.id} value={employee.id}>{employee.fullName}</option>)}
+                  </Select>
+                  <div><p className="mb-2 text-sm font-bold">Thành viên nhóm</p><div className="grid gap-2 rounded-control border border-border p-3">{(employees.data ?? []).filter((employee) => employee.id !== values.teamLeaderId && (!employee.status || employee.status === "ACTIVE")).map((employee) => <label key={employee.id} className="flex items-center gap-2 text-sm"><input type="checkbox" value={employee.id} {...form.register("teamMemberIds")} />{employee.fullName}</label>)}</div></div>
+                </>
               ) : null}
               <Button
                 type="button"
@@ -129,7 +146,7 @@ export function TaskForm({
                   })
                 }
               >
-                {recommendation.isPending ? "AI đang phân tích..." : "Gợi ý người nhận"}
+                {recommendation.isPending ? "AI đang phân tích..." : assignmentType === "TEAM" ? "Gợi ý trưởng nhóm" : "Gợi ý người nhận"}
               </Button>
             </div>
           </Card>
@@ -165,7 +182,7 @@ export function TaskForm({
                       className="mt-3 w-full"
                       variant={selectedAssignee === item.employeeId ? "secondary" : "primary"}
                       disabled={!item.employeeId}
-                      onClick={() => item.employeeId ? form.setValue("assigneeId", item.employeeId, { shouldValidate: true }) : undefined}
+                      onClick={() => item.employeeId ? form.setValue(assignmentType === "TEAM" ? "teamLeaderId" : "assigneeId", item.employeeId, { shouldValidate: true }) : undefined}
                     >
                       {selectedAssignee === item.employeeId ? "Đã chọn" : "Chọn người này"}
                     </Button>

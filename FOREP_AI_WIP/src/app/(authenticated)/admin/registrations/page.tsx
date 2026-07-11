@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { approveWorkspaceRegistration, confirmAdminPayment, listAdminSubscriptionPlans, listWorkspaceRegistrations, rejectAdminPayment, rejectWorkspaceRegistration } from "@/api/admin.api";
+import { activateWorkspaceRegistration, approveWorkspaceRegistration, confirmAdminPayment, listAdminSubscriptionPlans, listWorkspaceRegistrations, rejectAdminPayment, rejectWorkspaceRegistration } from "@/api/admin.api";
 import { getErrorMessage } from "@/api/errors";
 import { RequireRole } from "@/auth/require-role";
 import { Button } from "@/components/common/Button";
@@ -20,7 +20,7 @@ import { queryKeys } from "@/lib/query-keys";
 import { formatDateTime } from "@/lib/tasks";
 import type { WorkspaceRegistration } from "@/types/domain";
 
-type Action = "confirm-payment" | "reject-payment" | "approve" | "reject-registration";
+type Action = "confirm-payment" | "reject-payment" | "approve" | "activate" | "reject-registration";
 
 export default function AdminRegistrationsPage() {
   const queryClient = useQueryClient();
@@ -41,6 +41,7 @@ export default function AdminRegistrationsPage() {
         if (!paymentId) throw new Error("Hồ sơ chưa có paymentId để từ chối thanh toán.");
         return rejectAdminPayment(paymentId, { note });
       }
+      if (action === "activate") return activateWorkspaceRegistration(item.id, { note });
       if (action === "approve") return approveWorkspaceRegistration(item.id, { note });
       return rejectWorkspaceRegistration(item.id, { note });
     },
@@ -67,7 +68,7 @@ export default function AdminRegistrationsPage() {
   );
 
   const runAction = (item: WorkspaceRegistration, action: Action, requiredNote = false) => {
-    const label = action === "confirm-payment" ? "xác nhận thanh toán" : action === "reject-payment" ? "từ chối thanh toán" : action === "approve" ? "duyệt hồ sơ" : "từ chối hồ sơ";
+    const label = action === "confirm-payment" ? "xác nhận thanh toán" : action === "reject-payment" ? "từ chối thanh toán" : action === "approve" ? "duyệt hồ sơ" : action === "activate" ? "kích hoạt workspace" : "từ chối hồ sơ";
     const note = window.prompt(requiredNote ? `Nhập ghi chú để ${label}` : `Ghi chú cho thao tác ${label} (không bắt buộc)`) ?? "";
     if (requiredNote && !note.trim()) return;
     if (window.confirm(`Xác nhận ${label}?`)) actionMutation.mutate({ item, action, note: note || undefined });
@@ -115,6 +116,7 @@ export default function AdminRegistrationsPage() {
                     <Button variant="secondary" disabled={actionMutation.isPending || !paymentId || item.paymentStatus === "SUCCESS" || item.paymentStatus === "CONFIRMED"} onClick={() => runAction(item, "confirm-payment")}>Xác nhận thanh toán</Button>
                     <Button variant="danger" disabled={actionMutation.isPending || !paymentId || item.paymentStatus === "FAILED" || item.paymentStatus === "REJECTED"} onClick={() => runAction(item, "reject-payment", true)}>Từ chối thanh toán</Button>
                     <Button disabled={actionMutation.isPending || item.registrationStatus === "APPROVED" || item.registrationStatus === "ACTIVE"} onClick={() => runAction(item, "approve")}>Duyệt hồ sơ</Button>
+                    <Button variant="secondary" disabled={actionMutation.isPending || item.registrationStatus === "ACTIVE" || !["PAYMENT_CONFIRMED", "APPROVED"].includes(item.registrationStatus)} onClick={() => runAction(item, "activate")}>Kích hoạt workspace</Button>
                     <Button variant="outline" disabled={actionMutation.isPending || item.registrationStatus === "REJECTED"} onClick={() => runAction(item, "reject-registration", true)}>Từ chối hồ sơ</Button>
                   </div>
                 </Card>

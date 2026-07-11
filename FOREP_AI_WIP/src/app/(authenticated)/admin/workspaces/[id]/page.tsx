@@ -114,7 +114,8 @@ export default function AdminWorkspaceDetailPage() {
         <Card className="grid gap-4">
           <div className="flex flex-wrap gap-2"><WorkspaceStatusBadge value={workspace.data.status} /><PaymentStatusBadge value={workspace.data.paymentStatus} /></div>
           <h2 className="text-2xl font-black">{workspace.data.workspaceName}</h2>
-          <p className="text-sm text-muted-foreground">{workspace.data.businessName ?? "Chưa có tên doanh nghiệp"} · {workspace.data.currentUsers}/{workspace.data.maxUsers} người dùng</p>
+          <p className="text-sm text-muted-foreground">{workspace.data.businessName ?? "Chưa có tên doanh nghiệp"}{typeof workspace.data.currentUsers === "number" && typeof workspace.data.maxUsers === "number" ? ` · ${workspace.data.currentUsers}/${workspace.data.maxUsers} người dùng` : ""}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{typeof workspace.data.currentOwnerAccounts === "number" && typeof workspace.data.maxOwnerAccounts === "number" ? `${workspace.data.currentOwnerAccounts}/${workspace.data.maxOwnerAccounts} Business Owner` : "Giới hạn Business Owner chưa được backend trả về"} · {typeof workspace.data.currentEmployeeAccounts === "number" && typeof workspace.data.maxEmployeeAccounts === "number" ? `${workspace.data.currentEmployeeAccounts}/${workspace.data.maxEmployeeAccounts} Employee` : "Giới hạn Employee chưa được backend trả về"}</p>
           {updateMutation.error ? <p className="rounded-control bg-red-50 px-3 py-2 text-sm font-semibold text-destructive">{getErrorMessage(updateMutation.error)}</p> : null}
           <form className="grid gap-3" onSubmit={workspaceForm.handleSubmit((values) => updateMutation.mutate(values))}>
             <Field label="Tên doanh nghiệp" error={workspaceForm.formState.errors.businessName?.message} {...workspaceForm.register("businessName")} />

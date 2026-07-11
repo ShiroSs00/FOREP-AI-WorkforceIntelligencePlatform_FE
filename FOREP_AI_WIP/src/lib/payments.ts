@@ -1,6 +1,6 @@
 import type { PaymentMethod, PaymentStatus, PaymentTransaction, WorkspaceRegistration } from "@/types/domain";
 
-export const terminalPaymentStatuses = ["SUCCESS", "FAILED", "EXPIRED", "CONFIRMED", "REJECTED"] as const;
+export const terminalPaymentStatuses = ["SUCCESS", "FAILED", "EXPIRED", "CANCELLED", "CONFIRMED", "REJECTED"] as const;
 
 export function isTerminalPaymentStatus(status?: string | null): boolean {
   return !!status && terminalPaymentStatuses.includes(status as (typeof terminalPaymentStatuses)[number]);
@@ -20,6 +20,7 @@ export function paymentStatusCopy(status?: PaymentStatus | string | null): strin
   if (status === "SUCCESS" || status === "CONFIRMED") return "Thanh toán thành công";
   if (status === "FAILED" || status === "REJECTED") return "Thanh toán thất bại";
   if (status === "EXPIRED") return "Giao dịch đã hết hạn";
+  if (status === "CANCELLED") return "Giao dịch đã bị hủy";
   return "Đang chờ thanh toán";
 }
 

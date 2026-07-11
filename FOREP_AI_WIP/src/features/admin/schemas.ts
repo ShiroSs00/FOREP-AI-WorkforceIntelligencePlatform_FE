@@ -5,15 +5,20 @@ const optionalText = z.string().trim().optional().or(z.literal(""));
 const optionalNumber = z.coerce.number().optional().or(z.literal(""));
 
 export const workspaceStatuses = ["PENDING_PAYMENT", "ACTIVE", "INACTIVE", "SUSPENDED", "EXPIRED"] as const;
-export const paymentStatuses = ["PENDING", "SUCCESS", "FAILED", "EXPIRED", "CONFIRMED", "REJECTED", "CORRECTION_REQUESTED"] as const;
-export const registrationStatuses = ["PENDING_PLAN_SELECTION", "PENDING_PAYMENT", "SUBMITTED", "PAYMENT_PENDING", "PAYMENT_SUBMITTED", "APPROVED", "REJECTED", "ACTIVE"] as const;
+export const paymentStatuses = ["PENDING", "SUCCESS", "FAILED", "EXPIRED", "CANCELLED", "CONFIRMED", "REJECTED", "CORRECTION_REQUESTED"] as const;
+export const registrationStatuses = ["PENDING_PLAN_SELECTION", "PENDING_PAYMENT", "PAYMENT_CONFIRMED", "SUBMITTED", "PAYMENT_PENDING", "PAYMENT_SUBMITTED", "APPROVED", "REJECTED", "CANCELLED", "ACTIVE"] as const;
 export const planStatuses = ["ACTIVE", "INACTIVE"] as const;
 
 export const subscriptionPlanSchema = z.object({
   name: z.string().trim().min(1, "Vui lòng nhập tên gói"),
+  description: optionalText,
   price: z.coerce.number().min(0, "Giá không được âm"),
   durationDays: z.coerce.number().int().min(1, "Thời hạn phải lớn hơn 0"),
+  durationInMonths: z.coerce.number().int().min(1, "Số tháng phải lớn hơn 0"),
   maxUsers: z.coerce.number().int().min(1, "Số người dùng phải lớn hơn 0"),
+  maxOwnerAccounts: z.coerce.number().int().min(1, "Cần ít nhất một tài khoản chủ doanh nghiệp"),
+  maxEmployeeAccounts: z.coerce.number().int().min(0, "Số tài khoản nhân viên không được âm"),
+  hasFullFeatures: z.boolean(),
   maxWorkspaces: optionalNumber,
   aiUsageLimit: optionalNumber,
   features: optionalText,
