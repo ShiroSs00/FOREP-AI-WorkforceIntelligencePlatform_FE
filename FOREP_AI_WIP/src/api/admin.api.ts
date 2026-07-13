@@ -1,6 +1,6 @@
-﻿import { apiClient } from "./client";
+﻿import { adminPath, apiClient } from "./client";
 import { normalizeArray, unwrapApiResponse } from "./response";
-import type { AdminBusinessOwner, AdminMonitoring, BusinessFeedback, PaymentTransaction, PlatformWorkspace, SubscriptionPlan, UserStatus, WorkspaceRegistration, WorkspaceStatus } from "@/types/domain";
+import type { AdminBusinessOwner, AdminMonitoring, AuditLog, BusinessFeedback, PaymentTransaction, PlatformWorkspace, SubscriptionPlan, UserStatus, WorkspaceRegistration, WorkspaceStatus } from "@/types/domain";
 import type {
   AdminCreateWorkspaceRequest,
   AdminUpdateWorkspaceRequest,
@@ -17,26 +17,34 @@ export async function getAdminMonitoring(): Promise<AdminMonitoring> {
 }
 
 export async function listAdminWorkspaces(): Promise<PlatformWorkspace[]> {
-  const response = await apiClient.get("/admin/workspaces");
+  const response = await apiClient.get(adminPath("/workspaces"));
   return normalizeArray<PlatformWorkspace>(response.data);
 }
 
 export async function createAdminWorkspace(payload: AdminCreateWorkspaceRequest): Promise<PlatformWorkspace> {
-  const response = await apiClient.post("/admin/workspaces", payload);
+  const response = await apiClient.post(adminPath("/workspaces"), payload);
   return unwrapApiResponse<PlatformWorkspace>(response.data);
 }
 
 export async function getAdminWorkspace(id: string): Promise<PlatformWorkspace> {
-  const response = await apiClient.get(`/admin/workspaces/${id}`);
+  const response = await apiClient.get(adminPath(`/workspaces/${id}`));
   return unwrapApiResponse<PlatformWorkspace>(response.data);
 }
 
 export async function updateAdminWorkspace(id: string, payload: AdminUpdateWorkspaceRequest): Promise<PlatformWorkspace> {
-  const response = await apiClient.put(`/admin/workspaces/${id}`, payload);
+  const response = await apiClient.put(adminPath(`/workspaces/${id}`), payload);
   return unwrapApiResponse<PlatformWorkspace>(response.data);
 }
 
 export async function updateAdminWorkspaceStatus(id: string, status: WorkspaceStatus): Promise<PlatformWorkspace> {
+  if (status === "ACTIVE") {
+    const response = await apiClient.patch(adminPath(`/workspaces/${id}/restore`));
+    return unwrapApiResponse<PlatformWorkspace>(response.data);
+  }
+  if (status === "SUSPENDED") {
+    const response = await apiClient.patch(adminPath(`/workspaces/${id}/suspend`));
+    return unwrapApiResponse<PlatformWorkspace>(response.data);
+  }
   const response = await apiClient.patch(`/admin/workspaces/${id}/status`, null, { params: { status } });
   return unwrapApiResponse<PlatformWorkspace>(response.data);
 }
@@ -62,32 +70,32 @@ export async function updateBusinessOwnerStatus(id: string, status: UserStatus):
 }
 
 export async function listAdminSubscriptionPlans(): Promise<SubscriptionPlan[]> {
-  const response = await apiClient.get("/admin/subscription-plans");
+  const response = await apiClient.get(adminPath("/subscription-plans"));
   return normalizeArray<SubscriptionPlan>(response.data);
 }
 
 export async function createSubscriptionPlan(payload: CreateSubscriptionPlanRequest): Promise<SubscriptionPlan> {
-  const response = await apiClient.post("/admin/subscription-plans", payload);
+  const response = await apiClient.post(adminPath("/subscription-plans"), payload);
   return unwrapApiResponse<SubscriptionPlan>(response.data);
 }
 
 export async function updateSubscriptionPlan(id: string, payload: UpdateSubscriptionPlanRequest): Promise<SubscriptionPlan> {
-  const response = await apiClient.put(`/admin/subscription-plans/${id}`, payload);
+  const response = await apiClient.put(adminPath(`/subscription-plans/${id}`), payload);
   return unwrapApiResponse<SubscriptionPlan>(response.data);
 }
 
 export async function activateSubscriptionPlan(id: string): Promise<SubscriptionPlan> {
-  const response = await apiClient.patch(`/admin/subscription-plans/${id}/activate`);
+  const response = await apiClient.patch(adminPath(`/subscription-plans/${id}/activate`));
   return unwrapApiResponse<SubscriptionPlan>(response.data);
 }
 
 export async function deactivateSubscriptionPlan(id: string): Promise<SubscriptionPlan> {
-  const response = await apiClient.patch(`/admin/subscription-plans/${id}/deactivate`);
+  const response = await apiClient.patch(adminPath(`/subscription-plans/${id}/deactivate`));
   return unwrapApiResponse<SubscriptionPlan>(response.data);
 }
 
 export async function listWorkspaceRegistrations(): Promise<WorkspaceRegistration[]> {
-  const response = await apiClient.get("/admin/workspace-registrations");
+  const response = await apiClient.get(adminPath("/workspace-registrations"));
   return normalizeArray<WorkspaceRegistration>(response.data);
 }
 
@@ -98,29 +106,44 @@ async function reviewRegistration(path: string, payload: ReviewRegistrationReque
 
 export const confirmRegistrationPayment = (id: string, payload: ReviewRegistrationRequest) => reviewRegistration(`/admin/workspace-registrations/${id}/confirm-payment`, payload);
 export const requestRegistrationPaymentCorrection = (id: string, payload: ReviewRegistrationRequest) => reviewRegistration(`/admin/workspace-registrations/${id}/request-payment-correction`, payload);
-export const approveWorkspaceRegistration = (id: string, payload: ReviewRegistrationRequest) => reviewRegistration(`/admin/workspace-registrations/${id}/approve`, payload);
-export const rejectWorkspaceRegistration = (id: string, payload: ReviewRegistrationRequest) => reviewRegistration(`/admin/workspace-registrations/${id}/reject`, payload);
+export const approveWorkspaceRegistration = (id: string, payload: ReviewRegistrationRequest) => reviewRegistration(adminPath(`/workspace-registrations/${id}/approve`), payload);
+export const rejectWorkspaceRegistration = (id: string, payload: ReviewRegistrationRequest) => reviewRegistration(adminPath(`/workspace-registrations/${id}/reject`), payload);
 export async function activateWorkspaceRegistration(id: string, payload: ReviewRegistrationRequest): Promise<WorkspaceRegistration> {
   const response = await apiClient.post(`/admin/workspace-registrations/${id}/activate`, payload);
   return unwrapApiResponse<WorkspaceRegistration>(response.data);
 }
 
 export async function confirmAdminPayment(paymentId: string, payload?: ReviewRegistrationRequest): Promise<PaymentTransaction> {
-  const response = await apiClient.patch(`/admin/payments/${paymentId}/confirm`, payload ?? {});
+  const response = await apiClient.patch(adminPath(`/payments/${paymentId}/confirm`), payload ?? {});
   return unwrapApiResponse<PaymentTransaction>(response.data);
 }
 
 export async function rejectAdminPayment(paymentId: string, payload?: ReviewRegistrationRequest): Promise<PaymentTransaction> {
-  const response = await apiClient.patch(`/admin/payments/${paymentId}/reject`, payload ?? {});
+  const response = await apiClient.patch(adminPath(`/payments/${paymentId}/reject`), payload ?? {});
   return unwrapApiResponse<PaymentTransaction>(response.data);
 }
 
+export async function listAdminPayments(): Promise<PaymentTransaction[]> {
+  const response = await apiClient.get(adminPath("/payments"));
+  return normalizeArray<PaymentTransaction>(response.data);
+}
+
+export async function getAdminPayment(paymentId: string): Promise<PaymentTransaction> {
+  const response = await apiClient.get(adminPath(`/payments/${paymentId}`));
+  return unwrapApiResponse<PaymentTransaction>(response.data);
+}
+
+export async function listAdminAuditLogs(): Promise<AuditLog[]> {
+  const response = await apiClient.get(adminPath("/audit-logs"));
+  return normalizeArray<AuditLog>(response.data);
+}
+
 export async function listBusinessFeedback(): Promise<BusinessFeedback[]> {
-  const response = await apiClient.get("/admin/business-feedback");
+  const response = await apiClient.get(adminPath("/business-feedback"));
   return normalizeArray<BusinessFeedback>(response.data);
 }
 
 export async function reviewBusinessFeedback(id: string, payload: ReviewBusinessFeedbackRequest): Promise<BusinessFeedback> {
-  const response = await apiClient.patch(`/admin/business-feedback/${id}/review`, payload);
+  const response = await apiClient.patch(adminPath(`/business-feedback/${id}/mark-reviewed`), payload);
   return unwrapApiResponse<BusinessFeedback>(response.data);
 }

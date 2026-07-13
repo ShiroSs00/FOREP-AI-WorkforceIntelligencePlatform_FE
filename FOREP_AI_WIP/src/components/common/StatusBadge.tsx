@@ -43,10 +43,13 @@ const workspaceTone: Record<WorkspaceStatus, Tone> = {
 
 const paymentTone: Record<PaymentStatus, Tone> = {
   PENDING: "amber",
+  PROCESSING: "blue",
   SUCCESS: "green",
   FAILED: "red",
   EXPIRED: "red",
   CANCELLED: "neutral",
+  REFUNDED: "blue",
+  MANUAL_REVIEW: "amber",
   CONFIRMED: "green",
   REJECTED: "red",
   CORRECTION_REQUESTED: "amber",

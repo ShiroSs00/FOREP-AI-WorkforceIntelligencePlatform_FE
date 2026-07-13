@@ -40,10 +40,13 @@ export const workspaceStatusLabels: Record<WorkspaceStatus, string> = {
 
 export const paymentStatusLabels: Record<PaymentStatus, string> = {
   PENDING: "Đang chờ thanh toán",
+  PROCESSING: "Đang xử lý",
   SUCCESS: "Thanh toán thành công",
   FAILED: "Thanh toán thất bại",
   EXPIRED: "Đã hết hạn",
   CANCELLED: "Đã hủy",
+  REFUNDED: "Đã hoàn tiền",
+  MANUAL_REVIEW: "Chờ kiểm tra thủ công",
   CONFIRMED: "Đã xác nhận",
   REJECTED: "Bị từ chối",
   CORRECTION_REQUESTED: "Cần bổ sung",

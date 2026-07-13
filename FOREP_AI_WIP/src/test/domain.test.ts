@@ -2,6 +2,8 @@
 import { paymentStatusLabel, registrationStatusLabel, roleFitLabel, seniorityLabel, workspaceStatusLabel } from "@/lib/labels";
 import { canAccessEmployee, canAccessOwner, canAccessSystemAdmin, getHomeForRole, hasRole, normalizeRole } from "@/lib/role";
 import { isTaskOverdue } from "@/lib/tasks";
+import { canEditTaskCustomerInfo } from "@/lib/task-permissions";
+import type { Task, User } from "@/types/domain";
 
 describe("domain helpers", () => {
   it("redirects by role", () => {
@@ -41,6 +43,16 @@ describe("domain helpers", () => {
     const now = new Date("2026-06-29T10:00:00+07:00");
     expect(isTaskOverdue({ id: "1", title: "A", requirements: "R", deadline: "2026-06-28T10:00:00+07:00", status: "IN_PROGRESS" }, now)).toBe(true);
     expect(isTaskOverdue({ id: "1", title: "A", requirements: "R", deadline: "2026-06-28T10:00:00+07:00", status: "COMPLETED" }, now)).toBe(false);
+  });
+
+  it("limits customer information editing to owners, managers, assignees and team leaders", () => {
+    const user = { id: "employee-1", role: "EMPLOYEE" } as User;
+    const individual = { id: "task-1", title: "A", requirements: "R", assigneeId: "employee-1", assignmentType: "INDIVIDUAL" } as Task;
+    const team = { id: "task-2", title: "B", requirements: "R", assignmentType: "TEAM", participants: [{ id: "p-1", taskId: "task-2", employeeId: "employee-1", participantRole: "LEADER", leader: true, allocatedHours: 4, createdAt: "2026-01-01" }] } as Task;
+    expect(canEditTaskCustomerInfo({ user, task: individual })).toBe(true);
+    expect(canEditTaskCustomerInfo({ user, task: team })).toBe(true);
+    expect(canEditTaskCustomerInfo({ user: { ...user, id: "member-2" }, task: team })).toBe(false);
+    expect(canEditTaskCustomerInfo({ user: { ...user, role: "MANAGER" }, task: individual })).toBe(true);
   });
 });
 

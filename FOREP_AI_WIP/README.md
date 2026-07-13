@@ -24,7 +24,7 @@ npm run dev
 Required Vercel variable:
 
 ```bash
-NEXT_PUBLIC_API_BASE_URL=https://forep-exe-backend.onrender.com/api/v1
+NEXT_PUBLIC_API_ORIGIN=https://forep-exe-backend.onrender.com
 ```
 
 On Vercel, add it in:

@@ -6,12 +6,14 @@ export type SeniorityLevel = "INTERN" | "JUNIOR" | "MIDDLE" | "SENIOR" | "LEAD";
 export type SkillRating = 1 | 2 | 3 | 4 | 5;
 export type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 export type TaskStatus = "ASSIGNED" | "IN_PROGRESS" | "BLOCKED" | "COMPLETED" | "CANCELLED";
+export type AssignmentType = "INDIVIDUAL" | "TEAM";
+export type TaskParticipantRole = "ASSIGNEE" | "LEADER" | "MEMBER";
 export type UpdateType = "PROGRESS" | "BLOCKER" | "COMPLETION";
 export type WorkloadLevel = "NO_WORK" | "LOW" | "NORMAL" | "HIGH" | "OVERLOADED";
 export type AiSuggestionStatus = "GENERATED" | "ACCEPTED" | "REJECTED";
 export type WorkspaceStatus = "PENDING_PAYMENT" | "ACTIVE" | "INACTIVE" | "SUSPENDED" | "EXPIRED";
 export type PaymentMethod = "MOMO" | "BANK_TRANSFER";
-export type PaymentStatus = "PENDING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "CONFIRMED" | "REJECTED" | "CORRECTION_REQUESTED";
+export type PaymentStatus = "PENDING" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "REFUNDED" | "MANUAL_REVIEW" | "CONFIRMED" | "REJECTED" | "CORRECTION_REQUESTED";
 export type RegistrationStatus = "PENDING_PLAN_SELECTION" | "PENDING_PAYMENT" | "PAYMENT_CONFIRMED" | "SUBMITTED" | "PAYMENT_PENDING" | "PAYMENT_SUBMITTED" | "APPROVED" | "REJECTED" | "CANCELLED" | "ACTIVE";
 export type SubscriptionPlanStatus = "ACTIVE" | "INACTIVE";
 export type RoleFit = "STRONG" | "PARTIAL" | "UNCERTAIN";
@@ -73,7 +75,11 @@ export type PaymentTransaction = {
   paymentMethod?: PaymentMethod | string | null;
   status?: PaymentStatus | string | null;
   amount?: number | null;
+  currency?: "VND" | string | null;
+  paymentCode?: string | null;
   orderCode?: string | null;
+  requestId?: string | null;
+  providerTransactionId?: string | null;
   providerPaymentUrl?: string | null;
   providerDeeplink?: string | null;
   providerQrCodeUrl?: string | null;
@@ -85,9 +91,38 @@ export type PaymentTransaction = {
   transferContent?: string | null;
   providerReference?: string | null;
   createdAt?: string | null;
+  updatedAt?: string | null;
+  paidAt?: string | null;
   expiresAt?: string | null;
+  expiredAt?: string | null;
   message?: string | null;
 };
+
+export type PublicPaymentStatus = {
+  workspaceRegistrationId: string;
+  workspaceId: string | null;
+  registrationPaymentStatus?: "PENDING" | "CONFIRMED" | "REJECTED" | "CORRECTION_REQUESTED" | string;
+  registrationStatus?: RegistrationStatus | string;
+  paymentMethod: PaymentMethod;
+  amount: number;
+  currency: "VND" | string;
+  paymentCode: string;
+  providerPaymentUrl: string | null;
+  providerDeeplink: string | null;
+  providerQrCodeUrl: string | null;
+  bankCode: string | null;
+  bankName: string | null;
+  bankAccountNumber: string | null;
+  bankAccountName: string | null;
+  transferContent: string | null;
+  status: PaymentStatus;
+  paidAt: string | null;
+  expiredAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CreateWorkspaceRegistrationResult = WorkspaceRegistration & { registrationToken: string };
 
 export type WorkspaceRegistration = {
   id: string;
@@ -183,31 +218,86 @@ export type BusinessFeedback = {
   createdAt?: string | null;
 };
 
+export type AuditLog = {
+  id?: string;
+  timestamp?: string | null;
+  createdAt?: string | null;
+  actor?: string | null;
+  actorName?: string | null;
+  actorRole?: string | null;
+  action?: string | null;
+  entityType?: string | null;
+  entityId?: string | null;
+  result?: string | null;
+  ipAddress?: string | null;
+  metadata?: unknown;
+};
+
 export type Employee = User & {
   workloadLevel?: WorkloadLevel;
 };
 
+export type TaskAssignee = {
+  id: string;
+  taskId: string;
+  employeeId: string;
+  participantRole: TaskParticipantRole;
+  leader: boolean;
+  allocatedHours: number;
+  createdAt: string;
+};
+
+export type TaskAttachmentType = "REQUIREMENT" | "REFERENCE" | "RESULT" | "OTHER";
+export type TaskAttachment = {
+  id?: string;
+  taskId?: string;
+  fileName: string;
+  fileUrl: string;
+  contentType?: string | null;
+  fileSize?: number | null;
+  attachmentType?: TaskAttachmentType | null;
+  uploadedBy?: string | null;
+  createdAt?: string | null;
+};
+
 export type Task = {
   id: string;
+  workspaceId?: string;
   title: string;
   requirements: string;
   description?: string | null;
-  assigneeId?: string;
+  customerPhone?: string | null;
+  customerEmail?: string | null;
+  customerDescription?: string | null;
+  assigneeId?: string | null;
   assigneeName?: string;
-  assignmentType?: "INDIVIDUAL" | "TEAM";
+  assignmentType?: AssignmentType;
   teamLeaderId?: string | null;
   teamLeaderName?: string | null;
   teamMemberIds?: string[];
   teamMembers?: Array<{ id?: string; fullName?: string; progressPercent?: number; status?: TaskStatus }>;
+  participants?: TaskAssignee[];
+  attachments?: TaskAttachment[];
   creatorId?: string;
   creatorName?: string;
   priority?: TaskPriority;
   status?: TaskStatus;
   deadline?: string;
+  startDate?: string | null;
   estimatedHours?: number;
+  difficulty?: 1 | 2 | 3 | 4 | 5 | null;
+  requiredSkills?: string | null;
+  requiredJobPositionId?: string | null;
+  requiredJobPositionName?: string | null;
+  taskDomain?: string | null;
+  projectId?: string | null;
+  projectName?: string | null;
+  departmentId?: string | null;
+  departmentName?: string | null;
   progressPercent?: number;
   createdAt?: string;
   updatedAt?: string;
+  completedAt?: string | null;
 };
 
 export type TaskUpdate = {
@@ -219,18 +309,6 @@ export type TaskUpdate = {
   attachment?: string | null;
   createdAt?: string;
   createdByName?: string;
-};
-
-export type TaskAttachmentType = "REQUIREMENT" | "REFERENCE" | "RESULT" | "OTHER";
-export type TaskAttachment = {
-  id?: string;
-  fileName: string;
-  fileUrl: string;
-  contentType?: string | null;
-  fileSize?: number | null;
-  attachmentType?: TaskAttachmentType | null;
-  uploadedBy?: string | null;
-  createdAt?: string | null;
 };
 
 export type JobPosition = {
@@ -261,6 +339,7 @@ export type NotificationItem = {
   title: string;
   message?: string;
   read?: boolean;
+  isRead?: boolean;
   createdAt?: string;
   relatedEntityType?: string;
   relatedEntityId?: string;
@@ -283,6 +362,10 @@ export type WorkloadRecord = {
   employeeId?: string;
   employeeName?: string;
   fullName?: string;
+  name?: string;
+  userName?: string;
+  userFullName?: string;
+  employee?: { id?: string; fullName?: string; name?: string } | null;
   openTasks?: number;
   inProgressTasks?: number;
   blockedTasks?: number;

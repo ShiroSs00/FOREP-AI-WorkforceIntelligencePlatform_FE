@@ -1,4 +1,4 @@
-﻿import { BarChart3, Bell, Bot, BriefcaseBusiness, Building2, ClipboardCheck, ClipboardList, CreditCard, FileText, Home, LayoutDashboard, MessageSquareText, UserRound, UsersRound } from "lucide-react";
+﻿import { BarChart3, Bell, Bot, BriefcaseBusiness, Building2, ClipboardCheck, ClipboardList, CreditCard, FileText, Home, LayoutDashboard, MessageSquareText, ReceiptText, ScrollText, UserRound, UsersRound } from "lucide-react";
 import type { Role } from "@/types/domain";
 import { normalizeRole } from "@/lib/role";
 
@@ -12,7 +12,9 @@ export function getNavigation(role?: Role | null): NavItem[] {
       { href: "/admin/dashboard", label: "Tổng quan nền tảng", icon: LayoutDashboard },
       { href: "/admin/workspaces", label: "Workspace", icon: Building2 },
       { href: "/admin/registrations", label: "Hồ sơ đăng ký", icon: ClipboardCheck },
+      { href: "/admin/payments", label: "Thanh toán", icon: ReceiptText },
       { href: "/admin/subscription-plans", label: "Gói dịch vụ", icon: CreditCard },
+      { href: "/admin/audit-logs", label: "Nhật ký hệ thống", icon: ScrollText },
       { href: "/admin/feedback", label: "Phản hồi doanh nghiệp", icon: MessageSquareText },
       { href: "/admin/profile", label: "Tài khoản", icon: UserRound },
     ];

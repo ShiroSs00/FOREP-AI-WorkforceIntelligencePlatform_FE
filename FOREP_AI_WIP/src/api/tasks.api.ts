@@ -1,7 +1,19 @@
-﻿import { apiClient, workspaceApiClient } from "./client";
+﻿import { apiClient, workspacePath } from "./client";
 import { normalizeArray, unwrapApiResponse } from "./response";
 import type { AssigneeRecommendation, Task, TaskAttachment, TaskUpdate } from "@/types/domain";
-import type { AssignIndividualRequest, AssignTaskRequest, AssignTeamRequest, CreateTaskRequest, RecommendAssigneeRequest, TaskAttachmentRequest, UpdateProgressRequest, UpdateTaskRequest, UpdateTaskStatusRequest } from "@/types/requests";
+import type { AssignIndividualRequest, AssignTaskRequest, AssignTeamRequest, CreateTaskRequest, RecommendAssigneeRequest, TaskAttachmentRequest, UpdateProgressRequest, UpdateTaskCustomerInfoRequest, UpdateTaskRequest, UpdateTaskStatusRequest } from "@/types/requests";
+
+export const workspaceTaskPaths = {
+  tasks: workspacePath("/tasks"),
+  task: (id: string) => workspacePath(`/tasks/${id}`),
+  assignIndividual: (id: string) => workspacePath(`/tasks/${id}/assign-individual`),
+  assignTeam: (id: string) => workspacePath(`/tasks/${id}/assign-team`),
+  customerInfo: (id: string) => workspacePath(`/tasks/${id}/customer-info`),
+  attachments: (id: string) => workspacePath(`/tasks/${id}/attachments`),
+  recommendIndividual: workspacePath("/ai/recommendations/individual"),
+  recommendTeamLeaders: workspacePath("/ai/recommendations/team-leaders"),
+  recommendTeamMembers: workspacePath("/ai/recommendations/team-members"),
+} as const;
 
 export async function listTasks(): Promise<Task[]> {
   const response = await apiClient.get("/tasks");
@@ -19,7 +31,7 @@ export async function getTask(id: string): Promise<Task> {
 }
 
 export async function updateTask(id: string, payload: UpdateTaskRequest): Promise<Task> {
-  const response = await apiClient.put(`/tasks/${id}`, payload);
+  const response = await apiClient.put(workspacePath(`/tasks/${id}`), payload);
   return unwrapApiResponse<Task>(response.data);
 }
 
@@ -59,52 +71,62 @@ export async function recommendAssignee(payload: RecommendAssigneeRequest): Prom
 }
 
 export async function listWorkspaceTasks(): Promise<Task[]> {
-  const response = await workspaceApiClient.get("/tasks");
+  const response = await apiClient.get(workspaceTaskPaths.tasks);
   return normalizeArray<Task>(response.data);
 }
 
 export async function createWorkspaceTask(payload: CreateTaskRequest): Promise<Task> {
-  const response = await workspaceApiClient.post("/tasks", payload);
+  const response = await apiClient.post(workspaceTaskPaths.tasks, payload);
   return unwrapApiResponse<Task>(response.data);
 }
 
 export async function getWorkspaceTask(id: string): Promise<Task> {
-  const response = await workspaceApiClient.get(`/tasks/${id}`);
+  const response = await apiClient.get(workspaceTaskPaths.task(id));
+  return unwrapApiResponse<Task>(response.data);
+}
+
+export async function updateWorkspaceTask(id: string, payload: UpdateTaskRequest): Promise<Task> {
+  const response = await apiClient.put(workspaceTaskPaths.task(id), payload);
+  return unwrapApiResponse<Task>(response.data);
+}
+
+export async function updateTaskCustomerInfo(id: string, payload: UpdateTaskCustomerInfoRequest): Promise<Task> {
+  const response = await apiClient.patch(workspaceTaskPaths.customerInfo(id), payload);
   return unwrapApiResponse<Task>(response.data);
 }
 
 export async function assignIndividual(id: string, payload: AssignIndividualRequest): Promise<Task> {
-  const response = await workspaceApiClient.patch(`/tasks/${id}/assign-individual`, payload);
+  const response = await apiClient.patch(workspaceTaskPaths.assignIndividual(id), payload);
   return unwrapApiResponse<Task>(response.data);
 }
 
 export async function assignTeam(id: string, payload: AssignTeamRequest): Promise<Task> {
-  const response = await workspaceApiClient.patch(`/tasks/${id}/assign-team`, payload);
+  const response = await apiClient.patch(workspaceTaskPaths.assignTeam(id), payload);
   return unwrapApiResponse<Task>(response.data);
 }
 
 export async function listTaskAttachments(id: string): Promise<TaskAttachment[]> {
-  const response = await workspaceApiClient.get(`/tasks/${id}/attachments`);
+  const response = await apiClient.get(workspaceTaskPaths.attachments(id));
   return normalizeArray<TaskAttachment>(response.data);
 }
 
 export async function addTaskAttachment(id: string, payload: TaskAttachmentRequest): Promise<TaskAttachment> {
-  const response = await workspaceApiClient.post(`/tasks/${id}/attachments`, payload);
+  const response = await apiClient.post(workspaceTaskPaths.attachments(id), payload);
   return unwrapApiResponse<TaskAttachment>(response.data);
 }
 
 export async function recommendIndividuals(payload: RecommendAssigneeRequest): Promise<AssigneeRecommendation[]> {
-  const response = await workspaceApiClient.post("/ai/recommendations/individual", payload);
+  const response = await apiClient.post(workspaceTaskPaths.recommendIndividual, payload);
   return normalizeArray<AssigneeRecommendation>(response.data);
 }
 
 export async function recommendTeamLeaders(payload: RecommendAssigneeRequest): Promise<AssigneeRecommendation[]> {
-  const response = await workspaceApiClient.post("/ai/recommendations/team-leaders", payload);
+  const response = await apiClient.post(workspaceTaskPaths.recommendTeamLeaders, payload);
   return normalizeArray<AssigneeRecommendation>(response.data);
 }
 
 export async function recommendTeamMembers(payload: RecommendAssigneeRequest): Promise<AssigneeRecommendation[]> {
-  const response = await workspaceApiClient.post("/ai/recommendations/team-members", payload);
+  const response = await apiClient.post(workspaceTaskPaths.recommendTeamMembers, payload);
   return normalizeArray<AssigneeRecommendation>(response.data);
 }
 

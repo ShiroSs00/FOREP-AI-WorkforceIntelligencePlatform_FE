@@ -12,6 +12,8 @@ import { ErrorState } from "@/components/feedback/ErrorState";
 import { LoadingState } from "@/components/feedback/LoadingState";
 import { formatMoney, parseFeatures, planLimitText } from "@/lib/plans";
 import { queryKeys } from "@/lib/query-keys";
+import { RegistrationSessionExpired } from "@/components/registration/RegistrationSessionExpired";
+import { useRegistrationToken } from "@/features/registration/use-registration-token";
 
 function routeId(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
@@ -21,15 +23,16 @@ export default function RegistrationPlansPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const registrationId = routeId(useParams<{ registrationId: string }>().registrationId);
+  const session = useRegistrationToken(registrationId);
   const registration = useQuery({
     queryKey: queryKeys.workspaceRegistration(registrationId),
-    queryFn: () => getWorkspaceRegistration(registrationId ?? ""),
-    enabled: !!registrationId,
+    queryFn: () => getWorkspaceRegistration(registrationId ?? "", session.token ?? ""),
+    enabled: !!registrationId && session.ready && !!session.token,
   });
   const plans = useQuery({ queryKey: queryKeys.activeSubscriptionPlans, queryFn: getActiveSubscriptionPlans });
 
   const selectPlan = useMutation({
-    mutationFn: (subscriptionPlanId: string) => selectWorkspaceRegistrationPlan(registrationId ?? "", subscriptionPlanId),
+    mutationFn: (subscriptionPlanId: string) => selectWorkspaceRegistrationPlan(registrationId ?? "", subscriptionPlanId, session.token ?? ""),
     onSuccess: (data) => {
       toast.success("Đã chọn gói. Vui lòng chọn phương thức thanh toán.");
       queryClient.setQueryData(queryKeys.workspaceRegistration(data.id), data);
@@ -39,6 +42,8 @@ export default function RegistrationPlansPage() {
   });
 
   if (!registrationId) return <main className="min-h-screen bg-background px-4 py-10"><EmptyState title="Thiếu mã hồ sơ" description="Không thể chọn gói khi URL thiếu registrationId." /></main>;
+  if (!session.ready) return <main className="min-h-screen bg-background px-4 py-10"><LoadingState rows={3} /></main>;
+  if (!session.token) return <RegistrationSessionExpired />;
 
   return (
     <main className="min-h-screen bg-background px-4 py-10 text-foreground">

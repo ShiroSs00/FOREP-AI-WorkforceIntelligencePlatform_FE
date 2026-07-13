@@ -15,7 +15,7 @@ This repository is a clean Next.js App Router frontend. The old Vite/React Route
 
 ## API conventions
 
-- Base URL comes only from `NEXT_PUBLIC_API_BASE_URL`.
+- API origin comes only from `NEXT_PUBLIC_API_ORIGIN`.
 - Frontend calls only backend `/api/v1` endpoints.
 - Frontend never calls the AI service directly.
 - Responses are unwrapped from `{ data, meta, errors }`.

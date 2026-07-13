@@ -49,7 +49,7 @@ export default function AdminRegistrationsPage() {
       toast.success("Đã cập nhật hồ sơ đăng ký");
       const paymentId = getPaymentIdFromRegistration(variables.item);
       void queryClient.invalidateQueries({ queryKey: queryKeys.adminWorkspaceRegistrations });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.adminPayments });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.adminPayments() });
       if (paymentId) void queryClient.invalidateQueries({ queryKey: queryKeys.adminPayment(paymentId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.workspaceRegistration(variables.item.id) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.adminMonitoring });

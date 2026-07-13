@@ -9,6 +9,7 @@ import type {
   UserStatus,
   WorkspaceStatus,
   TaskAttachmentType,
+  AssignmentType,
 } from "./domain";
 
 export type LoginRequest = { email?: string; username?: string; password: string };
@@ -49,21 +50,24 @@ export type UpdateEmployeeRequest = CreateEmployeeRequest & { status?: UserStatu
 export type CreateTaskRequest = {
   title: string;
   requirements: string;
-  description?: string;
-  assigneeId?: string;
-  assignmentType?: "INDIVIDUAL" | "TEAM";
-  teamLeaderId?: string;
+  description?: string | null;
+  customerPhone?: string | null;
+  customerEmail?: string | null;
+  customerDescription?: string | null;
+  assigneeId?: string | null;
+  assignmentType: AssignmentType;
+  teamLeaderId?: string | null;
   teamMemberIds?: string[];
-  priority?: TaskPriority;
+  priority: TaskPriority;
   deadline: string;
   estimatedHours: number;
-  startDate?: string;
-  difficulty?: number;
-  requiredSkills?: string;
-  requiredJobPositionId?: string;
-  taskDomain?: string;
-  projectId?: string;
-  departmentId?: string;
+  startDate?: string | null;
+  difficulty?: number | null;
+  requiredSkills?: string | null;
+  requiredJobPositionId?: string | null;
+  taskDomain?: string | null;
+  projectId?: string | null;
+  departmentId?: string | null;
   attachments?: TaskAttachmentRequest[];
 };
 export type UpdateTaskRequest = CreateTaskRequest;
@@ -71,6 +75,7 @@ export type AssignTaskRequest = { assigneeId: string };
 export type AssignIndividualRequest = { employeeId: string };
 export type AssignTeamRequest = { teamLeaderId: string; teamMemberIds?: string[] };
 export type TaskAttachmentRequest = { fileName: string; fileUrl: string; contentType?: string; fileSize?: number; attachmentType?: TaskAttachmentType };
+export type UpdateTaskCustomerInfoRequest = { customerPhone?: string | null; customerEmail?: string | null; customerDescription?: string | null };
 export type JobPositionRequest = { title: string; departmentName?: string; description?: string; requiredSkills?: string; status?: "ACTIVE" | "INACTIVE" };
 export type UpdateTaskStatusRequest = { status: TaskStatus };
 export type UpdateProgressRequest = {

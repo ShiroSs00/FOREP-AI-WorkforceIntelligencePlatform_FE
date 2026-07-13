@@ -4,12 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { Plus, RotateCcw } from "lucide-react";
 import { useMemo, useState } from "react";
-import { listTasks } from "@/api/tasks.api";
+import { listWorkspaceTasks } from "@/api/tasks.api";
 import { useAuthStore } from "@/auth/auth-store";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import { Field, Select } from "@/components/common/Field";
 import { PageHeader } from "@/components/common/PageHeader";
+import { Pagination } from "@/components/common/Pagination";
 import { PriorityBadge, StatusBadge } from "@/components/common/StatusBadge";
 import { ProgressBar } from "@/components/common/ProgressBar";
 import { EmptyState } from "@/components/feedback/EmptyState";
@@ -17,6 +18,7 @@ import { ErrorState } from "@/components/feedback/ErrorState";
 import { LoadingState } from "@/components/feedback/LoadingState";
 import { queryKeys } from "@/lib/query-keys";
 import { formatDateTime, isTaskOverdue } from "@/lib/tasks";
+import { getTaskAssignmentType } from "@/lib/task-permissions";
 
 export default function TasksPage() {
   const user = useAuthStore((state) => state.user);
@@ -25,7 +27,8 @@ export default function TasksPage() {
   const [priority, setPriority] = useState("");
   const [assignee, setAssignee] = useState("");
   const [overdueOnly, setOverdueOnly] = useState(false);
-  const query = useQuery({ queryKey: queryKeys.tasks, queryFn: listTasks });
+  const [page, setPage] = useState(1);
+  const query = useQuery({ queryKey: queryKeys.tasks, queryFn: listWorkspaceTasks });
   const tasks = useMemo(() => query.data ?? [], [query.data]);
   const assignees = useMemo(
     () => Array.from(new Set(tasks.map((task) => task.assigneeName ?? task.assigneeId).filter(Boolean))).sort() as string[],
@@ -46,12 +49,16 @@ export default function TasksPage() {
     [assignee, overdueOnly, priority, search, status, tasks],
   );
   const activeFilters = [search, status, priority, assignee, overdueOnly ? "overdue" : ""].filter(Boolean).length;
+  const pageSize = 10;
+  const currentPage = Math.min(page, Math.max(1, Math.ceil(rows.length / pageSize)));
+  const pagedRows = rows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   const resetFilters = () => {
     setSearch("");
     setStatus("");
     setPriority("");
     setAssignee("");
     setOverdueOnly(false);
+    setPage(1);
   };
 
   return (
@@ -72,8 +79,8 @@ export default function TasksPage() {
 
       <Card className="mb-5">
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-          <Field label="Tìm kiếm" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Tên task, yêu cầu, người nhận" />
-          <Select label="Trạng thái" value={status} onChange={(event) => setStatus(event.target.value)}>
+          <Field label="Tìm kiếm" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Tên task, yêu cầu, người nhận" />
+          <Select label="Trạng thái" value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }}>
             <option value="">Tất cả</option>
             <option value="ASSIGNED">Đã giao</option>
             <option value="IN_PROGRESS">Đang thực hiện</option>
@@ -81,7 +88,7 @@ export default function TasksPage() {
             <option value="COMPLETED">Hoàn thành</option>
             <option value="CANCELLED">Đã hủy</option>
           </Select>
-          <Select label="Ưu tiên" value={priority} onChange={(event) => setPriority(event.target.value)}>
+          <Select label="Ưu tiên" value={priority} onChange={(event) => { setPriority(event.target.value); setPage(1); }}>
             <option value="">Tất cả</option>
             <option value="LOW">Thấp</option>
             <option value="MEDIUM">Trung bình</option>
@@ -89,13 +96,13 @@ export default function TasksPage() {
             <option value="CRITICAL">Khẩn cấp</option>
           </Select>
           {user?.role === "OWNER" ? (
-            <Select label="Người nhận" value={assignee} onChange={(event) => setAssignee(event.target.value)}>
+            <Select label="Người nhận" value={assignee} onChange={(event) => { setAssignee(event.target.value); setPage(1); }}>
               <option value="">Tất cả</option>
               {assignees.map((name) => <option key={name} value={name}>{name}</option>)}
             </Select>
           ) : null}
           <label className="flex min-h-11 items-end gap-3 rounded-control border border-border bg-surface px-3 py-2.5 text-sm font-semibold text-foreground xl:self-end">
-            <input className="h-4 w-4 accent-teal-700" type="checkbox" checked={overdueOnly} onChange={(event) => setOverdueOnly(event.target.checked)} />
+            <input className="h-4 w-4 accent-teal-700" type="checkbox" checked={overdueOnly} onChange={(event) => { setOverdueOnly(event.target.checked); setPage(1); }} />
             Chỉ xem quá hạn
           </label>
         </div>
@@ -128,13 +135,13 @@ export default function TasksPage() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((task) => (
+                {pagedRows.map((task) => (
                   <tr key={task.id} className="border-b border-border/70 last:border-0">
                     <td className="px-5 py-4">
                       <Link className="font-bold text-foreground hover:text-primary" href={`/tasks/${task.id}`}>{task.title}</Link>
                       <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{isTaskOverdue(task) ? "Quá hạn, cần kiểm tra" : task.requirements ?? "Không có mô tả ngắn"}</p>
                     </td>
-                    <td className="px-5 py-4 text-muted-foreground">{task.assigneeName ?? "Chưa giao"}</td>
+                    <td className="px-5 py-4 text-muted-foreground">{getTaskAssignmentType(task) === "TEAM" ? <><span className="font-semibold text-foreground">Nhóm</span><p className="mt-1 text-xs">Trưởng nhóm: {task.teamLeaderName ?? "Chưa xác định"} · {task.participants?.filter((item) => item.participantRole === "MEMBER").length ?? task.teamMemberIds?.length ?? 0} thành viên</p></> : task.assigneeName ?? "Chưa giao"}</td>
                     <td className="px-5 py-4">{task.status ? <StatusBadge value={task.status} /> : "—"}</td>
                     <td className="px-5 py-4">
                       <div className="w-36"><ProgressBar value={task.progressPercent} showLabel /></div>
@@ -151,13 +158,13 @@ export default function TasksPage() {
           </div>
 
           <div className="grid gap-3 p-4 md:hidden">
-            {rows.map((task) => (
+            {pagedRows.map((task) => (
               <Link key={task.id} href={`/tasks/${task.id}`} className="focus-ring rounded-control border border-border p-4 hover:bg-surface-muted">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="font-bold text-foreground">{task.title}</p>
                   {task.priority ? <PriorityBadge value={task.priority} /> : null}
                 </div>
-                <p className="mt-1 text-sm text-muted-foreground">{task.assigneeName ?? "Chưa giao"} · {formatDateTime(task.deadline)}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{getTaskAssignmentType(task) === "TEAM" ? `Nhóm · ${task.teamLeaderName ?? "Chưa rõ trưởng nhóm"}` : task.assigneeName ?? "Chưa giao"} · {formatDateTime(task.deadline)}</p>
                 <div className="mt-3 flex flex-wrap items-center gap-3">
                   {task.status ? <StatusBadge value={task.status} /> : null}
                   {isTaskOverdue(task) ? <span className="text-sm font-semibold text-warning">Quá hạn</span> : null}
@@ -176,6 +183,7 @@ export default function TasksPage() {
               />
             </div>
           ) : null}
+          {rows.length > 0 ? <Pagination page={currentPage} pageSize={pageSize} total={rows.length} onPageChange={setPage} /> : null}
         </Card>
       ) : null}
     </>

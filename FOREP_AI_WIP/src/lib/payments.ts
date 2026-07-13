@@ -1,13 +1,18 @@
-import type { PaymentMethod, PaymentStatus, PaymentTransaction, WorkspaceRegistration } from "@/types/domain";
+import type { PaymentMethod, PaymentStatus, PaymentTransaction, PublicPaymentStatus, WorkspaceRegistration } from "@/types/domain";
 
-export const terminalPaymentStatuses = ["SUCCESS", "FAILED", "EXPIRED", "CANCELLED", "CONFIRMED", "REJECTED"] as const;
+export const terminalPaymentStatuses = ["SUCCESS", "FAILED", "EXPIRED", "CANCELLED", "REFUNDED", "CONFIRMED", "REJECTED"] as const;
 
 export function isTerminalPaymentStatus(status?: string | null): boolean {
   return !!status && terminalPaymentStatuses.includes(status as (typeof terminalPaymentStatuses)[number]);
 }
 
 export function shouldPollPayment(status?: string | null): boolean {
-  return !isTerminalPaymentStatus(status);
+  return status === "PENDING" || status === "PROCESSING" || status === "MANUAL_REVIEW" || !status;
+}
+
+export function paymentPollingInterval(status?: string | null): number | false {
+  if (status === "MANUAL_REVIEW") return 15000;
+  return shouldPollPayment(status) ? 4000 : false;
 }
 
 export function paymentMethodLabel(method?: PaymentMethod | string | null): string {
@@ -21,6 +26,9 @@ export function paymentStatusCopy(status?: PaymentStatus | string | null): strin
   if (status === "FAILED" || status === "REJECTED") return "Thanh toán thất bại";
   if (status === "EXPIRED") return "Giao dịch đã hết hạn";
   if (status === "CANCELLED") return "Giao dịch đã bị hủy";
+  if (status === "PROCESSING") return "Giao dịch đang được xử lý";
+  if (status === "REFUNDED") return "Giao dịch đã được hoàn tiền";
+  if (status === "MANUAL_REVIEW") return "Giao dịch đang chờ kiểm tra thủ công";
   return "Đang chờ thanh toán";
 }
 
@@ -37,6 +45,14 @@ export function getQrCodeUrl(payment?: PaymentTransaction | null): string | null
   return payment?.providerQrCodeUrl ?? payment?.qrCodeUrl ?? null;
 }
 
+export function getPublicQrCodeUrl(payment?: PublicPaymentStatus | null): string | null {
+  return payment?.providerQrCodeUrl ?? null;
+}
+
 export function getPaymentAmount(payment?: PaymentTransaction | null): number | null {
+  return typeof payment?.amount === "number" ? payment.amount : null;
+}
+
+export function getPublicPaymentAmount(payment?: PublicPaymentStatus | null): number | null {
   return typeof payment?.amount === "number" ? payment.amount : null;
 }

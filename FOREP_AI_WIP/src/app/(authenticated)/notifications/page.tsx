@@ -23,6 +23,13 @@ export default function NotificationsPage() {
   const query = useQuery({ queryKey: queryKeys.notifications, queryFn: listNotifications });
   const markOne = useMutation({
     mutationFn: markNotificationRead,
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.notifications });
+      const previous = queryClient.getQueryData<import("@/types/domain").NotificationItem[]>(queryKeys.notifications);
+      queryClient.setQueryData<import("@/types/domain").NotificationItem[]>(queryKeys.notifications, (items = []) => items.map((item) => item.id === id ? { ...item, read: true, isRead: true } : item));
+      return { previous };
+    },
+    onError: (_error, _id, context) => queryClient.setQueryData(queryKeys.notifications, context?.previous),
     onSuccess: () => {
       toast.success("Đã đánh dấu đã đọc");
       void queryClient.invalidateQueries({ queryKey: queryKeys.notifications });
@@ -30,6 +37,13 @@ export default function NotificationsPage() {
   });
   const markAll = useMutation({
     mutationFn: markAllNotificationsRead,
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.notifications });
+      const previous = queryClient.getQueryData<import("@/types/domain").NotificationItem[]>(queryKeys.notifications);
+      queryClient.setQueryData<import("@/types/domain").NotificationItem[]>(queryKeys.notifications, (items = []) => items.map((item) => ({ ...item, read: true, isRead: true })));
+      return { previous };
+    },
+    onError: (_error, _variables, context) => queryClient.setQueryData(queryKeys.notifications, context?.previous),
     onSuccess: () => {
       toast.success("Đã đánh dấu tất cả đã đọc");
       void queryClient.invalidateQueries({ queryKey: queryKeys.notifications });

@@ -14,6 +14,8 @@ import { ErrorState } from "@/components/feedback/ErrorState";
 import { LoadingState } from "@/components/feedback/LoadingState";
 import { queryKeys } from "@/lib/query-keys";
 import type { PaymentMethod } from "@/types/domain";
+import { RegistrationSessionExpired } from "@/components/registration/RegistrationSessionExpired";
+import { useRegistrationToken } from "@/features/registration/use-registration-token";
 
 function routeId(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
@@ -23,23 +25,26 @@ export default function PaymentMethodPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const registrationId = routeId(useParams<{ registrationId: string }>().registrationId);
+  const session = useRegistrationToken(registrationId);
   const registration = useQuery({
     queryKey: queryKeys.workspaceRegistration(registrationId),
-    queryFn: () => getWorkspaceRegistration(registrationId ?? ""),
-    enabled: !!registrationId,
+    queryFn: () => getWorkspaceRegistration(registrationId ?? "", session.token ?? ""),
+    enabled: !!registrationId && session.ready && !!session.token,
   });
 
   const createPayment = useMutation({
-    mutationFn: (paymentMethod: PaymentMethod) => createRegistrationPayment(registrationId ?? "", paymentMethod),
+    mutationFn: (paymentMethod: PaymentMethod) => createRegistrationPayment(registrationId ?? "", paymentMethod, session.token ?? ""),
     onSuccess: (payment) => {
       toast.success("Đã tạo giao dịch thanh toán.");
-      queryClient.setQueryData(queryKeys.payment(payment.id), payment);
+      queryClient.setQueryData(queryKeys.publicPaymentStatus(payment.paymentCode), payment);
       void queryClient.invalidateQueries({ queryKey: queryKeys.workspaceRegistration(registrationId) });
-      router.push(`/workspace-registration/${registrationId}/payments/${payment.id}`);
+      router.push(`/workspace-registration/${registrationId}/payments/${payment.paymentCode}`);
     },
   });
 
   if (!registrationId) return <main className="min-h-screen bg-background px-4 py-10"><EmptyState title="Thiếu mã hồ sơ" description="Không thể tạo thanh toán khi URL thiếu registrationId." /></main>;
+  if (!session.ready) return <main className="min-h-screen bg-background px-4 py-10"><LoadingState rows={3} /></main>;
+  if (!session.token) return <RegistrationSessionExpired />;
 
   const methods: Array<{ value: PaymentMethod; title: string; description: string; icon: ReactNode }> = [
     { value: "MOMO", title: "MoMo", description: "Ví điện tử MoMo. Backend có thể trả payment URL, deeplink hoặc QR code.", icon: <Smartphone className="h-5 w-5" /> },

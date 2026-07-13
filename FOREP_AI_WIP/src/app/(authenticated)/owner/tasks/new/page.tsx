@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { RequireRole } from "@/auth/require-role";
-import { createTask } from "@/api/tasks.api";
+import { createWorkspaceTask } from "@/api/tasks.api";
 import { TaskForm } from "@/components/forms/TaskForm";
 import { PageHeader } from "@/components/common/PageHeader";
 import { ErrorState } from "@/components/feedback/ErrorState";
@@ -15,10 +15,11 @@ export default function NewTaskPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const mutation = useMutation({
-    mutationFn: createTask,
+    mutationFn: createWorkspaceTask,
     onSuccess: (task) => {
       toast.success("Đã tạo task");
       void queryClient.invalidateQueries({ queryKey: queryKeys.tasks });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.workload });
       router.replace(`/tasks/${task.id}`);
     },
   });

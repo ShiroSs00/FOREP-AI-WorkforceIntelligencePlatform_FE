@@ -3,8 +3,9 @@ import { publicApiPaths } from "@/api/public.api";
 import { changePasswordSchema, loginSchema, submitPaymentSchema, toChangePasswordPayload, toLoginPayload, toWorkspaceRegistrationPayload, workspaceRegistrationSchema } from "@/features/auth/schemas";
 import { employeeSchema, toEmployeePayload } from "@/features/employees/schemas";
 import { dailyReportSchema } from "@/features/reports/schemas";
-import { extractTasksSchema, progressSchema, taskSchema } from "@/features/tasks/schemas";
-import { getPaymentIdFromRegistration, isTerminalPaymentStatus, shouldPollPayment } from "@/lib/payments";
+import { extractTasksSchema, progressSchema, taskSchema, toTaskPayload } from "@/features/tasks/schemas";
+import { workspaceTaskPaths } from "@/api/tasks.api";
+import { getPaymentIdFromRegistration, isTerminalPaymentStatus, paymentPollingInterval, shouldPollPayment } from "@/lib/payments";
 
 describe("form schemas", () => {
   it("validates login identifier for email or username", () => {
@@ -51,15 +52,19 @@ describe("form schemas", () => {
   });
 
   it("uses staged payment endpoints and terminal status helpers", () => {
-    expect(publicApiPaths.activeSubscriptionPlans).toBe("/subscription-plans/active");
-    expect(publicApiPaths.selectPlan("reg-1")).toBe("/workspace-registrations/reg-1/select-plan");
-    expect(publicApiPaths.createPayment("reg-1")).toBe("/workspace-registrations/reg-1/payments");
-    expect(publicApiPaths.payment("pay-1")).toBe("/payments/pay-1");
+    expect(publicApiPaths.subscriptionPlans).toBe("/api/public/subscription-plans");
+    expect(publicApiPaths.selectPlan("reg-1")).toBe("/api/public/workspace-registrations/reg-1/select-plan");
+    expect(publicApiPaths.createPayment("reg-1")).toBe("/api/public/workspace-registrations/reg-1/payments");
+    expect(publicApiPaths.paymentStatus("PAY-001")).toBe("/api/public/payments/PAY-001/status");
     expect(shouldPollPayment("PENDING")).toBe(true);
+    expect(shouldPollPayment("PROCESSING")).toBe(true);
+    expect(shouldPollPayment("MANUAL_REVIEW")).toBe(true);
+    expect(paymentPollingInterval("MANUAL_REVIEW")).toBe(15000);
     expect(isTerminalPaymentStatus("SUCCESS")).toBe(true);
     expect(isTerminalPaymentStatus("FAILED")).toBe(true);
     expect(isTerminalPaymentStatus("EXPIRED")).toBe(true);
     expect(isTerminalPaymentStatus("CANCELLED")).toBe(true);
+    expect(isTerminalPaymentStatus("REFUNDED")).toBe(true);
     expect(getPaymentIdFromRegistration({ id: "reg-1", latestPaymentId: "pay-1" } as never)).toBe("pay-1");
   });
 
@@ -88,6 +93,29 @@ describe("form schemas", () => {
     expect(taskSchema.safeParse({ title: "Task", requirements: "Req", assigneeId: "550e8400-e29b-41d4-a716-446655440000", priority: "HIGH", deadline: "2026-06-29T10:00", estimatedHours: 2 }).success).toBe(true);
     expect(taskSchema.safeParse({ title: "Task nhóm", requirements: "Req", assignmentType: "TEAM", teamLeaderId: "550e8400-e29b-41d4-a716-446655440000", teamMemberIds: ["550e8400-e29b-41d4-a716-446655440001"], deadline: "2026-06-29T10:00", estimatedHours: 2 }).success).toBe(true);
     expect(taskSchema.safeParse({ title: "Task nhóm", requirements: "Req", assignmentType: "TEAM", deadline: "2026-06-29T10:00", estimatedHours: 2 }).success).toBe(false);
+  });
+
+  it("builds assignment-specific task payloads without stale fields", () => {
+    const base = { title: "Task", requirements: "Req", priority: "MEDIUM" as const, deadline: "2026-06-29T10:00", estimatedHours: 2, description: "", customerEmail: "", teamMemberIds: [], attachments: [] };
+    const individual = taskSchema.parse({ ...base, assignmentType: "INDIVIDUAL", assigneeId: "550e8400-e29b-41d4-a716-446655440000" });
+    const individualPayload = toTaskPayload(individual, (value) => value);
+    expect(individualPayload.assigneeId).toBe("550e8400-e29b-41d4-a716-446655440000");
+    expect("teamLeaderId" in individualPayload).toBe(false);
+    expect("teamMemberIds" in individualPayload).toBe(false);
+
+    const team = taskSchema.parse({ ...base, assignmentType: "TEAM", teamLeaderId: "550e8400-e29b-41d4-a716-446655440001", teamMemberIds: ["550e8400-e29b-41d4-a716-446655440002"] });
+    const teamPayload = toTaskPayload(team, (value) => value);
+    expect(teamPayload.teamLeaderId).toBe("550e8400-e29b-41d4-a716-446655440001");
+    expect(teamPayload.teamMemberIds).toHaveLength(1);
+    expect("assigneeId" in teamPayload).toBe(false);
+  });
+
+  it("uses deployed workspace task aliases", () => {
+    expect(workspaceTaskPaths.assignIndividual("task-1")).toBe("/api/workspace/tasks/task-1/assign-individual");
+    expect(workspaceTaskPaths.assignTeam("task-1")).toBe("/api/workspace/tasks/task-1/assign-team");
+    expect(workspaceTaskPaths.customerInfo("task-1")).toBe("/api/workspace/tasks/task-1/customer-info");
+    expect(workspaceTaskPaths.recommendTeamLeaders).toBe("/api/workspace/ai/recommendations/team-leaders");
+    expect(workspaceTaskPaths.recommendTeamMembers).toBe("/api/workspace/ai/recommendations/team-members");
   });
 
   it("rejects invalid progress and completion below 100", () => {

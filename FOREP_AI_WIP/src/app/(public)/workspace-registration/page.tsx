@@ -13,6 +13,7 @@ import { Card } from "@/components/common/Card";
 import { Field, TextArea } from "@/components/common/Field";
 import { workspaceRegistrationSchema, toWorkspaceRegistrationPayload } from "@/features/auth/schemas";
 import { queryKeys } from "@/lib/query-keys";
+import { saveRegistrationToken } from "@/lib/registration-session";
 import type { z } from "zod";
 
 type Values = z.output<typeof workspaceRegistrationSchema>;
@@ -37,6 +38,7 @@ export default function WorkspaceRegistrationPage() {
   const mutation = useMutation({
     mutationFn: (values: Values) => createWorkspaceRegistration(toWorkspaceRegistrationPayload(values)),
     onSuccess: (registration) => {
+      saveRegistrationToken(registration.id, registration.registrationToken);
       toast.success("Đã tạo hồ sơ đăng ký. Vui lòng chọn gói dịch vụ.");
       queryClient.setQueryData(queryKeys.workspaceRegistration(registration.id), registration);
       router.push(`/workspace-registration/${registration.id}/plans`);

@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { toast } from "sonner";
 import { adjustTask, splitTask } from "@/api/ai.api";
-import { addTaskAttachment, assignIndividual, assignTeam, cancelTask, getWorkspaceTask, listTaskAttachments, listTaskUpdates, updateTaskProgress, updateTaskStatus } from "@/api/tasks.api";
+import { addTaskAttachment, assignIndividual, assignTeam, cancelTask, getWorkspaceTask, listTaskAttachments, listTaskUpdates, updateTaskCustomerInfo, updateTaskProgress, updateTaskStatus } from "@/api/tasks.api";
 import { listEmployees } from "@/api/employees.api";
 import { useAuthStore } from "@/auth/auth-store";
 import { Button } from "@/components/common/Button";
@@ -24,6 +24,7 @@ import { progressSchema } from "@/features/tasks/schemas";
 import { queryKeys } from "@/lib/query-keys";
 import { formatDateTime, isTaskOverdue } from "@/lib/tasks";
 import { normalizeRole } from "@/lib/role";
+import { canEditTaskCustomerInfo, getTaskAssignmentType } from "@/lib/task-permissions";
 import type { z } from "zod";
 
 type ProgressInput = z.input<typeof progressSchema>;
@@ -46,6 +47,7 @@ export default function TaskDetailPage() {
   const employees = useQuery({ queryKey: queryKeys.employees, queryFn: listEmployees });
   const [attachment, setAttachment] = useState({ fileName: "", fileUrl: "", contentType: "", fileSize: "", attachmentType: "REFERENCE" as const });
   const [assignment, setAssignment] = useState({ type: "INDIVIDUAL" as "INDIVIDUAL" | "TEAM", individualId: "", leaderId: "", memberIds: [] as string[] });
+  const [customerEditor, setCustomerEditor] = useState<{ customerPhone: string; customerEmail: string; customerDescription: string } | null>(null);
   const form = useForm<ProgressInput, unknown, ProgressValues>({
     resolver: zodResolver(progressSchema),
     defaultValues: { updateType: "PROGRESS", content: "", progressPercent: 0 },
@@ -59,6 +61,9 @@ export default function TaskDetailPage() {
     void queryClient.invalidateQueries({ queryKey: queryKeys.ownerDashboard });
     void queryClient.invalidateQueries({ queryKey: queryKeys.notifications });
     void queryClient.invalidateQueries({ queryKey: queryKeys.ai });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.taskRecommendation("individual") });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.taskRecommendation("team-leaders") });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.taskRecommendation("team-members") });
   };
 
   const progressMutation = useMutation({
@@ -87,10 +92,14 @@ export default function TaskDetailPage() {
   const adjustMutation = useMutation({ mutationFn: () => adjustTask(params.id) });
   const attachmentMutation = useMutation({ mutationFn: () => addTaskAttachment(params.id, { fileName: attachment.fileName.trim(), fileUrl: attachment.fileUrl.trim(), contentType: attachment.contentType.trim() || undefined, fileSize: attachment.fileSize ? Number(attachment.fileSize) : undefined, attachmentType: attachment.attachmentType }), onSuccess: () => { toast.success("Đã thêm tệp đính kèm"); setAttachment({ fileName: "", fileUrl: "", contentType: "", fileSize: "", attachmentType: "REFERENCE" }); void queryClient.invalidateQueries({ queryKey: queryKeys.taskAttachments(params.id) }); } });
   const assignmentMutation = useMutation({ mutationFn: () => assignment.type === "INDIVIDUAL" ? assignIndividual(params.id, { employeeId: assignment.individualId }) : assignTeam(params.id, { teamLeaderId: assignment.leaderId, teamMemberIds: assignment.memberIds }), onSuccess: () => { toast.success("Đã cập nhật người nhận"); invalidateTaskSideEffects(); void queryClient.invalidateQueries({ queryKey: queryKeys.managerTasks }); } });
+  const customerMutation = useMutation({ mutationFn: () => updateTaskCustomerInfo(params.id, { customerPhone: customerEditor?.customerPhone.trim() || undefined, customerEmail: customerEditor?.customerEmail.trim() || undefined, customerDescription: customerEditor?.customerDescription.trim() || undefined }), onSuccess: () => { toast.success("Đã cập nhật thông tin khách hàng"); setCustomerEditor(null); void queryClient.invalidateQueries({ queryKey: queryKeys.task(params.id) }); } });
   const currentTask = task.data;
   const terminal = currentTask?.status === "COMPLETED" || currentTask?.status === "CANCELLED";
   const normalizedRole = user ? normalizeRole(user.role) : null;
   const canManage = normalizedRole === "BUSINESS_OWNER" || normalizedRole === "MANAGER";
+  const canEditCustomer = canEditTaskCustomerInfo({ user, task: currentTask });
+  const employeeName = (id?: string | null) => (employees.data ?? []).find((item) => item.id === id)?.fullName ?? id ?? "—";
+  const assignmentType = currentTask ? getTaskAssignmentType(currentTask) : "INDIVIDUAL";
 
   return (
     <>
@@ -98,6 +107,7 @@ export default function TaskDetailPage() {
         eyebrow="Chi tiết task"
         title={currentTask?.title ?? "Task"}
         description="Theo dõi yêu cầu, tiến độ, người nhận và toàn bộ lịch sử cập nhật."
+        primaryAction={canManage && currentTask ? <Link className="focus-ring rounded-control bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground" href={`/tasks/${params.id}/edit`}>Chỉnh sửa task</Link> : undefined}
         secondaryAction={<Link className="focus-ring rounded-control border border-border px-4 py-2.5 text-sm font-semibold hover:bg-surface-muted" href="/tasks">Quay lại danh sách</Link>}
       />
       {task.isLoading ? <LoadingState rows={4} /> : null}
@@ -114,7 +124,7 @@ export default function TaskDetailPage() {
               <div className="mt-5 grid gap-4 md:grid-cols-3">
                 <div>
                   <p className="text-xs font-bold tracking-[0.16em] text-muted-foreground">Người nhận</p>
-                  <p className="mt-1 font-bold text-foreground">{currentTask.assigneeName ?? "Chưa giao"}</p>
+                  <p className="mt-1 font-bold text-foreground">{assignmentType === "TEAM" ? `Nhóm · ${currentTask.teamLeaderName ?? employeeName(currentTask.participants?.find((item) => item.leader || item.participantRole === "LEADER")?.employeeId)}` : currentTask.assigneeName ?? employeeName(currentTask.assigneeId)}</p>
                 </div>
                 <div>
                   <p className="text-xs font-bold tracking-[0.16em] text-muted-foreground">Người tạo</p>
@@ -131,6 +141,19 @@ export default function TaskDetailPage() {
               </div>
               <div className="mt-5"><ProgressBar value={currentTask.progressPercent} showLabel /></div>
             </Card>
+
+            <Card>
+              <div className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="text-lg font-black">Thông tin khách hàng</h2><p className="mt-1 text-sm text-muted-foreground">Thông tin liên hệ và yêu cầu bổ sung gắn với task.</p></div>{canEditCustomer ? <Button variant="secondary" onClick={() => setCustomerEditor({ customerPhone: currentTask.customerPhone ?? "", customerEmail: currentTask.customerEmail ?? "", customerDescription: currentTask.customerDescription ?? "" })}>Sửa thông tin khách hàng</Button> : null}</div>
+              <dl className="mt-4 grid gap-4 md:grid-cols-2"><div><dt className="text-xs font-bold text-muted-foreground">Số điện thoại</dt><dd className="mt-1 font-semibold">{currentTask.customerPhone || "Chưa cập nhật"}</dd></div><div><dt className="text-xs font-bold text-muted-foreground">Email</dt><dd className="mt-1 font-semibold">{currentTask.customerEmail || "Chưa cập nhật"}</dd></div><div className="md:col-span-2"><dt className="text-xs font-bold text-muted-foreground">Mô tả</dt><dd className="mt-1 whitespace-pre-wrap leading-6">{currentTask.customerDescription || "Chưa có mô tả khách hàng."}</dd></div></dl>
+              {customerEditor ? <form className="mt-5 grid gap-3 rounded-control border border-border bg-surface-subtle p-4" onSubmit={(event) => { event.preventDefault(); customerMutation.mutate(); }}><div className="grid gap-3 md:grid-cols-2"><Field label="Số điện thoại" optional value={customerEditor.customerPhone} onChange={(event) => setCustomerEditor({ ...customerEditor, customerPhone: event.target.value })} /><Field label="Email" type="email" optional value={customerEditor.customerEmail} onChange={(event) => setCustomerEditor({ ...customerEditor, customerEmail: event.target.value })} /></div><TextArea label="Mô tả khách hàng" optional value={customerEditor.customerDescription} onChange={(event) => setCustomerEditor({ ...customerEditor, customerDescription: event.target.value })} /><div className="flex justify-end gap-2"><Button type="button" variant="ghost" onClick={() => setCustomerEditor(null)}>Đóng</Button><Button type="submit" disabled={customerMutation.isPending}>{customerMutation.isPending ? "Đang lưu..." : "Lưu thông tin"}</Button></div>{customerMutation.error ? <ErrorState title="Không thể cập nhật thông tin khách hàng" error={customerMutation.error} /> : null}</form> : null}
+            </Card>
+
+            <Card>
+              <h2 className="text-lg font-black">Thông tin phân công</h2>
+              {assignmentType === "INDIVIDUAL" ? <p className="mt-3 text-sm">Người nhận: <strong>{currentTask.assigneeName ?? employeeName(currentTask.assigneeId)}</strong></p> : <div className="mt-3 grid gap-3"><p className="text-sm">Trưởng nhóm: <strong>{currentTask.teamLeaderName ?? employeeName(currentTask.participants?.find((item) => item.leader || item.participantRole === "LEADER")?.employeeId)}</strong></p><div className="grid gap-2">{(currentTask.participants ?? []).filter((item) => item.participantRole === "MEMBER").map((participant) => <div key={participant.id} className="flex flex-wrap items-center justify-between gap-2 rounded-control border border-border p-3"><span className="font-semibold">{employeeName(participant.employeeId)}</span><span className="text-xs text-muted-foreground">Thành viên · {participant.allocatedHours ?? 0} giờ phân bổ</span></div>)}{(currentTask.participants ?? []).filter((item) => item.participantRole === "MEMBER").length === 0 ? <p className="text-sm text-muted-foreground">Backend chưa trả danh sách thành viên.</p> : null}</div></div>}
+            </Card>
+
+            {(currentTask.difficulty || currentTask.requiredSkills || currentTask.requiredJobPositionId || currentTask.taskDomain || currentTask.projectId || currentTask.departmentId) ? <Card><h2 className="text-lg font-black">Yêu cầu phục vụ gợi ý</h2><dl className="mt-4 grid gap-4 md:grid-cols-2"><div><dt className="text-xs font-bold text-muted-foreground">Độ khó</dt><dd className="mt-1 font-semibold">{currentTask.difficulty ?? "—"}</dd></div><div><dt className="text-xs font-bold text-muted-foreground">Kỹ năng</dt><dd className="mt-1 font-semibold">{currentTask.requiredSkills || "—"}</dd></div><div><dt className="text-xs font-bold text-muted-foreground">Vị trí yêu cầu</dt><dd className="mt-1 font-semibold">{currentTask.requiredJobPositionName ?? currentTask.requiredJobPositionId ?? "—"}</dd></div><div><dt className="text-xs font-bold text-muted-foreground">Lĩnh vực</dt><dd className="mt-1 font-semibold">{currentTask.taskDomain || "—"}</dd></div><div><dt className="text-xs font-bold text-muted-foreground">Dự án</dt><dd className="mt-1 font-semibold">{currentTask.projectName ?? currentTask.projectId ?? "—"}</dd></div><div><dt className="text-xs font-bold text-muted-foreground">Phòng ban</dt><dd className="mt-1 font-semibold">{currentTask.departmentName ?? currentTask.departmentId ?? "—"}</dd></div></dl></Card> : null}
 
             <Card>
               <h2 className="text-lg font-black">Nội dung task</h2>
@@ -150,7 +173,7 @@ export default function TaskDetailPage() {
               <h2 className="text-lg font-black">Tệp đính kèm</h2>
               {attachments.isLoading ? <LoadingState rows={2} /> : null}
               {attachments.error ? <ErrorState title="Không thể tải tệp đính kèm" error={attachments.error} onRetry={() => void attachments.refetch()} /> : null}
-              {!attachments.isLoading && !attachments.error ? attachments.data?.length ? <div className="mt-4 grid gap-2">{attachments.data.map((item, index) => <a key={item.id ?? `${item.fileName}-${index}`} href={item.fileUrl} target="_blank" rel="noreferrer" className="rounded-control border border-border p-3 hover:bg-surface-muted"><p className="font-bold">{item.fileName}</p><p className="mt-1 text-xs text-muted-foreground">{item.attachmentType || "OTHER"} · {item.contentType || "Không rõ định dạng"} · {typeof item.fileSize === "number" ? `${item.fileSize.toLocaleString("vi-VN")} bytes` : "Không rõ dung lượng"}</p></a>)}</div> : <EmptyState title="Chưa có tệp đính kèm" description="Backend chưa trả tệp nào cho công việc này." /> : null}
+              {!attachments.isLoading && !attachments.error ? attachments.data?.length ? <div className="mt-4 grid gap-2">{attachments.data.map((item, index) => <a key={item.id ?? `${item.fileName}-${index}`} href={item.fileUrl} target="_blank" rel="noopener noreferrer" className="rounded-control border border-border p-3 hover:bg-surface-muted"><p className="font-bold">{item.fileName}</p><p className="mt-1 text-xs text-muted-foreground">{{ REQUIREMENT: "Tài liệu yêu cầu", REFERENCE: "Tài liệu tham khảo", RESULT: "Kết quả", OTHER: "Khác" }[item.attachmentType ?? "OTHER"]} · {item.contentType || "Không rõ định dạng"} · {typeof item.fileSize === "number" ? `${item.fileSize.toLocaleString("vi-VN")} bytes` : "Không rõ dung lượng"}</p><p className="mt-1 text-xs text-muted-foreground">Tải lên bởi {item.uploadedBy || "—"} · {formatDateTime(item.createdAt ?? undefined)}</p></a>)}</div> : <EmptyState title="Chưa có tệp đính kèm" description="Backend chưa trả tệp nào cho công việc này." /> : null}
               {canManage ? <form className="mt-4 grid gap-3 rounded-control border border-border p-3" onSubmit={(event) => { event.preventDefault(); if (attachment.fileName.trim() && attachment.fileUrl.trim()) attachmentMutation.mutate(); }}><p className="font-bold">Thêm metadata tệp</p><Field label="Tên tệp" value={attachment.fileName} onChange={(event) => setAttachment({ ...attachment, fileName: event.target.value })} /><Field label="URL tệp" type="url" value={attachment.fileUrl} onChange={(event) => setAttachment({ ...attachment, fileUrl: event.target.value })} /><div className="grid gap-3 sm:grid-cols-2"><Field label="Content type" optional value={attachment.contentType} onChange={(event) => setAttachment({ ...attachment, contentType: event.target.value })} /><Field label="Dung lượng byte" type="number" optional value={attachment.fileSize} onChange={(event) => setAttachment({ ...attachment, fileSize: event.target.value })} /></div><Button type="submit" disabled={!attachment.fileName.trim() || !attachment.fileUrl.trim() || attachmentMutation.isPending}>{attachmentMutation.isPending ? "Đang thêm..." : "Thêm tệp"}</Button>{attachmentMutation.error ? <ErrorState title="Không thể thêm tệp" error={attachmentMutation.error} /> : null}</form> : null}
             </Card>
 
@@ -255,7 +278,7 @@ export default function TaskDetailPage() {
                     <option value="COMPLETED">Hoàn thành</option>
                     <option value="CANCELLED">Đã hủy</option>
                   </Select>
-                  <Button variant="danger" onClick={() => (window.confirm("Bạn chắc chắn muốn hủy task này?") ? cancelMutation.mutate() : undefined)} disabled={cancelMutation.isPending || currentTask.status === "CANCELLED"}>Hủy task</Button>
+                  {normalizedRole === "BUSINESS_OWNER" ? <Button variant="danger" onClick={() => (window.confirm("Bạn chắc chắn muốn hủy task này?") ? cancelMutation.mutate() : undefined)} disabled={cancelMutation.isPending || currentTask.status === "CANCELLED"}>Hủy task</Button> : null}
                 </div>
               </Card>
             ) : null}
