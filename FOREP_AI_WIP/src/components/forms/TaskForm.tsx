@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Paperclip, Plus, Trash2 } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Paperclip, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { listEmployees } from "@/api/employees.api";
@@ -59,7 +59,8 @@ function RecommendationResults({ kind, items, selectedIds, onSelect }: { kind: R
   </div>;
 }
 
-export function TaskForm({ initialValues, onSubmit, submitLabel, pending }: { initialValues?: Partial<CreateTaskRequest>; onSubmit: (values: CreateTaskRequest) => void; submitLabel: string; pending?: boolean }) {
+export function TaskForm({ initialValues, onSubmit, submitLabel, pending, wizard = false }: { initialValues?: Partial<CreateTaskRequest>; onSubmit: (values: CreateTaskRequest) => void; submitLabel: string; pending?: boolean; wizard?: boolean }) {
+  const [step, setStep] = useState<1 | 2>(1);
   const employees = useQuery({ queryKey: queryKeys.employees, queryFn: listEmployees });
   const form = useForm<TaskFormInput, unknown, TaskFormValues>({
     resolver: zodResolver(taskSchema),
@@ -86,6 +87,17 @@ export function TaskForm({ initialValues, onSubmit, submitLabel, pending }: { in
   const member = useMutation({ mutationFn: recommendTeamMembers });
   const recommendationReady = Boolean(recommendationInput.title && recommendationInput.requirements && recommendationInput.deadline && recommendationInput.estimatedHours && recommendationInput.estimatedHours >= 1);
 
+  const continueToAssignment = async () => {
+    const valid = await form.trigger([
+      "title", "requirements", "description", "customerPhone", "customerEmail", "customerDescription",
+      "priority", "deadline", "startDate", "estimatedHours", "difficulty", "requiredSkills",
+      "requiredJobPositionId", "taskDomain", "projectId", "departmentId", "attachments",
+    ]);
+    if (!valid) return;
+    setStep(2);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const runRecommendation = (kind: RecommendationKind) => {
     if (kind === "individual") { setIndividualSignature(signature); individual.mutate(recommendationInput); }
     if (kind === "leader") { setLeaderSignature(signature); leader.mutate(recommendationInput); }
@@ -103,9 +115,17 @@ export function TaskForm({ initialValues, onSubmit, submitLabel, pending }: { in
   const recommendationError = individual.error ?? leader.error ?? member.error;
   const normalizedError = recommendationError as ApiFailure | null;
 
-  return <form className="grid gap-5" onSubmit={form.handleSubmit((data) => onSubmit(toTaskPayload(data, toIsoWithTimezone)))}>
-    <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_390px]">
-      <div className="grid gap-5">
+  return <form className="grid gap-5" onSubmit={(event) => {
+    if (wizard && step === 1) {
+      event.preventDefault();
+      void continueToAssignment();
+      return;
+    }
+    void form.handleSubmit((data) => onSubmit(toTaskPayload(data, toIsoWithTimezone)))(event);
+  }}>
+    {wizard ? <Card className="p-4 sm:p-5"><div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3"><div className="flex items-center gap-3"><span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm font-black ${step === 1 ? "bg-primary text-primary-foreground" : "bg-emerald-100 text-emerald-700"}`}>{step === 1 ? "1" : <Check className="h-4 w-4" />}</span><div><p className="font-black">Thông tin task</p><p className="hidden text-xs text-muted-foreground sm:block">Nội dung, thời gian và yêu cầu</p></div></div><div className="h-px w-8 bg-border sm:w-20" /><div className="flex items-center justify-end gap-3"><span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm font-black ${step === 2 ? "bg-primary text-primary-foreground" : "bg-surface-muted text-muted-foreground"}`}>2</span><div><p className="font-black">Giao việc</p><p className="hidden text-xs text-muted-foreground sm:block">Chọn cá nhân hoặc nhóm</p></div></div></div></Card> : null}
+    <div className={wizard ? "grid gap-5" : "grid gap-5 xl:grid-cols-[minmax(0,1fr)_390px]"}>
+      {!wizard || step === 1 ? <div className="grid gap-5">
         <Card><h2 className="text-lg font-black">Thông tin cơ bản</h2><div className="mt-4 grid gap-4">
           <Field label="Tiêu đề" error={form.formState.errors.title?.message} {...form.register("title")} />
           <TextArea label="Yêu cầu" error={form.formState.errors.requirements?.message} {...form.register("requirements")} />
@@ -121,10 +141,10 @@ export function TaskForm({ initialValues, onSubmit, submitLabel, pending }: { in
         <Card><div className="flex items-center justify-between gap-3"><div><h2 className="text-lg font-black">Tài liệu đính kèm</h2><p className="mt-1 text-sm text-muted-foreground">Backend hiện nhận metadata URL, không tải file trực tiếp.</p></div><Button type="button" variant="secondary" onClick={() => attachments.append({ fileName: "", fileUrl: "", contentType: "", fileSize: undefined, attachmentType: "REFERENCE" })}><Plus className="h-4 w-4" />Thêm tài liệu</Button></div>
           <div className="mt-4 grid gap-4">{attachments.fields.length === 0 ? <div className="rounded-control border border-dashed border-border p-5 text-center text-sm text-muted-foreground"><Paperclip className="mx-auto mb-2 h-5 w-5" />Chưa có tài liệu</div> : attachments.fields.map((field, index) => <div key={field.id} className="grid gap-3 rounded-control border border-border p-3"><div className="grid gap-3 md:grid-cols-2"><Field label="Tên tài liệu" error={form.formState.errors.attachments?.[index]?.fileName?.message} {...form.register(`attachments.${index}.fileName`)} /><Field label="URL tài liệu" type="url" error={form.formState.errors.attachments?.[index]?.fileUrl?.message} {...form.register(`attachments.${index}.fileUrl`)} /><Select label="Loại tài liệu" {...form.register(`attachments.${index}.attachmentType`)}><option value="REQUIREMENT">Tài liệu yêu cầu</option><option value="REFERENCE">Tài liệu tham khảo</option><option value="RESULT">Kết quả</option><option value="OTHER">Khác</option></Select><Field label="Content type" optional {...form.register(`attachments.${index}.contentType`)} /></div><Button type="button" variant="ghost" onClick={() => attachments.remove(index)}><Trash2 className="h-4 w-4" />Bỏ tài liệu</Button></div>)}</div>
         </Card>
-      </div>
+      </div> : null}
 
-      <div className="grid gap-5 self-start">
-        <Card><h2 className="text-lg font-black">Giao việc</h2><div className="mt-4 grid gap-4">
+      {!wizard || step === 2 ? <div className={wizard ? "grid gap-5 self-start lg:grid-cols-[minmax(0,1fr)_390px]" : "grid gap-5 self-start"}>
+        <Card><h2 className="text-lg font-black">Giao việc</h2>{wizard ? <div className="mt-3 rounded-control border border-border bg-surface-subtle p-3"><p className="text-xs font-bold tracking-[0.14em] text-muted-foreground">TASK SẼ ĐƯỢC TẠO</p><p className="mt-1 font-black text-foreground">{values.title || "Chưa có tiêu đề"}</p><p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{values.requirements || "Chưa có yêu cầu"}</p></div> : null}<div className="mt-4 grid gap-4">
           <Select label="Hình thức giao việc" value={assignmentType} onChange={(event) => { const next = event.target.value as "INDIVIDUAL" | "TEAM"; form.setValue("assignmentType", next); if (next === "TEAM") form.setValue("assigneeId", ""); else { form.setValue("teamLeaderId", ""); form.setValue("teamMemberIds", []); } }}><option value="INDIVIDUAL">Cá nhân</option><option value="TEAM">Nhóm</option></Select>
           {employees.isLoading ? <LoadingState label="Đang tải nhân viên..." rows={2} /> : null}{employees.error ? <ErrorState title="Không thể tải nhân viên" error={employees.error} onRetry={() => void employees.refetch()} /> : null}
           {!employees.isLoading && !employees.error && assignmentType === "INDIVIDUAL" ? <Select label="Người nhận" error={form.formState.errors.assigneeId?.message} {...form.register("assigneeId")}><option value="">Chọn nhân viên</option>{activeEmployees.map((employee) => <option key={employee.id} value={employee.id}>{employeeLabel(employee)}</option>)}</Select> : null}
@@ -136,8 +156,11 @@ export function TaskForm({ initialValues, onSubmit, submitLabel, pending }: { in
           {recommendationError ? <div className="mt-4"><ErrorState title={normalizedError?.code === "AI_RATE_LIMITED" || normalizedError?.status === 429 ? "AI đang quá tải" : "Không thể lấy gợi ý"} error={recommendationError} /></div> : null}
           <div className="mt-4 grid gap-4"><RecommendationResults kind="individual" items={individualSignature === signature ? individual.data : undefined} selectedIds={[values.assigneeId ?? ""]} onSelect={(item) => selectRecommendation("individual", item)} /><RecommendationResults kind="leader" items={leaderSignature === signature ? leader.data : undefined} selectedIds={[values.teamLeaderId ?? ""]} onSelect={(item) => selectRecommendation("leader", item)} /><RecommendationResults kind="member" items={memberSignature === signature ? member.data : undefined} selectedIds={values.teamMemberIds ?? []} onSelect={(item) => selectRecommendation("member", item)} /></div>
         </Card>
-      </div>
+      </div> : null}
     </div>
-    <div className="sticky bottom-0 z-10 -mx-4 border-t border-border bg-background/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0"><div className="flex justify-end"><Button type="submit" disabled={pending} className="min-w-40">{pending ? "Đang lưu..." : submitLabel}</Button></div></div>
+    <div className="sticky bottom-0 z-10 -mx-4 border-t border-border bg-background/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0"><div className="flex flex-wrap justify-end gap-3">
+      {wizard && step === 2 ? <Button type="button" variant="secondary" onClick={() => { setStep(1); window.scrollTo({ top: 0, behavior: "smooth" }); }}><ChevronLeft className="h-4 w-4" />Quay lại</Button> : null}
+      {wizard && step === 1 ? <Button type="button" className="min-w-44" onClick={() => void continueToAssignment()}>Tiếp tục giao việc<ChevronRight className="h-4 w-4" /></Button> : <Button type="submit" disabled={pending} className="min-w-40">{pending ? "Đang lưu..." : submitLabel}</Button>}
+    </div></div>
   </form>;
 }

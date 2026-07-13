@@ -28,10 +28,10 @@ export default function NewTaskPage() {
       <PageHeader
         eyebrow="Công việc"
         title="Tạo task mới"
-        description="Nhập yêu cầu rõ ràng, chọn deadline và dùng AI recommendation nếu cần tham khảo người nhận phù hợp."
+        description="Hoàn thiện nội dung task trước, sau đó tiếp tục sang bước giao việc cho cá nhân hoặc nhóm."
       />
       {mutation.error ? <div className="mb-5"><ErrorState title="Không thể tạo task" error={mutation.error} /></div> : null}
-      <TaskForm submitLabel="Tạo task" pending={mutation.isPending} onSubmit={(values: CreateTaskRequest) => mutation.mutate(values)} />
+      <TaskForm wizard submitLabel="Tạo và giao task" pending={mutation.isPending} onSubmit={(values: CreateTaskRequest) => mutation.mutate(values)} />
     </RequireRole>
   );
 }

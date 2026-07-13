@@ -2,9 +2,11 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Plus, RotateCcw } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Suspense, useCallback, useMemo, useState } from "react";
 import { listWorkspaceTasks } from "@/api/tasks.api";
+import { listEmployees } from "@/api/employees.api";
 import { useAuthStore } from "@/auth/auth-store";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
@@ -20,33 +22,50 @@ import { queryKeys } from "@/lib/query-keys";
 import { formatDateTime, isTaskOverdue } from "@/lib/tasks";
 import { getTaskAssignmentType } from "@/lib/task-permissions";
 
-export default function TasksPage() {
+function TasksContent() {
+  const params = useSearchParams();
   const user = useAuthStore((state) => state.user);
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
-  const [priority, setPriority] = useState("");
-  const [assignee, setAssignee] = useState("");
-  const [overdueOnly, setOverdueOnly] = useState(false);
+  const [status, setStatus] = useState(() => params.get("status") ?? "");
+  const [priority, setPriority] = useState(() => params.get("priority") ?? "");
+  const [assignee, setAssignee] = useState(() => params.get("assignee") ?? "");
+  const [overdueOnly, setOverdueOnly] = useState(() => params.get("overdue") === "true");
   const [page, setPage] = useState(1);
   const query = useQuery({ queryKey: queryKeys.tasks, queryFn: listWorkspaceTasks });
+  const canViewAssignees = user?.role === "OWNER" || user?.role === "BUSINESS_OWNER" || user?.role === "MANAGER";
+  const employeesQuery = useQuery({ queryKey: queryKeys.employees, queryFn: listEmployees, enabled: canViewAssignees });
   const tasks = useMemo(() => query.data ?? [], [query.data]);
-  const assignees = useMemo(
-    () => Array.from(new Set(tasks.map((task) => task.assigneeName ?? task.assigneeId).filter(Boolean))).sort() as string[],
-    [tasks],
-  );
+  const employeeById = useMemo(() => new Map((employeesQuery.data ?? []).map((employee) => [employee.id, employee])), [employeesQuery.data]);
+  const assignees = useMemo(() => {
+    const ids = new Set<string>();
+    tasks.forEach((task) => {
+      if (task.assigneeId) ids.add(task.assigneeId);
+      if (task.teamLeaderId) ids.add(task.teamLeaderId);
+      task.participants?.forEach((participant) => ids.add(participant.employeeId));
+    });
+    return Array.from(ids).map((id) => {
+      const employee = employeeById.get(id);
+      const taskFallback = tasks.find((task) => task.assigneeId === id)?.assigneeName ?? tasks.find((task) => task.teamLeaderId === id)?.teamLeaderName;
+      return { id, label: employee ? `${employee.fullName}${employee.employeeCode ? ` — ${employee.employeeCode}` : ""}` : taskFallback ?? "Nhân viên không còn trong danh bạ" };
+    }).sort((a, b) => a.label.localeCompare(b.label, "vi"));
+  }, [employeeById, tasks]);
+  const assigneeName = useCallback((id?: string | null, fallback?: string | null) => id ? employeeById.get(id)?.fullName ?? fallback ?? "Nhân viên không còn trong danh bạ" : fallback ?? "Chưa giao", [employeeById]);
   const rows = useMemo(
     () =>
       tasks.filter((task) => {
-        const haystack = `${task.title} ${task.requirements ?? ""} ${task.description ?? ""} ${task.assigneeName ?? ""}`.toLowerCase();
+        const participantIds = task.participants?.map((participant) => participant.employeeId) ?? [];
+        const visibleAssigneeName = assigneeName(task.assigneeId, task.assigneeName);
+        const visibleLeaderName = assigneeName(task.teamLeaderId, task.teamLeaderName);
+        const haystack = `${task.title} ${task.requirements ?? ""} ${task.description ?? ""} ${visibleAssigneeName} ${visibleLeaderName}`.toLowerCase();
         return (
           haystack.includes(search.toLowerCase()) &&
           (!status || task.status === status) &&
           (!priority || task.priority === priority) &&
-          (!assignee || task.assigneeName === assignee || task.assigneeId === assignee) &&
+          (!assignee || task.assigneeId === assignee || task.teamLeaderId === assignee || participantIds.includes(assignee)) &&
           (!overdueOnly || isTaskOverdue(task))
         );
       }),
-    [assignee, overdueOnly, priority, search, status, tasks],
+    [assignee, assigneeName, overdueOnly, priority, search, status, tasks],
   );
   const activeFilters = [search, status, priority, assignee, overdueOnly ? "overdue" : ""].filter(Boolean).length;
   const pageSize = 10;
@@ -98,7 +117,7 @@ export default function TasksPage() {
           {user?.role === "OWNER" ? (
             <Select label="Người nhận" value={assignee} onChange={(event) => { setAssignee(event.target.value); setPage(1); }}>
               <option value="">Tất cả</option>
-              {assignees.map((name) => <option key={name} value={name}>{name}</option>)}
+              {assignees.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
             </Select>
           ) : null}
           <label className="flex min-h-11 items-end gap-3 rounded-control border border-border bg-surface px-3 py-2.5 text-sm font-semibold text-foreground xl:self-end">
@@ -141,7 +160,7 @@ export default function TasksPage() {
                       <Link className="font-bold text-foreground hover:text-primary" href={`/tasks/${task.id}`}>{task.title}</Link>
                       <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{isTaskOverdue(task) ? "Quá hạn, cần kiểm tra" : task.requirements ?? "Không có mô tả ngắn"}</p>
                     </td>
-                    <td className="px-5 py-4 text-muted-foreground">{getTaskAssignmentType(task) === "TEAM" ? <><span className="font-semibold text-foreground">Nhóm</span><p className="mt-1 text-xs">Trưởng nhóm: {task.teamLeaderName ?? "Chưa xác định"} · {task.participants?.filter((item) => item.participantRole === "MEMBER").length ?? task.teamMemberIds?.length ?? 0} thành viên</p></> : task.assigneeName ?? "Chưa giao"}</td>
+                    <td className="px-5 py-4 text-muted-foreground">{getTaskAssignmentType(task) === "TEAM" ? <><span className="font-semibold text-foreground">Nhóm</span><p className="mt-1 text-xs">Trưởng nhóm: {assigneeName(task.teamLeaderId, task.teamLeaderName)} · {task.participants?.filter((item) => item.participantRole === "MEMBER").length ?? task.teamMemberIds?.length ?? 0} thành viên</p></> : assigneeName(task.assigneeId, task.assigneeName)}</td>
                     <td className="px-5 py-4">{task.status ? <StatusBadge value={task.status} /> : "—"}</td>
                     <td className="px-5 py-4">
                       <div className="w-36"><ProgressBar value={task.progressPercent} showLabel /></div>
@@ -164,7 +183,7 @@ export default function TasksPage() {
                   <p className="font-bold text-foreground">{task.title}</p>
                   {task.priority ? <PriorityBadge value={task.priority} /> : null}
                 </div>
-                <p className="mt-1 text-sm text-muted-foreground">{getTaskAssignmentType(task) === "TEAM" ? `Nhóm · ${task.teamLeaderName ?? "Chưa rõ trưởng nhóm"}` : task.assigneeName ?? "Chưa giao"} · {formatDateTime(task.deadline)}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{getTaskAssignmentType(task) === "TEAM" ? `Nhóm · ${assigneeName(task.teamLeaderId, task.teamLeaderName)}` : assigneeName(task.assigneeId, task.assigneeName)} · {formatDateTime(task.deadline)}</p>
                 <div className="mt-3 flex flex-wrap items-center gap-3">
                   {task.status ? <StatusBadge value={task.status} /> : null}
                   {isTaskOverdue(task) ? <span className="text-sm font-semibold text-warning">Quá hạn</span> : null}
@@ -188,4 +207,8 @@ export default function TasksPage() {
       ) : null}
     </>
   );
+}
+
+export default function TasksPage() {
+  return <Suspense fallback={<LoadingState rows={5} />}><TasksContent /></Suspense>;
 }

@@ -15,15 +15,11 @@ function FieldShell({
   label,
   error,
   helper,
-  optional,
   children,
 }: CommonProps & { children: React.ReactNode }) {
   return (
     <label className="grid gap-2 text-sm font-semibold text-foreground">
-      <span className="flex items-center justify-between gap-3">
-        {label}
-        {optional ? <span className="text-xs font-medium text-muted-foreground">Không bắt buộc</span> : null}
-      </span>
+      <span>{label}</span>
       {children}
       {helper && !error ? <span className="text-xs font-medium text-muted-foreground">{helper}</span> : null}
       {error ? <span className="text-xs font-semibold text-destructive">{error}</span> : null}

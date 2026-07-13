@@ -23,6 +23,15 @@ export default function OwnerDashboardPage() {
   const attentionTasks = recentTasks.filter((task) => task.status === "BLOCKED" || isTaskOverdue(task)).slice(0, 5);
   const overloaded = workload.filter((item) => item.workloadLevel === "OVERLOADED" || item.workloadLevel === "HIGH");
   const available = workload.filter((item) => item.workloadLevel === "NO_WORK" || item.workloadLevel === "LOW");
+  const normalLoad = workload.filter((item) => item.workloadLevel === "NORMAL");
+  const totalTasks = data?.totalTasks ?? 0;
+  const activeTasks = data?.activeTasks ?? 0;
+  const completedTasks = data?.completedTasks ?? 0;
+  const overdueTasks = data?.overdueTasks ?? 0;
+  const taskBase = Math.max(1, totalTasks);
+  const workloadBase = Math.max(1, workload.length);
+  const completionRate = Math.round((completedTasks / taskBase) * 100);
+  const overdueRate = Math.round((overdueTasks / taskBase) * 100);
 
   return (
     <RequireRole role="OWNER">
@@ -60,26 +69,51 @@ export default function OwnerDashboardPage() {
               </Link>
             </div>
             <div className="mt-4 grid gap-3 lg:grid-cols-3">
-              <div className="rounded-control border border-border bg-surface p-4">
+              <Link href="/tasks?overdue=true" className="focus-ring rounded-control border border-border bg-surface p-4 transition-colors hover:border-amber-300 hover:bg-amber-50">
                 <p className="text-sm font-semibold text-muted-foreground">Việc quá hạn</p>
                 <p className="mt-2 text-3xl font-black text-foreground">{data.overdueTasks ?? 0}</p>
-              </div>
-              <div className="rounded-control border border-border bg-surface p-4">
+                <p className="mt-2 flex items-center gap-1 text-xs font-bold text-primary">Mở danh sách <ArrowRight className="h-3.5 w-3.5" /></p>
+              </Link>
+              <Link href="/owner/analytics/workload" className="focus-ring rounded-control border border-border bg-surface p-4 transition-colors hover:border-amber-300 hover:bg-amber-50">
                 <p className="text-sm font-semibold text-muted-foreground">Nhân viên tải cao</p>
                 <p className="mt-2 text-3xl font-black text-foreground">{overloaded.length}</p>
-              </div>
-              <div className="rounded-control border border-border bg-surface p-4">
+                <p className="mt-2 flex items-center gap-1 text-xs font-bold text-primary">Xem phân tích <ArrowRight className="h-3.5 w-3.5" /></p>
+              </Link>
+              <Link href="/owner/analytics/workload" className="focus-ring rounded-control border border-border bg-surface p-4 transition-colors hover:border-sky-300 hover:bg-sky-50">
                 <p className="text-sm font-semibold text-muted-foreground">Nhân viên còn khả dụng</p>
                 <p className="mt-2 text-3xl font-black text-foreground">{available.length}</p>
-              </div>
+                <p className="mt-2 flex items-center gap-1 text-xs font-bold text-primary">Xem để phân công <ArrowRight className="h-3.5 w-3.5" /></p>
+              </Link>
             </div>
           </Card>
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <StatCard label="Tổng công việc" value={data.totalTasks ?? 0} helper="Tất cả task trong workspace" />
-            <StatCard label="Đang hoạt động" value={data.activeTasks ?? 0} helper="Cần tiếp tục theo dõi" tone="info" />
-            <StatCard label="Hoàn thành" value={data.completedTasks ?? 0} helper="Đã đóng trong hệ thống" tone="success" />
-            <StatCard label="Quá hạn" value={data.overdueTasks ?? 0} helper="Cần kiểm tra ngay" tone={(data.overdueTasks ?? 0) > 0 ? "warning" : "neutral"} />
+            <Link href="/tasks" className="focus-ring rounded-card"><StatCard label="Tổng công việc" value={totalTasks} helper="Mở toàn bộ danh sách" /></Link>
+            <Link href="/tasks" className="focus-ring rounded-card"><StatCard label="Đang hoạt động" value={activeTasks} helper="Cần tiếp tục theo dõi" tone="info" /></Link>
+            <Link href="/tasks?status=COMPLETED" className="focus-ring rounded-card"><StatCard label="Hoàn thành" value={completedTasks} helper="Xem task đã hoàn thành" tone="success" /></Link>
+            <Link href="/tasks?overdue=true" className="focus-ring rounded-card"><StatCard label="Quá hạn" value={overdueTasks} helper="Mở việc cần kiểm tra" tone={overdueTasks > 0 ? "warning" : "neutral"} /></Link>
+          </div>
+
+          <div className="grid gap-5 lg:grid-cols-3">
+            <Card>
+              <h2 className="text-lg font-black">Cơ cấu công việc</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Tỷ trọng task đang hoạt động và đã hoàn thành.</p>
+              <div className="mt-6 overflow-hidden rounded-full bg-surface-muted" aria-label={`Đang hoạt động ${activeTasks}, hoàn thành ${completedTasks}`}>
+                <div className="flex h-5"><div className="bg-sky-500" style={{ width: `${(activeTasks / taskBase) * 100}%` }} /><div className="bg-emerald-500" style={{ width: `${(completedTasks / taskBase) * 100}%` }} /></div>
+              </div>
+              <div className="mt-5 grid grid-cols-2 gap-3"><div className="rounded-control border border-border p-3"><p className="text-xs font-bold text-muted-foreground">ĐANG HOẠT ĐỘNG</p><p className="mt-1 text-2xl font-black text-sky-600">{activeTasks}</p></div><div className="rounded-control border border-border p-3"><p className="text-xs font-bold text-muted-foreground">HOÀN THÀNH</p><p className="mt-1 text-2xl font-black text-emerald-600">{completedTasks}</p></div></div>
+            </Card>
+            <Card>
+              <h2 className="text-lg font-black">Phân bố mức tải</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Tỷ lệ nhân viên theo tín hiệu tải hiện tại.</p>
+              <div className="mt-5 grid gap-4">{[["Tải cao", overloaded.length, "bg-amber-500"], ["Bình thường", normalLoad.length, "bg-teal-600"], ["Còn khả dụng", available.length, "bg-sky-400"]].map(([label, value, color]) => <div key={String(label)}><div className="mb-1 flex justify-between text-sm"><span className="font-semibold">{label}</span><strong>{value}</strong></div><div className="h-3 overflow-hidden rounded-full bg-surface-muted"><div className={`h-full rounded-full ${color}`} style={{ width: `${(Number(value) / workloadBase) * 100}%` }} /></div></div>)}</div>
+              <Link href="/owner/analytics/workload" className="mt-5 inline-flex items-center gap-1 text-sm font-bold text-primary">Phân tích chi tiết <ArrowRight className="h-4 w-4" /></Link>
+            </Card>
+            <Card>
+              <h2 className="text-lg font-black">Sức khỏe tiến độ</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Tính trực tiếp từ tổng task backend trả về.</p>
+              <div className="mt-5 grid grid-cols-2 gap-4"><div className="grid aspect-square place-items-center rounded-full border-[12px] border-emerald-100 bg-emerald-50 text-center"><div><p className="text-3xl font-black text-emerald-700">{completionRate}%</p><p className="text-xs font-bold text-muted-foreground">hoàn thành</p></div></div><div className={`grid aspect-square place-items-center rounded-full border-[12px] text-center ${overdueRate > 0 ? "border-amber-100 bg-amber-50" : "border-slate-100 bg-slate-50"}`}><div><p className={`text-3xl font-black ${overdueRate > 0 ? "text-amber-700" : "text-slate-700"}`}>{overdueRate}%</p><p className="text-xs font-bold text-muted-foreground">quá hạn</p></div></div></div>
+            </Card>
           </div>
 
           <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
