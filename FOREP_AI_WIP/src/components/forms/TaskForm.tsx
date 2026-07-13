@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Check, ChevronLeft, ChevronRight, Paperclip, Plus, Trash2 } from "lucide-react";
+import { Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Paperclip, Plus, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import type { FieldPath } from "react-hook-form";
@@ -18,6 +18,7 @@ import { EmptyState } from "@/components/feedback/EmptyState";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { LoadingState } from "@/components/feedback/LoadingState";
 import { taskSchema, toTaskPayload } from "@/features/tasks/schemas";
+import { getRecommendationPresentation, recommendationScoreWidth, sortRecommendations } from "@/features/tasks/recommendations";
 import { queryKeys } from "@/lib/query-keys";
 import type { ApiFailure } from "@/types/api";
 import type { AssigneeRecommendation, Employee } from "@/types/domain";
@@ -48,22 +49,50 @@ function splitOptions(value?: string | null): string[] {
   return (value ?? "").split(/[,;|\n]/).map((item) => item.trim()).filter(Boolean);
 }
 
-function RecommendationResults({ kind, items, selectedIds, onSelect }: { kind: RecommendationKind; items?: AssigneeRecommendation[]; selectedIds: string[]; onSelect: (item: AssigneeRecommendation) => void }) {
+export function RecommendationResults({ kind, items, selectedIds, onSelect }: { kind: RecommendationKind; items?: AssigneeRecommendation[]; selectedIds: string[]; onSelect: (item: AssigneeRecommendation) => void }) {
   if (!items) return null;
   if (items.length === 0) return <EmptyState title="Chưa có gợi ý phù hợp" description="Hãy bổ sung yêu cầu công việc hoặc dữ liệu năng lực nhân viên." />;
   const label = kind === "individual" ? "Cá nhân" : kind === "leader" ? "Trưởng nhóm" : "Thành viên nhóm";
-  return <div className="grid gap-3">
-    <p className="text-xs font-black tracking-[0.16em] text-teal-300">GỢI Ý {label.toUpperCase()}</p>
-    {items.map((item) => <div key={`${kind}-${item.employeeId ?? item.employeeName}`} className="rounded-control border border-white/10 bg-white/5 p-3">
-      <div className="flex flex-wrap items-center justify-between gap-2"><p className="font-bold">{item.fullName ?? item.employeeName ?? "Nhân viên"}</p><span className="rounded-full bg-white/10 px-2 py-1 text-xs font-semibold">Điểm {item.score ?? "—"}</span></div>
-      <div className="mt-2 flex flex-wrap gap-2"><WorkloadBadge value={item.workloadLevel} /><RoleFitBadge value={item.roleFit} /></div>
-      {item.requiredRole ? <p className="mt-2 text-xs font-semibold text-slate-300">Vai trò: {item.requiredRole}</p> : null}
-      {item.roleFitReason ? <p className="mt-1 text-xs leading-5 text-slate-400">{item.roleFitReason}</p> : null}
-      <p className="mt-2 text-sm leading-6 text-slate-300">{item.reason ?? item.risk ?? "Backend chưa trả lý do chi tiết."}</p>
-      {item.source === "RULE_BASED_FALLBACK" || item.aiProviderFailed ? <p className="mt-2 rounded-control bg-amber-100/10 p-2 text-xs text-amber-100">Kết quả dự phòng theo quy tắc nghiệp vụ.</p> : null}
-      <Button type="button" className="mt-3 w-full" variant={item.employeeId && selectedIds.includes(item.employeeId) ? "secondary" : "primary"} disabled={!item.employeeId || Boolean(item.employeeId && selectedIds.includes(item.employeeId))} onClick={() => onSelect(item)}>{item.employeeId && selectedIds.includes(item.employeeId) ? "Đã chọn" : "Chọn người này"}</Button>
-    </div>)}
-  </div>;
+  const rankedItems = sortRecommendations(items);
+  const usesFallback = rankedItems.some((item) => getRecommendationPresentation(item).isFallback);
+
+  return <section className="grid gap-3" aria-label={`Gợi ý ${label.toLowerCase()}`}>
+    <div className="flex items-center justify-between gap-3">
+      <p className="text-xs font-black tracking-[0.16em] text-teal-300">GỢI Ý {label.toUpperCase()}</p>
+      <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-bold text-slate-300">{rankedItems.length} ứng viên</span>
+    </div>
+    {usesFallback ? <div className="flex items-start gap-2 rounded-control border border-amber-300/20 bg-amber-300/10 p-2.5 text-xs leading-5 text-amber-100"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" /><span>AI chưa sẵn sàng cho một số kết quả. FOREP đang hiển thị xếp hạng theo quy tắc nghiệp vụ và dữ liệu hiện có.</span></div> : null}
+    <ol className="grid gap-2.5">
+      {rankedItems.map((item, index) => {
+        const presentation = getRecommendationPresentation(item);
+        const selected = Boolean(item.employeeId && selectedIds.includes(item.employeeId));
+        const scoreWidth = recommendationScoreWidth(presentation.score);
+        return <li key={`${kind}-${item.employeeId ?? item.employeeName ?? index}`} className={`rounded-control border p-3 transition-colors ${selected ? "border-teal-300/70 bg-teal-300/10 ring-1 ring-teal-300/20" : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.06]"}`}>
+          <div className="flex items-start gap-3">
+            <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-black ${selected ? "bg-teal-300 text-slate-950" : "bg-white/10 text-slate-200"}`}>{selected ? <Check className="h-4 w-4" /> : index + 1}</span>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="min-w-0"><p className="truncate font-bold text-white">{presentation.name}</p>{item.requiredRole ? <p className="mt-0.5 text-xs text-slate-400">Vai trò đề xuất: {item.requiredRole}</p> : null}</div>
+                <div className="shrink-0 text-right"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">Điểm phù hợp</p><p className="text-sm font-black text-teal-200">{presentation.score === null ? "Chưa có" : `${presentation.score} điểm`}</p></div>
+              </div>
+              {presentation.score !== null ? <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10" aria-label={`Điểm phù hợp ${presentation.score}`}><div className="h-full rounded-full bg-teal-300" style={{ width: `${scoreWidth}%` }} /></div> : null}
+            </div>
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            {item.workloadLevel ? <WorkloadBadge value={item.workloadLevel} /> : null}
+            {item.roleFit ? <RoleFitBadge value={item.roleFit} /> : presentation.hasLimitedProfileData ? <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-semibold text-slate-300">Dữ liệu năng lực hạn chế</span> : null}
+          </div>
+          <p className="mt-2.5 text-sm leading-5 text-slate-300">{presentation.primaryReason}</p>
+          {presentation.details.length > 0 ? <details className="group mt-2 rounded-control border border-white/10 bg-black/10 px-3 py-2">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-xs font-bold text-slate-300">Xem phân tích thêm<ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" /></summary>
+            <ul className="mt-2 grid gap-1.5 border-t border-white/10 pt-2 text-xs leading-5 text-slate-400">{presentation.details.map((detail) => <li key={detail}>• {detail}</li>)}</ul>
+          </details> : null}
+          {selected ? <div className="mt-3 flex min-h-11 items-center justify-center gap-2 rounded-control border border-teal-300/30 bg-teal-300/15 px-4 py-2.5 text-sm font-bold text-teal-100"><CheckCircle2 className="h-4 w-4" />Đã chọn cho task</div> : <Button type="button" className="mt-3 w-full" disabled={!item.employeeId} onClick={() => onSelect(item)}>Chọn ứng viên</Button>}
+        </li>;
+      })}
+    </ol>
+  </section>;
 }
 
 export function TaskForm({ initialValues, onSubmit, submitLabel, pending, wizard = false }: { initialValues?: Partial<CreateTaskRequest>; onSubmit: (values: CreateTaskRequest) => void; submitLabel: string; pending?: boolean; wizard?: boolean }) {
@@ -204,9 +233,9 @@ export function TaskForm({ initialValues, onSubmit, submitLabel, pending, wizard
           {assignmentType === "INDIVIDUAL" ? <Button type="button" variant="secondary" disabled={!recommendationReady || individual.isPending} onClick={() => runRecommendation("individual")}>{individual.isPending ? "AI đang phân tích..." : "Gợi ý người nhận"}</Button> : <div className="grid gap-2 sm:grid-cols-2"><Button type="button" variant="secondary" disabled={!recommendationReady || leader.isPending} onClick={() => runRecommendation("leader")}>{leader.isPending ? "Đang gợi ý..." : "Gợi ý trưởng nhóm"}</Button><Button type="button" variant="secondary" disabled={!recommendationReady || member.isPending} onClick={() => runRecommendation("member")}>{member.isPending ? "Đang gợi ý..." : "Gợi ý thành viên"}</Button></div>}
         </div></Card>
 
-        <Card className="bg-slate-950 text-white"><p className="text-xs font-bold tracking-[0.18em] text-teal-300">AI RECOMMENDATION</p><h2 className="mt-2 text-lg font-black">Phân công có con người kiểm soát</h2><p className="mt-1 text-sm leading-6 text-slate-300">Gợi ý không tự giao việc và không thay đổi lựa chọn thủ công.</p>
+        <Card className="overflow-hidden border-slate-800 bg-slate-950 p-0 text-white"><div className="border-b border-white/10 bg-white/[0.03] p-4"><div className="flex items-start gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-control bg-teal-300/10 text-teal-300"><Sparkles className="h-5 w-5" /></span><div><p className="text-xs font-bold tracking-[0.18em] text-teal-300">AI RECOMMENDATION</p><h2 className="mt-1 text-lg font-black">Gợi ý phân công</h2></div></div><div className="mt-3 flex items-start gap-2 rounded-control border border-white/10 bg-black/10 p-2.5"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-teal-300" /><p className="text-xs leading-5 text-slate-300"><strong className="text-white">Bạn luôn là người quyết định.</strong> AI chỉ xếp hạng ứng viên và không tự động giao việc.</p></div></div>
           {recommendationError ? <div className="mt-4"><ErrorState title={normalizedError?.code === "AI_RATE_LIMITED" || normalizedError?.status === 429 ? "AI đang quá tải" : "Không thể lấy gợi ý"} error={recommendationError} /></div> : null}
-          <div className="mt-4 grid gap-4"><RecommendationResults kind="individual" items={individualSignature === signature ? individual.data : undefined} selectedIds={[values.assigneeId ?? ""]} onSelect={(item) => selectRecommendation("individual", item)} /><RecommendationResults kind="leader" items={leaderSignature === signature ? leader.data : undefined} selectedIds={[values.teamLeaderId ?? ""]} onSelect={(item) => selectRecommendation("leader", item)} /><RecommendationResults kind="member" items={memberSignature === signature ? member.data : undefined} selectedIds={values.teamMemberIds ?? []} onSelect={(item) => selectRecommendation("member", item)} /></div>
+          <div className="grid gap-5 p-4 lg:max-h-[720px] lg:overflow-y-auto"><RecommendationResults kind="individual" items={individualSignature === signature ? individual.data : undefined} selectedIds={[values.assigneeId ?? ""]} onSelect={(item) => selectRecommendation("individual", item)} /><RecommendationResults kind="leader" items={leaderSignature === signature ? leader.data : undefined} selectedIds={[values.teamLeaderId ?? ""]} onSelect={(item) => selectRecommendation("leader", item)} /><RecommendationResults kind="member" items={memberSignature === signature ? member.data : undefined} selectedIds={values.teamMemberIds ?? []} onSelect={(item) => selectRecommendation("member", item)} /></div>
         </Card>
       </div> : null}
     </div>
