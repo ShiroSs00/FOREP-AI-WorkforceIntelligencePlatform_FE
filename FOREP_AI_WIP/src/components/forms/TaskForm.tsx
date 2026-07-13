@@ -3,9 +3,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Check, ChevronLeft, ChevronRight, Paperclip, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
+import type { FieldPath } from "react-hook-form";
+import { toast } from "sonner";
 import { listEmployees } from "@/api/employees.api";
+import { listJobPositions } from "@/api/hr.api";
 import { recommendIndividuals, recommendTeamLeaders, recommendTeamMembers } from "@/api/tasks.api";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
@@ -41,6 +44,10 @@ function employeeLabel(employee: Employee): string {
   return detail ? `${employee.fullName} — ${detail}` : employee.fullName;
 }
 
+function splitOptions(value?: string | null): string[] {
+  return (value ?? "").split(/[,;|\n]/).map((item) => item.trim()).filter(Boolean);
+}
+
 function RecommendationResults({ kind, items, selectedIds, onSelect }: { kind: RecommendationKind; items?: AssigneeRecommendation[]; selectedIds: string[]; onSelect: (item: AssigneeRecommendation) => void }) {
   if (!items) return null;
   if (items.length === 0) return <EmptyState title="Chưa có gợi ý phù hợp" description="Hãy bổ sung yêu cầu công việc hoặc dữ liệu năng lực nhân viên." />;
@@ -61,7 +68,9 @@ function RecommendationResults({ kind, items, selectedIds, onSelect }: { kind: R
 
 export function TaskForm({ initialValues, onSubmit, submitLabel, pending, wizard = false }: { initialValues?: Partial<CreateTaskRequest>; onSubmit: (values: CreateTaskRequest) => void; submitLabel: string; pending?: boolean; wizard?: boolean }) {
   const [step, setStep] = useState<1 | 2>(1);
+  const [validationSummary, setValidationSummary] = useState<string[]>([]);
   const employees = useQuery({ queryKey: queryKeys.employees, queryFn: listEmployees });
+  const jobPositions = useQuery({ queryKey: queryKeys.hrJobPositions, queryFn: listJobPositions });
   const form = useForm<TaskFormInput, unknown, TaskFormValues>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
@@ -76,7 +85,25 @@ export function TaskForm({ initialValues, onSubmit, submitLabel, pending, wizard
   const attachments = useFieldArray({ control: form.control, name: "attachments" });
   const values = useWatch({ control: form.control });
   const assignmentType = values.assignmentType ?? "INDIVIDUAL";
-  const activeEmployees = (employees.data ?? []).filter((employee) => !employee.status || employee.status === "ACTIVE");
+  const activeEmployees = useMemo(() => (employees.data ?? []).filter((employee) => !employee.status || employee.status === "ACTIVE"), [employees.data]);
+  const activeJobPositions = useMemo(() => (jobPositions.data ?? []).filter((position) => !position.status || position.status === "ACTIVE"), [jobPositions.data]);
+  const skillOptions = useMemo(() => Array.from(new Set([
+    ...activeEmployees.flatMap((employee) => [...splitOptions(employee.skills), ...splitOptions(employee.mainExpertise), ...splitOptions(employee.secondaryExpertise)]),
+    ...activeJobPositions.flatMap((position) => splitOptions(position.requiredSkills)),
+    ...splitOptions(values.requiredSkills),
+    ...(values.requiredSkills ? [values.requiredSkills] : []),
+  ])).sort((a, b) => a.localeCompare(b, "vi")), [activeEmployees, activeJobPositions, values.requiredSkills]);
+  const domainOptions = useMemo(() => Array.from(new Set([
+    ...activeEmployees.flatMap((employee) => [...splitOptions(employee.mainExpertise), ...splitOptions(employee.secondaryExpertise)]),
+    ...(values.taskDomain ? [values.taskDomain] : []),
+  ])).sort((a, b) => a.localeCompare(b, "vi")), [activeEmployees, values.taskDomain]);
+  const departmentOptions = useMemo(() => {
+    const options = new Map<string, string>();
+    activeEmployees.forEach((employee) => { if (employee.departmentId) options.set(employee.departmentId, employee.departmentName ?? "Phòng ban của nhân viên"); });
+    activeJobPositions.forEach((position) => { if (position.departmentId) options.set(position.departmentId, position.departmentName ?? "Phòng ban của vị trí"); });
+    if (values.departmentId && !options.has(values.departmentId)) options.set(values.departmentId, "Phòng ban đã chọn");
+    return Array.from(options, ([id, label]) => ({ id, label })).sort((a, b) => a.label.localeCompare(b.label, "vi"));
+  }, [activeEmployees, activeJobPositions, values.departmentId]);
   const recommendationInput: RecommendAssigneeRequest = { title: values.title?.trim() ?? "", requirements: values.requirements?.trim() ?? "", deadline: values.deadline ? toIsoWithTimezone(values.deadline) : "", estimatedHours: Number(values.estimatedHours || 0) };
   const signature = JSON.stringify(recommendationInput);
   const [individualSignature, setIndividualSignature] = useState("");
@@ -93,7 +120,31 @@ export function TaskForm({ initialValues, onSubmit, submitLabel, pending, wizard
       "priority", "deadline", "startDate", "estimatedHours", "difficulty", "requiredSkills",
       "requiredJobPositionId", "taskDomain", "projectId", "departmentId", "attachments",
     ]);
-    if (!valid) return;
+    if (!valid) {
+      const checks: Array<{ path: FieldPath<TaskFormInput>; label: string }> = [
+        { path: "title", label: "Tiêu đề" }, { path: "requirements", label: "Yêu cầu" },
+        { path: "customerEmail", label: "Email khách hàng" }, { path: "deadline", label: "Hạn hoàn thành" },
+        { path: "startDate", label: "Ngày bắt đầu" }, { path: "estimatedHours", label: "Số giờ dự kiến" },
+        { path: "difficulty", label: "Độ khó" }, { path: "requiredJobPositionId", label: "Vị trí công việc" },
+        { path: "departmentId", label: "Phòng ban" },
+      ];
+      attachments.fields.forEach((_, index) => {
+        checks.push({ path: `attachments.${index}.fileName` as FieldPath<TaskFormInput>, label: `Tên tài liệu ${index + 1}` });
+        checks.push({ path: `attachments.${index}.fileUrl` as FieldPath<TaskFormInput>, label: `URL tài liệu ${index + 1}` });
+      });
+      const failures = checks.flatMap((item) => {
+        const message = form.getFieldState(item.path).error?.message;
+        return message ? [{ ...item, message }] : [];
+      });
+      setValidationSummary(failures.map((item) => `${item.label}: ${item.message}`));
+      toast.error("Chưa thể tiếp tục. Vui lòng kiểm tra các trường được đánh dấu.");
+      if (failures[0]) {
+        form.setFocus(failures[0].path);
+        window.setTimeout(() => document.querySelector<HTMLElement>(`[name="${failures[0].path}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" }), 0);
+      }
+      return;
+    }
+    setValidationSummary([]);
     setStep(2);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -124,6 +175,7 @@ export function TaskForm({ initialValues, onSubmit, submitLabel, pending, wizard
     void form.handleSubmit((data) => onSubmit(toTaskPayload(data, toIsoWithTimezone)))(event);
   }}>
     {wizard ? <Card className="p-4 sm:p-5"><div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3"><div className="flex items-center gap-3"><span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm font-black ${step === 1 ? "bg-primary text-primary-foreground" : "bg-emerald-100 text-emerald-700"}`}>{step === 1 ? "1" : <Check className="h-4 w-4" />}</span><div><p className="font-black">Thông tin task</p><p className="hidden text-xs text-muted-foreground sm:block">Nội dung, thời gian và yêu cầu</p></div></div><div className="h-px w-8 bg-border sm:w-20" /><div className="flex items-center justify-end gap-3"><span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm font-black ${step === 2 ? "bg-primary text-primary-foreground" : "bg-surface-muted text-muted-foreground"}`}>2</span><div><p className="font-black">Giao việc</p><p className="hidden text-xs text-muted-foreground sm:block">Chọn cá nhân hoặc nhóm</p></div></div></div></Card> : null}
+    {wizard && step === 1 && validationSummary.length > 0 ? <div role="alert" className="rounded-card border border-red-200 bg-red-50 p-4 text-red-950"><p className="font-black">Chưa thể tiếp tục giao việc</p><p className="mt-1 text-sm">Vui lòng sửa các thông tin sau:</p><ul className="mt-2 list-disc space-y-1 pl-5 text-sm">{validationSummary.map((message) => <li key={message}>{message}</li>)}</ul></div> : null}
     <div className={wizard ? "grid gap-5" : "grid gap-5 xl:grid-cols-[minmax(0,1fr)_390px]"}>
       {!wizard || step === 1 ? <div className="grid gap-5">
         <Card><h2 className="text-lg font-black">Thông tin cơ bản</h2><div className="mt-4 grid gap-4">
@@ -136,7 +188,7 @@ export function TaskForm({ initialValues, onSubmit, submitLabel, pending, wizard
 
         <Card><h2 className="text-lg font-black">Thông tin khách hàng</h2><p className="mt-1 text-sm text-muted-foreground">Thông tin liên hệ và bối cảnh bổ sung cho công việc.</p><div className="mt-4 grid gap-4"><div className="grid gap-4 md:grid-cols-2"><Field label="Số điện thoại" optional {...form.register("customerPhone")} /><Field label="Email" type="email" optional error={form.formState.errors.customerEmail?.message} {...form.register("customerEmail")} /></div><TextArea label="Mô tả khách hàng / yêu cầu bổ sung" optional {...form.register("customerDescription")} /></div></Card>
 
-        <Card><h2 className="text-lg font-black">Thông tin phục vụ gợi ý</h2><div className="mt-4 grid gap-4 md:grid-cols-2"><Select label="Độ khó" optional {...form.register("difficulty")}><option value="">Chưa xác định</option>{[1,2,3,4,5].map((level) => <option key={level} value={level}>{level}</option>)}</Select><Field label="Kỹ năng yêu cầu" optional {...form.register("requiredSkills")} /><Field label="Vị trí công việc ID" optional {...form.register("requiredJobPositionId")} /><Field label="Lĩnh vực công việc" optional {...form.register("taskDomain")} /><Field label="Dự án ID" optional {...form.register("projectId")} /><Field label="Phòng ban ID" optional {...form.register("departmentId")} /></div></Card>
+        <Card><h2 className="text-lg font-black">Thông tin phục vụ gợi ý</h2><p className="mt-1 text-sm text-muted-foreground">Các lựa chọn được lấy từ dữ liệu năng lực và cơ cấu hiện có trong workspace.</p><div className="mt-4 grid gap-4 md:grid-cols-2"><Select label="Độ khó" {...form.register("difficulty")}><option value="">Chưa xác định</option>{[1,2,3,4,5].map((level) => <option key={level} value={level}>{level}</option>)}</Select><Select label="Kỹ năng yêu cầu" disabled={skillOptions.length === 0} {...form.register("requiredSkills")}><option value="">{skillOptions.length === 0 ? "Chưa có dữ liệu kỹ năng" : "Chưa chọn kỹ năng"}</option>{skillOptions.map((skill) => <option key={skill} value={skill}>{skill}</option>)}</Select><Select label="Vị trí công việc" disabled={jobPositions.isLoading || activeJobPositions.length === 0} error={form.formState.errors.requiredJobPositionId?.message} {...form.register("requiredJobPositionId")}><option value="">{jobPositions.isLoading ? "Đang tải vị trí..." : activeJobPositions.length === 0 ? "Chưa có vị trí công việc" : "Chưa chọn vị trí"}</option>{activeJobPositions.map((position) => <option key={position.id} value={position.id}>{position.title}</option>)}</Select><Select label="Lĩnh vực công việc" disabled={domainOptions.length === 0} {...form.register("taskDomain")}><option value="">{domainOptions.length === 0 ? "Chưa có dữ liệu lĩnh vực" : "Chưa chọn lĩnh vực"}</option>{domainOptions.map((domain) => <option key={domain} value={domain}>{domain}</option>)}</Select><Select label="Phòng ban" disabled={departmentOptions.length === 0} error={form.formState.errors.departmentId?.message} {...form.register("departmentId")}><option value="">{departmentOptions.length === 0 ? "Backend chưa trả danh mục phòng ban" : "Chưa chọn phòng ban"}</option>{departmentOptions.map((department) => <option key={department.id} value={department.id}>{department.label}</option>)}</Select></div>{jobPositions.error ? <p className="mt-3 text-sm font-semibold text-destructive">Không thể tải danh mục vị trí công việc. Vui lòng thử tải lại trang.</p> : null}</Card>
 
         <Card><div className="flex items-center justify-between gap-3"><div><h2 className="text-lg font-black">Tài liệu đính kèm</h2><p className="mt-1 text-sm text-muted-foreground">Backend hiện nhận metadata URL, không tải file trực tiếp.</p></div><Button type="button" variant="secondary" onClick={() => attachments.append({ fileName: "", fileUrl: "", contentType: "", fileSize: undefined, attachmentType: "REFERENCE" })}><Plus className="h-4 w-4" />Thêm tài liệu</Button></div>
           <div className="mt-4 grid gap-4">{attachments.fields.length === 0 ? <div className="rounded-control border border-dashed border-border p-5 text-center text-sm text-muted-foreground"><Paperclip className="mx-auto mb-2 h-5 w-5" />Chưa có tài liệu</div> : attachments.fields.map((field, index) => <div key={field.id} className="grid gap-3 rounded-control border border-border p-3"><div className="grid gap-3 md:grid-cols-2"><Field label="Tên tài liệu" error={form.formState.errors.attachments?.[index]?.fileName?.message} {...form.register(`attachments.${index}.fileName`)} /><Field label="URL tài liệu" type="url" error={form.formState.errors.attachments?.[index]?.fileUrl?.message} {...form.register(`attachments.${index}.fileUrl`)} /><Select label="Loại tài liệu" {...form.register(`attachments.${index}.attachmentType`)}><option value="REQUIREMENT">Tài liệu yêu cầu</option><option value="REFERENCE">Tài liệu tham khảo</option><option value="RESULT">Kết quả</option><option value="OTHER">Khác</option></Select><Field label="Content type" optional {...form.register(`attachments.${index}.contentType`)} /></div><Button type="button" variant="ghost" onClick={() => attachments.remove(index)}><Trash2 className="h-4 w-4" />Bỏ tài liệu</Button></div>)}</div>

@@ -5,11 +5,20 @@ const optionalText = z.string().trim().optional();
 const optionalUuid = z.union([z.literal(""), z.string().uuid()]).optional();
 
 export const taskAttachmentSchema = z.object({
-  fileName: z.string().trim().min(1, "Vui lòng nhập tên tài liệu"),
-  fileUrl: z.string().trim().url("URL tài liệu không hợp lệ"),
+  fileName: z.string().trim(),
+  fileUrl: z.string().trim(),
   contentType: optionalText,
-  fileSize: z.coerce.number().int().nonnegative().optional(),
+  fileSize: z.preprocess((value) => value === "" || value === null ? undefined : value, z.coerce.number().int().nonnegative().optional()),
   attachmentType: z.enum(["REQUIREMENT", "REFERENCE", "RESULT", "OTHER"]).default("REFERENCE"),
+}).superRefine((value, ctx) => {
+  const hasAttachmentData = Boolean(value.fileName || value.fileUrl || value.contentType || value.fileSize !== undefined);
+  if (!hasAttachmentData) return;
+  if (!value.fileName) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["fileName"], message: "Vui lòng nhập tên tài liệu" });
+  if (!value.fileUrl) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["fileUrl"], message: "Vui lòng nhập URL tài liệu" });
+  } else if (!z.string().url().safeParse(value.fileUrl).success) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["fileUrl"], message: "URL tài liệu không hợp lệ" });
+  }
 });
 
 export const taskSchema = z.object({
@@ -75,7 +84,7 @@ export function toTaskPayload(data: TaskValues, toIso: (value: string) => string
     taskDomain: textOrUndefined(data.taskDomain),
     projectId: data.projectId || undefined,
     departmentId: data.departmentId || undefined,
-    attachments: data.attachments.map((item) => ({
+    attachments: data.attachments.filter((item) => item.fileName || item.fileUrl || item.contentType || item.fileSize !== undefined).map((item) => ({
       fileName: item.fileName,
       fileUrl: item.fileUrl,
       contentType: textOrUndefined(item.contentType),

@@ -110,6 +110,21 @@ describe("form schemas", () => {
     expect("assigneeId" in teamPayload).toBe(false);
   });
 
+  it("ignores a completely blank optional attachment row", () => {
+    const result = taskSchema.parse({
+      title: "Task",
+      requirements: "Req",
+      assignmentType: "INDIVIDUAL",
+      assigneeId: "550e8400-e29b-41d4-a716-446655440000",
+      priority: "MEDIUM",
+      deadline: "2026-06-29T10:00",
+      estimatedHours: 2,
+      attachments: [{ fileName: "", fileUrl: "", contentType: "", attachmentType: "REFERENCE" }],
+    });
+    expect(toTaskPayload(result, (value) => value).attachments).toEqual([]);
+    expect(taskSchema.safeParse({ ...result, attachments: [{ fileName: "Tài liệu", fileUrl: "", attachmentType: "REFERENCE" }] }).success).toBe(false);
+  });
+
   it("uses deployed workspace task aliases", () => {
     expect(workspaceTaskPaths.assignIndividual("task-1")).toBe("/api/workspace/tasks/task-1/assign-individual");
     expect(workspaceTaskPaths.assignTeam("task-1")).toBe("/api/workspace/tasks/task-1/assign-team");

@@ -235,6 +235,12 @@ export type AuditLog = {
 
 export type Employee = User & {
   workloadLevel?: WorkloadLevel;
+  departmentId?: string | null;
+  departmentName?: string | null;
+  jobPositionId?: string | null;
+  jobPositionName?: string | null;
+  mainExpertise?: string | null;
+  secondaryExpertise?: string | null;
 };
 
 export type TaskAssignee = {
@@ -314,6 +320,7 @@ export type TaskUpdate = {
 export type JobPosition = {
   id: string;
   title: string;
+  departmentId?: string | null;
   departmentName?: string | null;
   description?: string | null;
   requiredSkills?: string | null;
