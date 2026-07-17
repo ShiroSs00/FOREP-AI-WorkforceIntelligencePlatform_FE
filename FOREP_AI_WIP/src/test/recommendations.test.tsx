@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { RecommendationResults } from "@/components/forms/TaskForm";
-import { getRecommendationPresentation, recommendationScoreWidth, sortRecommendations } from "@/features/tasks/recommendations";
+import { getRecommendationPresentation, recommendationScoreWidth } from "@/features/tasks/recommendations";
 import type { AssigneeRecommendation } from "@/types/domain";
 
 describe("AI recommendation presentation", () => {
@@ -17,13 +17,10 @@ describe("AI recommendation presentation", () => {
     expect(presentation.details).toEqual([]);
   });
 
-  it("sorts candidates by finite backend score without losing stable order", () => {
-    const items = [
-      { employeeId: "a", score: 25 },
-      { employeeId: "b", score: 72 },
-      { employeeId: "c" },
-    ] satisfies AssigneeRecommendation[];
-    expect(sortRecommendations(items).map((item) => item.employeeId)).toEqual(["b", "a", "c"]);
+  it("renders candidates in the exact order returned by backend", () => {
+    render(<RecommendationResults kind="individual" items={[{ employeeId: "a", employeeName: "Ứng viên A", score: 25 }, { employeeId: "b", employeeName: "Ứng viên B", score: 72 }]} selectedIds={[]} onSelect={vi.fn()} />);
+    const names = screen.getAllByText(/Ứng viên [AB]/).map((item) => item.textContent);
+    expect(names).toEqual(["Ứng viên A", "Ứng viên B"]);
   });
 
   it("clamps visual score width while preserving the backend score label", () => {

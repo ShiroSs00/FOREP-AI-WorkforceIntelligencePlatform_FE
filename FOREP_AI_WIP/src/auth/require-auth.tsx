@@ -35,9 +35,19 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
     if (!role) return;
     const normalized = normalizeRole(role);
     const namespace = pathname.split("/").filter(Boolean)[0];
-    const expectedNamespace = normalized === "PLATFORM_ADMIN" ? "admin" : normalized === "BUSINESS_OWNER" ? "owner" : normalized === "HR" ? "hr" : normalized === "MANAGER" ? "manager" : normalized === "EMPLOYEE" ? "employee" : null;
-    if (normalized === "SYSTEM" && pathname !== "/forbidden") router.replace("/forbidden");
-    if (["admin", "owner", "hr", "manager", "employee"].includes(namespace) && namespace !== expectedNamespace) router.replace("/forbidden");
+    const allowedNamespaces = normalized === "PLATFORM_ADMIN" || normalized === "SYSTEM"
+      ? ["platform", "admin"]
+      : normalized === "BUSINESS_OWNER"
+        ? ["owner"]
+        : normalized === "HR"
+          ? ["hr"]
+          : normalized === "EXECUTIVE" || normalized === "MANAGER"
+            ? ["operations", "manager"]
+            : normalized === "EMPLOYEE"
+              ? ["employee"]
+              : [];
+    const protectedNamespaces = ["platform", "admin", "owner", "hr", "operations", "manager", "employee"];
+    if (protectedNamespaces.includes(namespace) && !allowedNamespaces.includes(namespace)) router.replace("/forbidden");
   }, [meQuery.data?.role, pathname, router, user?.role]);
 
   useEffect(() => {

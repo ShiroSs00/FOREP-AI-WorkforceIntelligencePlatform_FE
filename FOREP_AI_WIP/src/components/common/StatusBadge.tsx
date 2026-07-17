@@ -6,9 +6,12 @@ type Tone = "neutral" | "blue" | "green" | "amber" | "red" | "teal";
 
 const taskStatus: Record<TaskStatus, { label: string; tone: Tone }> = {
   ASSIGNED: { label: "Đã giao", tone: "neutral" },
+  ACCEPTED: { label: "Đã nhận việc", tone: "teal" },
   IN_PROGRESS: { label: "Đang thực hiện", tone: "blue" },
   BLOCKED: { label: "Đang vướng", tone: "amber" },
-  COMPLETED: { label: "Hoàn thành", tone: "green" },
+  SUBMITTED: { label: "Chờ xác nhận hoàn thành", tone: "amber" },
+  RETURNED: { label: "Cần chỉnh sửa", tone: "red" },
+  COMPLETED: { label: "Đã hoàn thành", tone: "green" },
   CANCELLED: { label: "Đã hủy", tone: "neutral" },
 };
 

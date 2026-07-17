@@ -5,9 +5,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { MoreHorizontal, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { createEmployee, listEmployees, resetEmployeePassword, updateEmployeeStatus } from "@/api/employees.api";
+import { listBusinessPositions, listDepartments } from "@/api/hr.api";
 import { RequireRole } from "@/auth/require-role";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
@@ -19,7 +20,7 @@ import { EmptyState } from "@/components/feedback/EmptyState";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { LoadingState } from "@/components/feedback/LoadingState";
 import { EmployeeCredentialsDialog } from "@/components/forms/EmployeeCredentialsDialog";
-import { employeeSchema, seniorityOptions, toEmployeePayload } from "@/features/employees/schemas";
+import { employeeLevelOptions, employeeSchema, employmentTypeOptions, seniorityOptions, toEmployeePayload, workingStatusOptions } from "@/features/employees/schemas";
 import { seniorityLabel } from "@/lib/labels";
 import { queryKeys } from "@/lib/query-keys";
 import { formatDate } from "@/lib/tasks";
@@ -32,8 +33,24 @@ type Values = z.output<typeof employeeSchema>;
 const defaultValues: EmployeeInput = {
   fullName: "",
   email: "",
+  phone: "",
   jobTitle: "",
   seniorityLevel: "" as const,
+  departmentId: "",
+  jobPositionId: "",
+  skillRating: undefined,
+  yearsOfExperience: undefined,
+  skills: "",
+  dateOfBirth: "",
+  gender: "",
+  address: "",
+  personalSummary: "",
+  employmentType: "",
+  workingStatus: "WORKING",
+  employeeLevel: "",
+  monthlyWorkingCapacityHours: 168,
+  mainExpertise: "",
+  secondaryExpertise: "",
 };
 
 export default function EmployeesPage() {
@@ -41,11 +58,22 @@ export default function EmployeesPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [seniority, setSeniority] = useState("");
+  const [role, setRole] = useState("");
+  const [department, setDepartment] = useState("");
+  const [position, setPosition] = useState("");
+  const [workingStatus, setWorkingStatus] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [credentialEmployee, setCredentialEmployee] = useState<Employee | null>(null);
   const query = useQuery({ queryKey: queryKeys.employees, queryFn: listEmployees });
+  const departmentsQuery = useQuery({ queryKey: queryKeys.departments(), queryFn: listDepartments });
+  const positionsQuery = useQuery({ queryKey: queryKeys.businessPositions(), queryFn: () => listBusinessPositions() });
   const form = useForm<EmployeeInput, unknown, Values>({ resolver: zodResolver(employeeSchema), defaultValues });
+  const selectedPositionId = useWatch({ control: form.control, name: "jobPositionId" });
+  const selectedDepartmentId = useWatch({ control: form.control, name: "departmentId" });
+  const selectedPosition = (positionsQuery.data ?? []).find((item) => item.id === selectedPositionId);
+  const activeDepartments = (departmentsQuery.data ?? []).filter((item) => item.status === "ACTIVE" || item.id === selectedDepartmentId);
+  const activePositions = (positionsQuery.data ?? []).filter((item) => item.status === "ACTIVE");
 
   const invalidateEmployees = () => {
     void queryClient.invalidateQueries({ queryKey: queryKeys.employees });
@@ -82,9 +110,15 @@ export default function EmployeesPage() {
     () =>
       (query.data ?? []).filter((employee) => {
         const haystack = `${employee.fullName} ${employee.email ?? ""} ${employee.username ?? ""} ${employee.employeeCode ?? ""} ${employee.jobTitle ?? ""}`.toLowerCase();
-        return haystack.includes(search.toLowerCase()) && (!status || employee.status === status) && (!seniority || employee.seniorityLevel === seniority);
+        return haystack.includes(search.toLowerCase())
+          && (!status || employee.status === status)
+          && (!seniority || employee.seniorityLevel === seniority)
+          && (!role || employee.role === role)
+          && (!department || employee.departmentId === department)
+          && (!position || employee.jobPositionId === position)
+          && (!workingStatus || employee.workingStatus === workingStatus);
       }),
-    [query.data, search, seniority, status],
+    [department, position, query.data, role, search, seniority, status, workingStatus],
   );
   const pageSize = 5;
   const currentPage = Math.min(page, Math.max(1, Math.ceil(rows.length / pageSize)));
@@ -97,7 +131,7 @@ export default function EmployeesPage() {
   };
 
   return (
-    <RequireRole role="OWNER">
+    <RequireRole allowedRoles={["OWNER", "BUSINESS_OWNER", "HR"]}>
       <PageHeader
         eyebrow="Nhân viên"
         title="Quản lý nhân viên"
@@ -111,8 +145,10 @@ export default function EmployeesPage() {
       />
 
       <Card className="mb-5">
-        <div className="grid gap-3 md:grid-cols-[minmax(260px,1fr)_220px_220px]">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <div className="md:col-span-2 xl:col-span-2">
           <Field label="Tìm kiếm" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Tên, email, mã nhân viên..." />
+          </div>
           <Select label="Trạng thái" value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }}>
             <option value="">Tất cả</option>
             <option value="ACTIVE">Đang hoạt động</option>
@@ -122,6 +158,28 @@ export default function EmployeesPage() {
           <Select label="Cấp độ" value={seniority} onChange={(event) => { setSeniority(event.target.value); setPage(1); }}>
             <option value="">Tất cả</option>
             {seniorityOptions.map((option) => <option key={option} value={option}>{seniorityLabel(option)}</option>)}
+          </Select>
+          <Select label="Vai trò hệ thống" value={role} onChange={(event) => { setRole(event.target.value); setPage(1); }}>
+            <option value="">Tất cả</option>
+            <option value="BUSINESS_OWNER">Chủ workspace</option>
+            <option value="HR">Nhân sự</option>
+            <option value="EXECUTIVE">Điều hành</option>
+            <option value="MANAGER">Quản lý</option>
+            <option value="EMPLOYEE">Nhân viên</option>
+          </Select>
+          <Select label="Trạng thái làm việc" value={workingStatus} onChange={(event) => { setWorkingStatus(event.target.value); setPage(1); }}>
+            <option value="">Tất cả</option>
+            <option value="WORKING">Đang làm việc</option>
+            <option value="ON_LEAVE">Đang nghỉ phép</option>
+            <option value="RESIGNED">Đã nghỉ việc</option>
+          </Select>
+          <Select label="Phòng ban" value={department} onChange={(event) => { setDepartment(event.target.value); setPosition(""); setPage(1); }}>
+            <option value="">Tất cả</option>
+            {(departmentsQuery.data ?? []).map((item) => <option key={item.id} value={item.id}>{item.name}{item.status === "INACTIVE" ? " · ngừng hoạt động" : ""}</option>)}
+          </Select>
+          <Select label="Vị trí nghiệp vụ" value={position} onChange={(event) => { setPosition(event.target.value); setPage(1); }}>
+            <option value="">Tất cả</option>
+            {(positionsQuery.data ?? []).filter((item) => !department || item.departmentId === department).map((item) => <option key={item.id} value={item.id}>{item.name}{item.status === "INACTIVE" ? " · ngừng hoạt động" : ""}</option>)}
           </Select>
         </div>
       </Card>
@@ -136,7 +194,7 @@ export default function EmployeesPage() {
                 <tr className="border-b border-border bg-surface-subtle text-xs font-bold tracking-[0.12em] text-muted-foreground">
                   <th className="w-[27%] px-5 py-3">Nhân viên</th>
                   <th className="w-[18%] px-5 py-3">Tài khoản</th>
-                  <th className="w-[18%] px-5 py-3">Chuyên môn</th>
+                  <th className="w-[18%] px-5 py-3">Cơ cấu & quyền</th>
                   <th className="w-[16%] px-5 py-3">Trạng thái</th>
                   <th className="w-[11%] px-5 py-3">Ngày tạo</th>
                   <th className="w-[10%] px-5 py-3 text-right">Thao tác</th>
@@ -154,12 +212,13 @@ export default function EmployeesPage() {
                       <p className="mt-1 text-xs">{employee.employeeCode || "Chưa có mã nhân viên"}</p>
                     </td>
                     <td className="px-5 py-4 text-muted-foreground">
-                      <p className="truncate font-semibold text-foreground">{employee.jobTitle || "Chưa cập nhật"}</p>
-                      <p className="mt-1 text-xs">{seniorityLabel(employee.seniorityLevel)}</p>
+                      <p className="truncate font-semibold text-foreground">{employee.jobPositionName || employee.jobTitle || "Chưa có vị trí"}</p>
+                      <p className="mt-1 truncate text-xs">{employee.departmentName || "Chưa có phòng ban"} · {employee.role}</p>
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex flex-col items-start gap-2">
                         <StatusBadge value={employee.status} />
+                        {employee.workingStatus ? <StatusBadge value={employee.workingStatus} /> : null}
                         {employee.workloadLevel ? <WorkloadBadge value={employee.workloadLevel} /> : null}
                       </div>
                     </td>
@@ -201,21 +260,16 @@ export default function EmployeesPage() {
 
       {createOpen ? (
         <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-slate-950/55 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="create-employee-title" onMouseDown={(event) => event.target === event.currentTarget ? setCreateOpen(false) : undefined}>
-          <Card className="my-auto w-full max-w-xl p-0 shadow-2xl">
+          <Card className="my-auto w-full max-w-4xl p-0 shadow-2xl">
             <div className="flex items-start justify-between border-b border-border px-5 py-4">
               <div><h2 id="create-employee-title" className="text-xl font-black">Thêm nhân viên</h2><p className="mt-1 text-sm text-muted-foreground">Tạo tài khoản với những thông tin cần thiết.</p></div>
               <button className="focus-ring rounded-control border border-border p-2 text-muted-foreground hover:bg-surface-muted hover:text-foreground" onClick={() => setCreateOpen(false)} aria-label="Đóng"><X className="h-4 w-4" /></button>
             </div>
-            <form className="grid gap-4 p-5" onSubmit={form.handleSubmit((values) => createMutation.mutate(toEmployeePayload(values)))}>
-              <Field label="Họ và tên" required autoFocus error={form.formState.errors.fullName?.message} {...form.register("fullName")} />
-              <Field label="Email" type="email" error={form.formState.errors.email?.message} {...form.register("email")} />
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Chức danh" {...form.register("jobTitle")} />
-                <Select label="Cấp độ" error={form.formState.errors.seniorityLevel?.message} {...form.register("seniorityLevel")}>
-                  <option value="">Chưa chọn</option>
-                  {seniorityOptions.map((option) => <option key={option} value={option}>{seniorityLabel(option)}</option>)}
-                </Select>
-              </div>
+            <form className="grid max-h-[78vh] gap-5 overflow-y-auto p-5" onSubmit={form.handleSubmit((values) => createMutation.mutate(toEmployeePayload(values)))}>
+              <section className="grid gap-4"><h3 className="font-black">Thông tin tài khoản</h3><div className="grid gap-4 sm:grid-cols-2"><Field label="Họ và tên" required autoFocus error={form.formState.errors.fullName?.message} {...form.register("fullName")} /><Field label="Email" required type="email" error={form.formState.errors.email?.message} {...form.register("email")} /><Field label="Số điện thoại" {...form.register("phone")} /><Field label="Chức danh hiển thị" {...form.register("jobTitle")} /></div></section>
+              <section className="grid gap-4 border-t border-border pt-5"><div><h3 className="font-black">Cơ cấu và quyền workspace</h3><p className="mt-1 text-sm text-muted-foreground">Vai trò hệ thống sẽ được xác định từ Nhóm quyền của Vị trí nghiệp vụ.</p></div><div className="grid gap-4 sm:grid-cols-2"><Select label="Vị trí nghiệp vụ" value={selectedPositionId ?? ""} onChange={(event) => { const id = event.target.value; form.setValue("jobPositionId", id, { shouldValidate: true }); const position = activePositions.find((item) => item.id === id); if (position) form.setValue("departmentId", position.departmentId, { shouldValidate: true }); }}><option value="">Chưa chọn</option>{activePositions.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.permissionGroup}</option>)}</Select><Select label="Phòng ban" disabled={Boolean(selectedPosition)} helper={selectedPosition ? "Được đồng bộ từ vị trí nghiệp vụ." : undefined} {...form.register("departmentId")}><option value="">Chưa chọn</option>{activeDepartments.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</Select></div>{departmentsQuery.error || positionsQuery.error ? <p className="text-sm font-semibold text-destructive">Không thể tải đầy đủ danh mục phòng ban hoặc vị trí nghiệp vụ.</p> : null}</section>
+              <section className="grid gap-4 border-t border-border pt-5"><h3 className="font-black">Năng lực chuyên môn</h3><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><Select label="Cấp độ chuyên môn" error={form.formState.errors.seniorityLevel?.message} {...form.register("seniorityLevel")}><option value="">Chưa chọn</option>{seniorityOptions.map((option) => <option key={option} value={option}>{seniorityLabel(option)}</option>)}</Select><Select label="Cấp nhân viên" {...form.register("employeeLevel")}><option value="">Chưa chọn</option>{employeeLevelOptions.map((option) => <option key={option} value={option}>{option}</option>)}</Select><Field label="Số năm kinh nghiệm" type="number" min="0" {...form.register("yearsOfExperience")} /><Field label="Mức kỹ năng" type="number" min="1" max="5" {...form.register("skillRating")} /><Field label="Năng lực tháng (giờ)" type="number" min="1" {...form.register("monthlyWorkingCapacityHours")} /><Field label="Chuyên môn chính" {...form.register("mainExpertise")} /><Field label="Chuyên môn phụ" {...form.register("secondaryExpertise")} /><Field label="Kỹ năng" className="lg:col-span-2" {...form.register("skills")} /></div></section>
+              <section className="grid gap-4 border-t border-border pt-5"><h3 className="font-black">Thông tin nhân sự</h3><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><Field label="Ngày sinh" type="date" {...form.register("dateOfBirth")} /><Select label="Giới tính" {...form.register("gender")}><option value="">Chưa chọn</option><option value="MALE">Nam</option><option value="FEMALE">Nữ</option><option value="OTHER">Khác</option></Select><Select label="Loại hình làm việc" {...form.register("employmentType")}><option value="">Chưa chọn</option>{employmentTypeOptions.map((option) => <option key={option} value={option}>{option}</option>)}</Select><Select label="Trạng thái làm việc" {...form.register("workingStatus")}>{workingStatusOptions.map((option) => <option key={option} value={option}>{option}</option>)}</Select><Field label="Địa chỉ" className="lg:col-span-2" {...form.register("address")} /></div><Field label="Tóm tắt cá nhân" {...form.register("personalSummary")} /></section>
               {createMutation.error ? <ErrorState title="Không thể thêm nhân viên" error={createMutation.error} /> : null}
               <div className="flex justify-end gap-3 border-t border-border pt-4"><Button variant="ghost" onClick={() => setCreateOpen(false)}>Hủy</Button><Button type="submit" disabled={createMutation.isPending}>{createMutation.isPending ? "Đang thêm..." : "Thêm nhân viên"}</Button></div>
             </form>

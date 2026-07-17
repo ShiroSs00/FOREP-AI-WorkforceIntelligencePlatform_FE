@@ -80,10 +80,12 @@ describe("form schemas", () => {
     const result = employeeSchema.safeParse({ fullName: "Linh Nguyen", email: "linh@forep.vn", phone: "", jobTitle: "Engineer", seniorityLevel: "SENIOR", skillRating: 5, yearsOfExperience: 4, skills: "React" });
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(toEmployeePayload(result.data)).toEqual({ fullName: "Linh Nguyen", email: "linh@forep.vn", phone: undefined, jobTitle: "Engineer", seniorityLevel: "SENIOR", skillRating: 5, yearsOfExperience: 4, skills: "React", status: undefined });
-      expect("username" in toEmployeePayload(result.data)).toBe(false);
-      expect("employeeCode" in toEmployeePayload(result.data)).toBe(false);
-      expect("initialPassword" in toEmployeePayload(result.data)).toBe(false);
+      const payload = toEmployeePayload(result.data);
+      expect(payload).toMatchObject({ fullName: "Linh Nguyen", email: "linh@forep.vn", phone: undefined, jobTitle: "Engineer", seniorityLevel: "SENIOR", skillRating: 5, yearsOfExperience: 4, skills: "React", status: undefined });
+      expect("username" in payload).toBe(false);
+      expect("employeeCode" in payload).toBe(false);
+      expect("initialPassword" in payload).toBe(false);
+      expect("role" in payload).toBe(false);
     }
     expect(employeeSchema.safeParse({ fullName: "A", skillRating: 6 }).success).toBe(false);
     expect(employeeSchema.safeParse({ fullName: "A", yearsOfExperience: -1 }).success).toBe(false);
@@ -131,6 +133,10 @@ describe("form schemas", () => {
     expect(workspaceTaskPaths.customerInfo("task-1")).toBe("/api/workspace/tasks/task-1/customer-info");
     expect(workspaceTaskPaths.recommendTeamLeaders).toBe("/api/workspace/ai/recommendations/team-leaders");
     expect(workspaceTaskPaths.recommendTeamMembers).toBe("/api/workspace/ai/recommendations/team-members");
+    expect(workspaceTaskPaths.accept("task-1")).toBe("/api/workspace/tasks/task-1/accept");
+    expect(workspaceTaskPaths.submitCompletion("task-1")).toBe("/api/workspace/tasks/task-1/submit-completion");
+    expect(workspaceTaskPaths.approveCompletion("task-1")).toBe("/api/workspace/tasks/task-1/approve-completion");
+    expect(workspaceTaskPaths.returnForRevision("task-1")).toBe("/api/workspace/tasks/task-1/return");
   });
 
   it("rejects invalid progress and completion below 100", () => {

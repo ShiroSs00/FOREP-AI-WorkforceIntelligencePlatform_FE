@@ -23,6 +23,7 @@ function roleLabel(role?: string | null) {
   if (normalized === "PLATFORM_ADMIN") return "Quản trị nền tảng";
   if (normalized === "BUSINESS_OWNER") return "Chủ doanh nghiệp";
   if (normalized === "HR") return "Nhân sự";
+  if (normalized === "EXECUTIVE") return "Điều hành";
   if (normalized === "MANAGER") return "Quản lý";
   if (normalized === "SYSTEM") return "Hệ thống";
   return "Nhân viên";
@@ -57,12 +58,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const unread = notificationsQuery.data?.filter((item) => !item.read).length ?? 0;
   const homeHref = user ? getHomeForRole(user.role) : "/login";
   const primaryAction =
-    normalizedRole === "PLATFORM_ADMIN"
-      ? { href: "/admin/registrations", label: "Duyệt hồ sơ", icon: FileText }
-      : normalizedRole === "BUSINESS_OWNER" || normalizedRole === "MANAGER"
+    normalizedRole === "PLATFORM_ADMIN" || normalizedRole === "SYSTEM"
+      ? { href: "/platform/registrations", label: "Duyệt hồ sơ", icon: FileText }
+      : normalizedRole === "BUSINESS_OWNER"
         ? { href: "/owner/tasks/new", label: "Tạo task", icon: Plus }
+        : normalizedRole === "MANAGER" || normalizedRole === "EXECUTIVE"
+          ? { href: "/operations/tasks/new", label: "Tạo task", icon: Plus }
         : normalizedRole === "HR"
-          ? { href: "/hr/job-positions", label: "Vị trí công việc", icon: FileText }
+          ? { href: "/hr/employees", label: "Thêm nhân viên", icon: Plus }
           : { href: "/daily-reports/new", label: "Gửi báo cáo", icon: FileText };
 
   const logoutMutation = useMutation({
@@ -172,7 +175,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 {unread > 0 ? <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-destructive px-1 text-center text-xs font-bold text-white">{unread}</span> : null}
               </Link>
             ) : null}
-            <Badge tone={normalizedRole === "PLATFORM_ADMIN" ? "amber" : normalizedRole === "BUSINESS_OWNER" ? "teal" : "blue"}>{roleLabel(user?.role)}</Badge>
+            <Badge tone={normalizedRole === "PLATFORM_ADMIN" || normalizedRole === "SYSTEM" ? "amber" : normalizedRole === "BUSINESS_OWNER" ? "teal" : "blue"}>{roleLabel(user?.role)}</Badge>
           </div>
         </header>
         <main className="mx-auto w-full max-w-[1500px] p-4 sm:p-6">{children}</main>

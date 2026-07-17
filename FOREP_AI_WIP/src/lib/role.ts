@@ -8,10 +8,10 @@ export function normalizeRole(role: Role): CanonicalRole {
 
 export function getHomeForRole(role: Role): string {
   const normalized = normalizeRole(role);
-  if (normalized === "PLATFORM_ADMIN") return "/admin/dashboard";
+  if (normalized === "PLATFORM_ADMIN" || normalized === "SYSTEM") return "/platform/dashboard";
   if (normalized === "BUSINESS_OWNER") return "/owner/dashboard";
   if (normalized === "HR") return "/hr/employees";
-  if (normalized === "MANAGER") return "/manager/tasks";
+  if (normalized === "EXECUTIVE" || normalized === "MANAGER") return "/operations/tasks";
   if (normalized === "EMPLOYEE") return "/employee/home";
   return "/forbidden";
 }

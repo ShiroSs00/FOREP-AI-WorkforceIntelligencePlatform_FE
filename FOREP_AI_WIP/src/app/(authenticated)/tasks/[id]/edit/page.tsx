@@ -27,7 +27,7 @@ export default function EditTaskPage() {
       router.replace(`/tasks/${id}`);
     },
   });
-  return <RequireRole allowedRoles={["OWNER", "BUSINESS_OWNER", "MANAGER"]}>
+  return <RequireRole allowedRoles={["OWNER", "BUSINESS_OWNER", "EXECUTIVE", "MANAGER"]}>
     <PageHeader eyebrow="Công việc" title="Chỉnh sửa task" description="Cập nhật nội dung, khách hàng, phân công và tài liệu theo dữ liệu backend." />
     {task.isLoading ? <LoadingState rows={6} /> : null}
     {task.error ? <ErrorState title="Không thể tải task" error={task.error} onRetry={() => void task.refetch()} /> : null}

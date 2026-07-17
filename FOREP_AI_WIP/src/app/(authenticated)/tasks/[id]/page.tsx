@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { toast } from "sonner";
 import { adjustTask, splitTask } from "@/api/ai.api";
-import { addTaskAttachment, assignIndividual, assignTeam, cancelTask, getWorkspaceTask, listTaskAttachments, listTaskUpdates, updateTaskCustomerInfo, updateTaskProgress, updateTaskStatus } from "@/api/tasks.api";
+import { acceptTask, addTaskAttachment, approveTaskCompletion, assignIndividual, assignTeam, cancelTask, getWorkspaceTask, listTaskAttachments, listTaskUpdates, returnTaskForRevision, submitTaskCompletion, updateTaskCustomerInfo, updateTaskProgress } from "@/api/tasks.api";
 import { listEmployees } from "@/api/employees.api";
 import { useAuthStore } from "@/auth/auth-store";
 import { Button } from "@/components/common/Button";
@@ -22,20 +22,33 @@ import { ErrorState } from "@/components/feedback/ErrorState";
 import { LoadingState } from "@/components/feedback/LoadingState";
 import { progressSchema } from "@/features/tasks/schemas";
 import { queryKeys } from "@/lib/query-keys";
-import { formatDateTime, isTaskOverdue } from "@/lib/tasks";
+import { formatDateTime, isTaskOverdue, isTaskTerminal } from "@/lib/tasks";
 import { normalizeRole } from "@/lib/role";
-import { canEditTaskCustomerInfo, getTaskAssignmentType } from "@/lib/task-permissions";
+import { canAcceptTask, canApproveTaskCompletion, canEditTaskCustomerInfo, canReturnTask, canSubmitTaskCompletion, canUpdateTaskProgress, getTaskAssignmentType } from "@/lib/task-permissions";
 import type { z } from "zod";
 
 type ProgressInput = z.input<typeof progressSchema>;
 type ProgressValues = z.output<typeof progressSchema>;
-type StatusValue = "ASSIGNED" | "IN_PROGRESS" | "BLOCKED" | "COMPLETED" | "CANCELLED";
-
 const updateLabels: Record<string, string> = {
+  ACCEPTANCE: "Đã nhận việc",
   PROGRESS: "Cập nhật tiến độ",
   BLOCKER: "Báo vướng mắc",
-  COMPLETION: "Hoàn thành",
+  COMPLETION: "Đã gửi kết quả",
+  COMPLETION_APPROVAL: "Đã xác nhận hoàn thành",
+  RETURN: "Yêu cầu chỉnh sửa",
 };
+
+function workflowCopy(status?: string) {
+  if (status === "ASSIGNED") return "Công việc đang chờ người được giao xác nhận.";
+  if (status === "ACCEPTED") return "Công việc đã được nhận và sẵn sàng cập nhật tiến độ.";
+  if (status === "IN_PROGRESS") return "Công việc đang được thực hiện.";
+  if (status === "BLOCKED") return "Công việc đang có vướng mắc cần được xử lý.";
+  if (status === "SUBMITTED") return "Kết quả đang chờ quản lý xác nhận.";
+  if (status === "RETURNED") return "Kết quả cần chỉnh sửa trước khi gửi lại.";
+  if (status === "COMPLETED") return "Kết quả đã được quản lý xác nhận hoàn thành.";
+  if (status === "CANCELLED") return "Công việc đã bị hủy và chỉ còn ở chế độ xem.";
+  return "Trạng thái công việc được đồng bộ từ backend.";
+}
 
 export default function TaskDetailPage() {
   const params = useParams<{ id: string }>();
@@ -48,6 +61,8 @@ export default function TaskDetailPage() {
   const [attachment, setAttachment] = useState({ fileName: "", fileUrl: "", contentType: "", fileSize: "", attachmentType: "REFERENCE" as const });
   const [assignment, setAssignment] = useState({ type: "INDIVIDUAL" as "INDIVIDUAL" | "TEAM", individualId: "", leaderId: "", memberIds: [] as string[] });
   const [customerEditor, setCustomerEditor] = useState<{ customerPhone: string; customerEmail: string; customerDescription: string } | null>(null);
+  const [completion, setCompletion] = useState({ content: "", attachment: "" });
+  const [returnRequest, setReturnRequest] = useState({ reason: "", attachment: "" });
   const form = useForm<ProgressInput, unknown, ProgressValues>({
     resolver: zodResolver(progressSchema),
     defaultValues: { updateType: "PROGRESS", content: "", progressPercent: 0 },
@@ -58,6 +73,7 @@ export default function TaskDetailPage() {
     void queryClient.invalidateQueries({ queryKey: queryKeys.taskUpdates(params.id) });
     void queryClient.invalidateQueries({ queryKey: queryKeys.tasks });
     void queryClient.invalidateQueries({ queryKey: queryKeys.workload });
+    void queryClient.invalidateQueries({ queryKey: ["workload", "monthly"] });
     void queryClient.invalidateQueries({ queryKey: queryKeys.ownerDashboard });
     void queryClient.invalidateQueries({ queryKey: queryKeys.notifications });
     void queryClient.invalidateQueries({ queryKey: queryKeys.ai });
@@ -74,13 +90,10 @@ export default function TaskDetailPage() {
       invalidateTaskSideEffects();
     },
   });
-  const statusMutation = useMutation({
-    mutationFn: (status: StatusValue) => updateTaskStatus(params.id, { status }),
-    onSuccess: () => {
-      toast.success("Đã đổi trạng thái task");
-      invalidateTaskSideEffects();
-    },
-  });
+  const acceptMutation = useMutation({ mutationFn: () => acceptTask(params.id), onSuccess: (result) => { queryClient.setQueryData(queryKeys.task(params.id), result); toast.success("Đã nhận việc"); invalidateTaskSideEffects(); } });
+  const submitMutation = useMutation({ mutationFn: () => submitTaskCompletion(params.id, { content: completion.content.trim(), attachment: completion.attachment.trim() || undefined }), onSuccess: (result) => { queryClient.setQueryData(queryKeys.task(params.id), result); setCompletion({ content: "", attachment: "" }); toast.success("Đã gửi kết quả, đang chờ quản lý xác nhận"); invalidateTaskSideEffects(); } });
+  const approveMutation = useMutation({ mutationFn: () => approveTaskCompletion(params.id), onSuccess: (result) => { queryClient.setQueryData(queryKeys.task(params.id), result); toast.success("Đã xác nhận hoàn thành"); invalidateTaskSideEffects(); } });
+  const returnMutation = useMutation({ mutationFn: () => returnTaskForRevision(params.id, { reason: returnRequest.reason.trim(), attachment: returnRequest.attachment.trim() || undefined }), onSuccess: (result) => { queryClient.setQueryData(queryKeys.task(params.id), result); setReturnRequest({ reason: "", attachment: "" }); toast.success("Đã gửi yêu cầu chỉnh sửa"); invalidateTaskSideEffects(); } });
   const cancelMutation = useMutation({
     mutationFn: () => cancelTask(params.id),
     onSuccess: () => {
@@ -94,12 +107,20 @@ export default function TaskDetailPage() {
   const assignmentMutation = useMutation({ mutationFn: () => assignment.type === "INDIVIDUAL" ? assignIndividual(params.id, { employeeId: assignment.individualId }) : assignTeam(params.id, { teamLeaderId: assignment.leaderId, teamMemberIds: assignment.memberIds }), onSuccess: () => { toast.success("Đã cập nhật người nhận"); invalidateTaskSideEffects(); void queryClient.invalidateQueries({ queryKey: queryKeys.managerTasks }); } });
   const customerMutation = useMutation({ mutationFn: () => updateTaskCustomerInfo(params.id, { customerPhone: customerEditor?.customerPhone.trim() || undefined, customerEmail: customerEditor?.customerEmail.trim() || undefined, customerDescription: customerEditor?.customerDescription.trim() || undefined }), onSuccess: () => { toast.success("Đã cập nhật thông tin khách hàng"); setCustomerEditor(null); void queryClient.invalidateQueries({ queryKey: queryKeys.task(params.id) }); } });
   const currentTask = task.data;
-  const terminal = currentTask?.status === "COMPLETED" || currentTask?.status === "CANCELLED";
+  const terminal = currentTask ? isTaskTerminal(currentTask) : false;
   const normalizedRole = user ? normalizeRole(user.role) : null;
-  const canManage = normalizedRole === "BUSINESS_OWNER" || normalizedRole === "MANAGER";
+  const canManage =
+    normalizedRole === "BUSINESS_OWNER" ||
+    normalizedRole === "EXECUTIVE" ||
+    normalizedRole === "MANAGER";
   const canEditCustomer = canEditTaskCustomerInfo({ user, task: currentTask });
   const employeeName = (id?: string | null) => (employees.data ?? []).find((item) => item.id === id)?.fullName ?? id ?? "—";
   const assignmentType = currentTask ? getTaskAssignmentType(currentTask) : "INDIVIDUAL";
+  const mayAccept = canAcceptTask(user, currentTask);
+  const mayUpdate = canUpdateTaskProgress(user, currentTask);
+  const maySubmit = canSubmitTaskCompletion(user, currentTask);
+  const mayApprove = canApproveTaskCompletion(user, currentTask);
+  const mayReturn = canReturnTask(user, currentTask);
 
   return (
     <>
@@ -140,6 +161,17 @@ export default function TaskDetailPage() {
                 </div>
               </div>
               <div className="mt-5"><ProgressBar value={currentTask.progressPercent} showLabel /></div>
+            </Card>
+
+            <Card className={currentTask.status === "SUBMITTED" ? "border-amber-300 bg-amber-50/50" : currentTask.status === "RETURNED" ? "border-red-200 bg-red-50/40" : undefined}>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div><p className="text-xs font-black tracking-[0.16em] text-primary">QUY TRÌNH CÔNG VIỆC</p><h2 className="mt-1 text-lg font-black">{workflowCopy(currentTask.status)}</h2></div>
+                {currentTask.status ? <StatusBadge value={currentTask.status} /> : null}
+              </div>
+              {currentTask.status === "RETURNED" && currentTask.returnReason ? <div className="mt-4 rounded-control border border-red-200 bg-white p-3"><p className="text-xs font-bold text-red-700">LÝ DO CẦN CHỈNH SỬA</p><p className="mt-1 leading-6">{currentTask.returnReason}</p>{currentTask.returnAttachment ? <a className="mt-2 inline-flex text-sm font-bold text-primary underline underline-offset-4" href={currentTask.returnAttachment} target="_blank" rel="noreferrer">Mở tài liệu đính kèm</a> : null}{currentTask.returnedByName ? <p className="mt-2 text-xs text-muted-foreground">Người yêu cầu: {currentTask.returnedByName} · {formatDateTime(currentTask.returnedAt)}</p> : null}</div> : null}
+              {mayAccept ? <div className="mt-4"><Button disabled={acceptMutation.isPending} onClick={() => window.confirm("Xác nhận nhận công việc này?") ? acceptMutation.mutate() : undefined}>{acceptMutation.isPending ? "Đang nhận việc..." : "Nhận việc"}</Button></div> : null}
+              {currentTask.status === "SUBMITTED" && !mayApprove ? <p className="mt-4 rounded-control border border-amber-200 bg-white p-3 text-sm font-semibold text-amber-900">Đang chờ quản lý xác nhận. Tiến độ 100% chưa phải là hoàn thành cuối cùng.</p> : null}
+              {acceptMutation.error ? <div className="mt-4"><ErrorState title="Không thể nhận việc" error={acceptMutation.error} /></div> : null}
             </Card>
 
             <Card>
@@ -189,7 +221,7 @@ export default function TaskDetailPage() {
                       <p className="font-bold text-foreground">{updateLabels[item.updateType] ?? item.updateType}</p>
                       <p className="text-xs font-semibold text-muted-foreground">{formatDateTime(item.createdAt)}</p>
                     </div>
-                    <p className="mt-1 text-sm text-muted-foreground">{item.createdByName ?? "Người cập nhật"} · {item.progressPercent ?? "—"}%</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{item.createdByName ?? item.actorName ?? "Người cập nhật"}{typeof item.progressPercent === "number" ? ` · ${item.progressPercent}%` : ""}</p>
                     <p className="mt-3 leading-6 text-foreground">{item.content}</p>
                     {item.attachment ? <p className="mt-2 text-sm font-semibold text-primary">Có tệp đính kèm</p> : null}
                   </div>
@@ -201,34 +233,36 @@ export default function TaskDetailPage() {
           <aside className="grid gap-5 self-start xl:sticky xl:top-24">
             <Card>
               <h2 className="text-lg font-black">Cập nhật nhanh</h2>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">Gửi tiến độ, báo vướng mắc hoặc đánh dấu hoàn thành để owner nắm tình hình.</p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">Cập nhật tiến độ và vướng mắc. Tiến độ 100% vẫn cần gửi kết quả để quản lý xác nhận.</p>
               {terminal ? <p className="mt-3 rounded-control bg-surface-subtle px-3 py-2 text-sm font-semibold text-muted-foreground">Task đã đóng nên thao tác cập nhật bị giới hạn.</p> : null}
               <div className="mt-4 grid gap-2 sm:grid-cols-3 xl:grid-cols-1">
-                <Button variant="secondary" disabled={terminal} onClick={() => form.setValue("updateType", "PROGRESS", { shouldValidate: true })}>Cập nhật tiến độ</Button>
-                <Button variant="secondary" disabled={terminal} onClick={() => form.setValue("updateType", "BLOCKER", { shouldValidate: true })}>Báo vướng mắc</Button>
-                <Button variant="secondary" disabled={terminal} onClick={() => { form.setValue("updateType", "COMPLETION", { shouldValidate: true }); form.setValue("progressPercent", 100, { shouldValidate: true }); }}>Hoàn thành</Button>
+                <Button variant="secondary" disabled={!mayUpdate} onClick={() => form.setValue("updateType", "PROGRESS", { shouldValidate: true })}>Cập nhật tiến độ</Button>
+                <Button variant="secondary" disabled={!mayUpdate} onClick={() => form.setValue("updateType", "BLOCKER", { shouldValidate: true })}>Báo vướng mắc</Button>
               </div>
               <form
                 className="mt-5 grid gap-3"
                 onSubmit={form.handleSubmit((values) =>
                   progressMutation.mutate({
                     id: params.id,
-                    values: { ...values, progressPercent: values.updateType === "COMPLETION" ? 100 : values.progressPercent, attachment: values.attachment || undefined },
+                    values: { ...values, attachment: values.attachment || undefined },
                   }),
                 )}
               >
-                <Select label="Loại cập nhật" {...form.register("updateType")} disabled={terminal}>
+                <Select label="Loại cập nhật" {...form.register("updateType")} disabled={!mayUpdate}>
                   <option value="PROGRESS">Cập nhật tiến độ</option>
                   <option value="BLOCKER">Báo vướng mắc</option>
-                  <option value="COMPLETION">Hoàn thành</option>
                 </Select>
-                <Field label="Tiến độ (%)" type="number" min="0" max="100" {...form.register("progressPercent")} disabled={terminal} />
-                <TextArea label="Nội dung cập nhật" error={form.formState.errors.content?.message} {...form.register("content")} disabled={terminal} />
-                <Field label="Tệp đính kèm" optional {...form.register("attachment")} disabled={terminal} />
-                <Button type="submit" disabled={terminal || progressMutation.isPending}>{progressMutation.isPending ? "Đang gửi..." : "Gửi cập nhật"}</Button>
+                <Field label="Tiến độ (%)" type="number" min="0" max="100" {...form.register("progressPercent")} disabled={!mayUpdate} />
+                <TextArea label="Nội dung cập nhật" error={form.formState.errors.content?.message} {...form.register("content")} disabled={!mayUpdate} />
+                <Field label="Tệp đính kèm" optional {...form.register("attachment")} disabled={!mayUpdate} />
+                <Button type="submit" disabled={!mayUpdate || progressMutation.isPending}>{progressMutation.isPending ? "Đang gửi..." : "Gửi cập nhật"}</Button>
               </form>
               {progressMutation.error ? <ErrorState title="Không thể gửi cập nhật" error={progressMutation.error} /> : null}
             </Card>
+
+            {maySubmit ? <Card><h2 className="text-lg font-black">Gửi yêu cầu hoàn thành</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">Mô tả kết quả để quản lý kiểm tra. Thao tác này chuyển task sang trạng thái chờ xác nhận, không tự hoàn thành task.</p><div className="mt-4 grid gap-3"><TextArea label="Kết quả công việc" value={completion.content} onChange={(event) => setCompletion({ ...completion, content: event.target.value })} /><Field label="Tệp hoặc liên kết kết quả" optional value={completion.attachment} onChange={(event) => setCompletion({ ...completion, attachment: event.target.value })} /><Button disabled={!completion.content.trim() || submitMutation.isPending} onClick={() => window.confirm("Gửi kết quả để quản lý xác nhận?") ? submitMutation.mutate() : undefined}>{submitMutation.isPending ? "Đang gửi..." : "Gửi yêu cầu hoàn thành"}</Button>{submitMutation.error ? <ErrorState title="Không thể gửi yêu cầu hoàn thành" error={submitMutation.error} /> : null}</div></Card> : null}
+
+            {mayApprove || mayReturn ? <Card><h2 className="text-lg font-black">Xác nhận kết quả</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">Kiểm tra nội dung và lịch sử trước khi xác nhận hoàn thành hoặc yêu cầu chỉnh sửa.</p>{mayApprove ? <Button className="mt-4 w-full" disabled={approveMutation.isPending} onClick={() => window.confirm("Xác nhận kết quả công việc này đạt yêu cầu và hoàn thành task?") ? approveMutation.mutate() : undefined}>{approveMutation.isPending ? "Đang xác nhận..." : "Xác nhận hoàn thành"}</Button> : null}<div className="mt-4 grid gap-3 border-t border-border pt-4"><TextArea label="Lý do cần chỉnh sửa" value={returnRequest.reason} onChange={(event) => setReturnRequest({ ...returnRequest, reason: event.target.value })} /><Field label="Tệp hoặc tài liệu đính kèm" optional value={returnRequest.attachment} onChange={(event) => setReturnRequest({ ...returnRequest, attachment: event.target.value })} /><Button variant="secondary" disabled={!returnRequest.reason.trim() || returnMutation.isPending} onClick={() => window.confirm("Gửi yêu cầu chỉnh sửa cho người thực hiện?") ? returnMutation.mutate() : undefined}>{returnMutation.isPending ? "Đang gửi..." : "Yêu cầu chỉnh sửa"}</Button></div>{approveMutation.error ? <div className="mt-4"><ErrorState title="Không thể xác nhận hoàn thành" error={approveMutation.error} /></div> : null}{returnMutation.error ? <div className="mt-4"><ErrorState title="Không thể yêu cầu chỉnh sửa" error={returnMutation.error} /></div> : null}</Card> : null}
 
             {normalizedRole === "BUSINESS_OWNER" ? (
               <Card>
@@ -271,14 +305,7 @@ export default function TaskDetailPage() {
                   {assignment.type === "INDIVIDUAL" ? <Select label="Người nhận" value={assignment.individualId} onChange={(event) => setAssignment({ ...assignment, individualId: event.target.value })}><option value="">Chọn nhân viên</option>{(employees.data ?? []).filter((item) => item.status === "ACTIVE").map((item) => <option key={item.id} value={item.id}>{item.fullName}</option>)}</Select> : <><Select label="Trưởng nhóm" value={assignment.leaderId} onChange={(event) => setAssignment({ ...assignment, leaderId: event.target.value })}><option value="">Chọn trưởng nhóm</option>{(employees.data ?? []).filter((item) => item.status === "ACTIVE").map((item) => <option key={item.id} value={item.id}>{item.fullName}</option>)}</Select><div className="grid gap-2 rounded-control border border-border p-3"><p className="text-sm font-bold">Thành viên</p>{(employees.data ?? []).filter((item) => item.status === "ACTIVE" && item.id !== assignment.leaderId).map((item) => <label key={item.id} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={assignment.memberIds.includes(item.id)} onChange={(event) => setAssignment({ ...assignment, memberIds: event.target.checked ? [...assignment.memberIds, item.id] : assignment.memberIds.filter((id) => id !== item.id) })} />{item.fullName}</label>)}</div></>}
                   <Button variant="secondary" disabled={assignmentMutation.isPending || (assignment.type === "INDIVIDUAL" ? !assignment.individualId : !assignment.leaderId)} onClick={() => window.confirm("Xác nhận giao lại công việc?") ? assignmentMutation.mutate() : undefined}>{assignmentMutation.isPending ? "Đang giao việc..." : "Giao lại"}</Button>
                   {assignmentMutation.error ? <ErrorState title="Không thể giao việc" error={assignmentMutation.error} /> : null}
-                  <Select label="Đổi trạng thái" value={currentTask.status ?? "ASSIGNED"} onChange={(event) => statusMutation.mutate(event.target.value as StatusValue)} disabled={statusMutation.isPending || terminal}>
-                    <option value="ASSIGNED">Đã giao</option>
-                    <option value="IN_PROGRESS">Đang thực hiện</option>
-                    <option value="BLOCKED">Đang vướng</option>
-                    <option value="COMPLETED">Hoàn thành</option>
-                    <option value="CANCELLED">Đã hủy</option>
-                  </Select>
-                  {normalizedRole === "BUSINESS_OWNER" ? <Button variant="danger" onClick={() => (window.confirm("Bạn chắc chắn muốn hủy task này?") ? cancelMutation.mutate() : undefined)} disabled={cancelMutation.isPending || currentTask.status === "CANCELLED"}>Hủy task</Button> : null}
+                  {canManage ? <Button variant="danger" onClick={() => (window.confirm("Bạn chắc chắn muốn hủy task này?") ? cancelMutation.mutate() : undefined)} disabled={cancelMutation.isPending || currentTask.status === "CANCELLED"}>Hủy task</Button> : null}
                 </div>
               </Card>
             ) : null}

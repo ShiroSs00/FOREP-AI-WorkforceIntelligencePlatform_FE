@@ -2,7 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { RequireRole } from "@/auth/require-role";
-import { getAdminMonitoring } from "@/api/admin.api";
+import { getAdminMonitoring, getPlatformAiSummary } from "@/api/admin.api";
+import { AiSummaryCard } from "@/components/ai/AiSummaryCard";
 import { Card } from "@/components/common/Card";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatCard } from "@/components/common/StatCard";
@@ -17,6 +18,7 @@ function valueOf(value: unknown): string {
 
 export default function AdminDashboardPage() {
   const monitoring = useQuery({ queryKey: queryKeys.adminMonitoring, queryFn: getAdminMonitoring });
+  const platformAi = useQuery({ queryKey: queryKeys.platformAiSummary, queryFn: getPlatformAiSummary });
   const data = monitoring.data;
   const cards = [
     { label: "Tổng workspace", value: data?.totalWorkspaces },
@@ -54,6 +56,7 @@ export default function AdminDashboardPage() {
           <EmptyState title="Chưa có dữ liệu giám sát" description="Backend chưa trả nội dung monitoring." />
         )
       ) : null}
+      <div className="mt-5"><AiSummaryCard eyebrow="TÓM TẮT AI NỀN TẢNG" title="Tóm tắt AI toàn nền tảng" description="Dữ liệu workspace, thanh toán, phản hồi doanh nghiệp và thống kê AI dành riêng cho quản trị nền tảng." data={platformAi.data} loading={platformAi.isLoading} error={platformAi.error} onRetry={() => void platformAi.refetch()} /></div>
     </RequireRole>
   );
 }

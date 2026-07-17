@@ -14,11 +14,12 @@ import { PaymentStatusBadge, RegistrationStatusBadge } from "@/components/common
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { LoadingState } from "@/components/feedback/LoadingState";
+import { OwnerCredentialsDialog } from "@/components/forms/OwnerCredentialsDialog";
 import { paymentStatuses, registrationStatuses } from "@/features/admin/schemas";
 import { getPaymentIdFromRegistration } from "@/lib/payments";
 import { queryKeys } from "@/lib/query-keys";
 import { formatDateTime } from "@/lib/tasks";
-import type { WorkspaceRegistration } from "@/types/domain";
+import type { AdminBusinessOwner, WorkspaceActivationResult, WorkspaceRegistration } from "@/types/domain";
 
 type Action = "confirm-payment" | "reject-payment" | "approve" | "activate" | "reject-registration";
 
@@ -27,6 +28,7 @@ export default function AdminRegistrationsPage() {
   const [search, setSearch] = useState("");
   const [registrationStatus, setRegistrationStatus] = useState("ALL");
   const [paymentStatus, setPaymentStatus] = useState("ALL");
+  const [ownerAccounts, setOwnerAccounts] = useState<AdminBusinessOwner[]>([]);
   const registrations = useQuery({ queryKey: queryKeys.adminWorkspaceRegistrations, queryFn: listWorkspaceRegistrations });
   const plans = useQuery({ queryKey: queryKeys.adminSubscriptionPlans, queryFn: listAdminSubscriptionPlans });
 
@@ -45,7 +47,12 @@ export default function AdminRegistrationsPage() {
       if (action === "approve") return approveWorkspaceRegistration(item.id, { note });
       return rejectWorkspaceRegistration(item.id, { note });
     },
-    onSuccess: (_data, variables) => {
+    onSuccess: (data, variables) => {
+      if (variables.action === "activate" && data && typeof data === "object") {
+        const activation = data as WorkspaceActivationResult;
+        const accounts = activation.generatedBusinessOwners ?? activation.businessOwners ?? activation.ownerAccounts ?? [];
+        if (accounts.length > 0) setOwnerAccounts(accounts);
+      }
       toast.success("Đã cập nhật hồ sơ đăng ký");
       const paymentId = getPaymentIdFromRegistration(variables.item);
       void queryClient.invalidateQueries({ queryKey: queryKeys.adminWorkspaceRegistrations });
@@ -127,6 +134,7 @@ export default function AdminRegistrationsPage() {
           <EmptyState title="Không có hồ sơ phù hợp" description="Thử thay đổi bộ lọc hoặc chờ hồ sơ mới từ public registration." />
         )
       ) : null}
+      <OwnerCredentialsDialog accounts={ownerAccounts} onClose={() => { setOwnerAccounts([]); actionMutation.reset(); }} />
     </RequireRole>
   );
 }

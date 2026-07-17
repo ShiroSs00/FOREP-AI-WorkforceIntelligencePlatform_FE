@@ -7,14 +7,18 @@ export function isTaskOverdue(task: Task, now = new Date()): boolean {
   return Number.isFinite(deadline.getTime()) && deadline.getTime() < now.getTime();
 }
 
-export function formatDateTime(value?: string): string {
+export function isTaskTerminal(task: Pick<Task, "status">): boolean {
+  return task.status === "COMPLETED" || task.status === "CANCELLED";
+}
+
+export function formatDateTime(value?: string | null): string {
   if (!value) return "—";
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return "—";
   return new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium", timeStyle: "short" }).format(date);
 }
 
-export function formatDate(value?: string): string {
+export function formatDate(value?: string | null): string {
   if (!value) return "—";
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return "—";

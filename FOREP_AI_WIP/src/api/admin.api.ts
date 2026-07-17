@@ -1,6 +1,6 @@
 ﻿import { adminPath, apiClient } from "./client";
-import { normalizeArray, unwrapApiResponse } from "./response";
-import type { AdminBusinessOwner, AdminMonitoring, AuditLog, BusinessFeedback, PaymentTransaction, PlatformWorkspace, SubscriptionPlan, UserStatus, WorkspaceRegistration, WorkspaceStatus } from "@/types/domain";
+import { normalizeArray, normalizeObject, unwrapApiResponse } from "./response";
+import type { AdminBusinessOwner, AdminMonitoring, AiResult, AuditLog, BusinessFeedback, PaymentTransaction, PlatformWorkspace, SubscriptionPlan, UserStatus, WorkspaceActivationResult, WorkspaceRegistration, WorkspaceStatus } from "@/types/domain";
 import type {
   AdminCreateWorkspaceRequest,
   AdminUpdateWorkspaceRequest,
@@ -14,6 +14,11 @@ import type {
 export async function getAdminMonitoring(): Promise<AdminMonitoring> {
   const response = await apiClient.get("/admin/monitoring");
   return unwrapApiResponse<AdminMonitoring>(response.data);
+}
+
+export async function getPlatformAiSummary(): Promise<AiResult | null> {
+  const response = await apiClient.get(adminPath("/ai/platform-summary"));
+  return normalizeObject<AiResult>(response.data);
 }
 
 export async function listAdminWorkspaces(): Promise<PlatformWorkspace[]> {
@@ -108,9 +113,9 @@ export const confirmRegistrationPayment = (id: string, payload: ReviewRegistrati
 export const requestRegistrationPaymentCorrection = (id: string, payload: ReviewRegistrationRequest) => reviewRegistration(`/admin/workspace-registrations/${id}/request-payment-correction`, payload);
 export const approveWorkspaceRegistration = (id: string, payload: ReviewRegistrationRequest) => reviewRegistration(adminPath(`/workspace-registrations/${id}/approve`), payload);
 export const rejectWorkspaceRegistration = (id: string, payload: ReviewRegistrationRequest) => reviewRegistration(adminPath(`/workspace-registrations/${id}/reject`), payload);
-export async function activateWorkspaceRegistration(id: string, payload: ReviewRegistrationRequest): Promise<WorkspaceRegistration> {
+export async function activateWorkspaceRegistration(id: string, payload: ReviewRegistrationRequest): Promise<WorkspaceActivationResult> {
   const response = await apiClient.post(`/admin/workspace-registrations/${id}/activate`, payload);
-  return unwrapApiResponse<WorkspaceRegistration>(response.data);
+  return unwrapApiResponse<WorkspaceActivationResult>(response.data);
 }
 
 export async function confirmAdminPayment(paymentId: string, payload?: ReviewRegistrationRequest): Promise<PaymentTransaction> {

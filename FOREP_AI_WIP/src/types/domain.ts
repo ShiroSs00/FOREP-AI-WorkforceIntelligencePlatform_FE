@@ -1,14 +1,18 @@
 ﻿
-export type CanonicalRole = "PLATFORM_ADMIN" | "BUSINESS_OWNER" | "HR" | "MANAGER" | "EMPLOYEE" | "SYSTEM";
+export type CanonicalRole = "PLATFORM_ADMIN" | "BUSINESS_OWNER" | "HR" | "EXECUTIVE" | "MANAGER" | "EMPLOYEE" | "SYSTEM";
 export type Role = CanonicalRole | "SYSTEM_ADMIN" | "OWNER";
+export type PermissionGroup = "EMPLOYEE" | "MANAGER" | "EXECUTIVE";
 export type UserStatus = "ACTIVE" | "INACTIVE" | "INVITED";
 export type SeniorityLevel = "INTERN" | "JUNIOR" | "MIDDLE" | "SENIOR" | "LEAD";
+export type EmploymentType = "FULL_TIME" | "PART_TIME" | "CONTRACTOR" | "INTERN";
+export type WorkingStatus = "WORKING" | "ON_LEAVE" | "RESIGNED";
+export type EmployeeLevel = "INTERN" | "FRESHER" | "JUNIOR" | "MIDDLE" | "SENIOR" | "LEAD" | "MANAGER";
 export type SkillRating = 1 | 2 | 3 | 4 | 5;
 export type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
-export type TaskStatus = "ASSIGNED" | "IN_PROGRESS" | "BLOCKED" | "COMPLETED" | "CANCELLED";
+export type TaskStatus = "ASSIGNED" | "ACCEPTED" | "IN_PROGRESS" | "BLOCKED" | "SUBMITTED" | "RETURNED" | "COMPLETED" | "CANCELLED";
 export type AssignmentType = "INDIVIDUAL" | "TEAM";
 export type TaskParticipantRole = "ASSIGNEE" | "LEADER" | "MEMBER";
-export type UpdateType = "PROGRESS" | "BLOCKER" | "COMPLETION";
+export type UpdateType = "ACCEPTANCE" | "PROGRESS" | "BLOCKER" | "COMPLETION" | "COMPLETION_APPROVAL" | "RETURN";
 export type WorkloadLevel = "NO_WORK" | "LOW" | "NORMAL" | "HIGH" | "OVERLOADED";
 export type AiSuggestionStatus = "GENERATED" | "ACCEPTED" | "REJECTED";
 export type WorkspaceStatus = "PENDING_PAYMENT" | "ACTIVE" | "INACTIVE" | "SUSPENDED" | "EXPIRED";
@@ -20,6 +24,7 @@ export type RoleFit = "STRONG" | "PARTIAL" | "UNCERTAIN";
 
 export type User = {
   id: string;
+  employeeId?: string | null;
   workspaceId: string | null;
   fullName: string;
   email: string;
@@ -35,6 +40,21 @@ export type User = {
   skillRating: SkillRating | null;
   yearsOfExperience: number | null;
   skills: string | null;
+  departmentId?: string | null;
+  departmentName?: string | null;
+  jobPositionId?: string | null;
+  jobPositionName?: string | null;
+  permissionGroup?: PermissionGroup | null;
+  dateOfBirth?: string | null;
+  gender?: string | null;
+  address?: string | null;
+  personalSummary?: string | null;
+  employmentType?: EmploymentType | null;
+  workingStatus?: WorkingStatus | null;
+  employeeLevel?: EmployeeLevel | null;
+  monthlyWorkingCapacityHours?: number | null;
+  mainExpertise?: string | null;
+  secondaryExpertise?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -156,6 +176,13 @@ export type WorkspaceRegistration = {
   updatedAt: string;
 };
 
+export type WorkspaceActivationResult = WorkspaceRegistration & {
+  generatedBusinessOwners?: AdminBusinessOwner[];
+  businessOwners?: AdminBusinessOwner[];
+  ownerAccounts?: AdminBusinessOwner[];
+  ownerProvisionedAt?: string | null;
+};
+
 export type PlatformWorkspace = {
   id: string;
   businessName: string | null;
@@ -243,6 +270,33 @@ export type Employee = User & {
   secondaryExpertise?: string | null;
 };
 
+export type DepartmentStatus = "ACTIVE" | "INACTIVE";
+
+export type Department = {
+  id: string;
+  workspaceId?: string | null;
+  name: string;
+  code?: string | null;
+  description?: string | null;
+  status: DepartmentStatus;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+};
+
+export type BusinessPosition = {
+  id: string;
+  workspaceId?: string | null;
+  name: string;
+  code?: string | null;
+  permissionGroup: PermissionGroup;
+  departmentId: string;
+  departmentName?: string | null;
+  description?: string | null;
+  status: DepartmentStatus;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+};
+
 export type TaskAssignee = {
   id: string;
   taskId: string;
@@ -251,6 +305,7 @@ export type TaskAssignee = {
   leader: boolean;
   allocatedHours: number;
   createdAt: string;
+  employeeName?: string | null;
 };
 
 export type TaskAttachmentType = "REQUIREMENT" | "REFERENCE" | "RESULT" | "OTHER";
@@ -304,6 +359,10 @@ export type Task = {
   createdAt?: string;
   updatedAt?: string;
   completedAt?: string | null;
+  returnReason?: string | null;
+  returnAttachment?: string | null;
+  returnedByName?: string | null;
+  returnedAt?: string | null;
 };
 
 export type TaskUpdate = {
@@ -315,6 +374,7 @@ export type TaskUpdate = {
   attachment?: string | null;
   createdAt?: string;
   createdByName?: string;
+  actorName?: string | null;
 };
 
 export type JobPosition = {
@@ -389,6 +449,11 @@ export type MonthlyWorkload = WorkloadRecord & {
   assignedTasks?: number;
   completedHours?: number;
   estimatedHours?: number;
+  employeeName?: string;
+  allocatedHours?: number;
+  capacityHours?: number;
+  utilizationRatio?: number;
+  workloadLabel?: string;
 };
 
 export type AiFallbackMetadata = {
@@ -408,7 +473,53 @@ export type AssigneeRecommendation = AiFallbackMetadata & {
   roleFitReason?: string | null;
   reason?: string;
   risk?: string;
+  departmentId?: string | null;
+  departmentName?: string | null;
+  businessPositionId?: string | null;
+  businessPositionName?: string | null;
+  permissionGroup?: PermissionGroup | null;
+  departmentSuitabilityScore?: number | null;
+  businessPositionSuitabilityScore?: number | null;
+  leadExperienceScore?: number | null;
+  domainExperienceScore?: number | null;
+  skillMatchScore?: number | null;
+  similarTaskExperienceScore?: number | null;
+  workloadAvailabilityScore?: number | null;
+  performanceScore?: number | null;
+  previousLeaderCount?: number | null;
+  leadCompletionRate?: number | null;
+  similarTaskCount?: number | null;
+  scoreComponents?: Record<string, number | string | null> | null;
 };
+
+export type AiTaskAnalysis = AiFallbackMetadata & {
+  taskType?: string | null;
+  taskDomain?: string | null;
+  suggestedDifficulty?: number | null;
+  suggestedEmployeeLevel?: EmployeeLevel | string | null;
+  requiredSkills?: string[] | string | null;
+  requiredJobPositions?: string[] | null;
+  relatedDepartment?: string | null;
+  estimatedWorkingHoursSuggestion?: number | null;
+  missingInformation?: string[] | null;
+  clarifyingQuestions?: string[] | null;
+  summary?: string | null;
+};
+
+export type AiHistoryStatus = "SUCCESS" | "FAILED" | "PROCESSING" | "CANCELLED";
+
+export type AiHistoryItem = {
+  id?: string;
+  calledAt?: string | null;
+  createdAt?: string | null;
+  callerName?: string | null;
+  callerRole?: Role | string | null;
+  function?: string | null;
+  functionName?: string | null;
+  status?: AiHistoryStatus | string | null;
+};
+
+export type AiResult = AiFallbackMetadata & Record<string, unknown>;
 
 export type AiSuggestion = AiFallbackMetadata & {
   id: string;

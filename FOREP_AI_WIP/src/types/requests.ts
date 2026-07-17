@@ -10,6 +10,11 @@ import type {
   WorkspaceStatus,
   TaskAttachmentType,
   AssignmentType,
+  DepartmentStatus,
+  EmployeeLevel,
+  EmploymentType,
+  PermissionGroup,
+  WorkingStatus,
 } from "./domain";
 
 export type LoginRequest = { email?: string; username?: string; password: string };
@@ -45,6 +50,18 @@ export type CreateEmployeeRequest = {
   skillRating?: number;
   yearsOfExperience?: number;
   skills?: string;
+  departmentId?: string;
+  jobPositionId?: string;
+  dateOfBirth?: string;
+  gender?: string;
+  address?: string;
+  personalSummary?: string;
+  employmentType?: EmploymentType;
+  workingStatus?: WorkingStatus;
+  employeeLevel?: EmployeeLevel;
+  monthlyWorkingCapacityHours?: number;
+  mainExpertise?: string;
+  secondaryExpertise?: string;
 };
 export type UpdateEmployeeRequest = CreateEmployeeRequest & { status?: UserStatus };
 export type CreateTaskRequest = {
@@ -77,6 +94,20 @@ export type AssignTeamRequest = { teamLeaderId: string; teamMemberIds?: string[]
 export type TaskAttachmentRequest = { fileName: string; fileUrl: string; contentType?: string; fileSize?: number; attachmentType?: TaskAttachmentType };
 export type UpdateTaskCustomerInfoRequest = { customerPhone?: string | null; customerEmail?: string | null; customerDescription?: string | null };
 export type JobPositionRequest = { title: string; departmentName?: string; description?: string; requiredSkills?: string; status?: "ACTIVE" | "INACTIVE" };
+export type DepartmentRequest = {
+  name: string;
+  code?: string;
+  description?: string;
+  status?: DepartmentStatus;
+};
+export type BusinessPositionRequest = {
+  name: string;
+  code?: string;
+  permissionGroup: PermissionGroup;
+  departmentId: string;
+  description?: string;
+  status?: DepartmentStatus;
+};
 export type UpdateTaskStatusRequest = { status: TaskStatus };
 export type UpdateProgressRequest = {
   progressPercent?: number;
@@ -84,6 +115,8 @@ export type UpdateProgressRequest = {
   updateType: UpdateType;
   attachment?: string;
 };
+export type SubmitTaskCompletionRequest = { content: string; attachment?: string };
+export type ReturnTaskRequest = { reason: string; attachment?: string };
 export type DailyReportRequest = {
   reportDate: string;
   todayCompleted: string;
@@ -96,6 +129,54 @@ export type RecommendAssigneeRequest = {
   requirements: string;
   deadline: string;
   estimatedHours?: number;
+  taskDomain?: string;
+  departmentId?: string;
+  requiredJobPositionId?: string;
+  requiredSkills?: string;
+};
+export type AnalyzeTaskRequest = {
+  taskTitle: string;
+  taskDescription: string;
+  projectDescription?: string;
+  departmentName?: string;
+  startDate?: string;
+  deadline?: string;
+};
+export type RecommendationExplanationRequest = {
+  recommendationType: "INDIVIDUAL" | "TEAM_LEADER" | "TEAM_MEMBER";
+  task: Record<string, unknown>;
+  candidates: Array<Record<string, unknown>>;
+};
+export type RecommendationResultExplanationRequest = {
+  task: Record<string, unknown>;
+  selectedAssigneeOrTeam: Record<string, unknown>;
+  rankingData?: Array<Record<string, unknown>>;
+  comparisonWithOtherCandidates?: Array<Record<string, unknown>>;
+  workloadData?: Record<string, unknown>;
+  performanceData?: Record<string, unknown>;
+};
+export type EstimateHoursRequest = {
+  taskTitle: string;
+  taskDescription?: string;
+  difficulty?: string;
+  taskType?: string;
+  startDate?: string;
+  deadline?: string;
+  backendWorkingDays?: number;
+  backendDefaultHours?: number;
+};
+export type WorkloadRiskExplanationRequest = {
+  employeeName: string;
+  monthlyCapacityHours: number;
+  monthlyWorkloadEvaluation: Array<Record<string, unknown>>;
+  backendOverallRisk?: string;
+};
+export type EmployeeReportAiRequest = {
+  employee: Record<string, unknown>;
+  period: Record<string, unknown>;
+  metrics: Record<string, unknown>;
+  notableTasks?: Array<Record<string, unknown>>;
+  risks?: string[];
 };
 export type ExtractTasksRequest = {
   text: string;

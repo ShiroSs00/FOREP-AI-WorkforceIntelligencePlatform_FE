@@ -5,6 +5,8 @@ import Link from "next/link";
 import { AlertTriangle, ArrowRight, Plus } from "lucide-react";
 import { RequireRole } from "@/auth/require-role";
 import { getOwnerDashboard } from "@/api/analytics.api";
+import { getBusinessOwnerOperationalSummary } from "@/api/workspace-ai.api";
+import { AiSummaryCard } from "@/components/ai/AiSummaryCard";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatCard } from "@/components/common/StatCard";
 import { Card } from "@/components/common/Card";
@@ -17,6 +19,7 @@ import { formatDateTime, isTaskOverdue } from "@/lib/tasks";
 
 export default function OwnerDashboardPage() {
   const query = useQuery({ queryKey: queryKeys.ownerDashboard, queryFn: getOwnerDashboard });
+  const operationalSummary = useQuery({ queryKey: queryKeys.businessOwnerOperationalSummary, queryFn: getBusinessOwnerOperationalSummary });
   const data = query.data;
   const workload = data?.employeeWorkload ?? [];
   const recentTasks = data?.recentlyUpdatedTasks ?? [];
@@ -74,12 +77,12 @@ export default function OwnerDashboardPage() {
                 <p className="mt-2 text-3xl font-black text-foreground">{data.overdueTasks ?? 0}</p>
                 <p className="mt-2 flex items-center gap-1 text-xs font-bold text-primary">Mở danh sách <ArrowRight className="h-3.5 w-3.5" /></p>
               </Link>
-              <Link href="/owner/analytics/workload" className="focus-ring rounded-control border border-border bg-surface p-4 transition-colors hover:border-amber-300 hover:bg-amber-50">
+              <Link href="/operations/workload" className="focus-ring rounded-control border border-border bg-surface p-4 transition-colors hover:border-amber-300 hover:bg-amber-50">
                 <p className="text-sm font-semibold text-muted-foreground">Nhân viên tải cao</p>
                 <p className="mt-2 text-3xl font-black text-foreground">{overloaded.length}</p>
                 <p className="mt-2 flex items-center gap-1 text-xs font-bold text-primary">Xem phân tích <ArrowRight className="h-3.5 w-3.5" /></p>
               </Link>
-              <Link href="/owner/analytics/workload" className="focus-ring rounded-control border border-border bg-surface p-4 transition-colors hover:border-sky-300 hover:bg-sky-50">
+              <Link href="/operations/workload" className="focus-ring rounded-control border border-border bg-surface p-4 transition-colors hover:border-sky-300 hover:bg-sky-50">
                 <p className="text-sm font-semibold text-muted-foreground">Nhân viên còn khả dụng</p>
                 <p className="mt-2 text-3xl font-black text-foreground">{available.length}</p>
                 <p className="mt-2 flex items-center gap-1 text-xs font-bold text-primary">Xem để phân công <ArrowRight className="h-3.5 w-3.5" /></p>
@@ -107,7 +110,7 @@ export default function OwnerDashboardPage() {
               <h2 className="text-lg font-black">Phân bố mức tải</h2>
               <p className="mt-1 text-sm text-muted-foreground">Tỷ lệ nhân viên theo tín hiệu tải hiện tại.</p>
               <div className="mt-5 grid gap-4">{[["Tải cao", overloaded.length, "bg-amber-500"], ["Bình thường", normalLoad.length, "bg-teal-600"], ["Còn khả dụng", available.length, "bg-sky-400"]].map(([label, value, color]) => <div key={String(label)}><div className="mb-1 flex justify-between text-sm"><span className="font-semibold">{label}</span><strong>{value}</strong></div><div className="h-3 overflow-hidden rounded-full bg-surface-muted"><div className={`h-full rounded-full ${color}`} style={{ width: `${(Number(value) / workloadBase) * 100}%` }} /></div></div>)}</div>
-              <Link href="/owner/analytics/workload" className="mt-5 inline-flex items-center gap-1 text-sm font-bold text-primary">Phân tích chi tiết <ArrowRight className="h-4 w-4" /></Link>
+              <Link href="/operations/workload" className="mt-5 inline-flex items-center gap-1 text-sm font-bold text-primary">Phân tích chi tiết <ArrowRight className="h-4 w-4" /></Link>
             </Card>
             <Card>
               <h2 className="text-lg font-black">Sức khỏe tiến độ</h2>
@@ -123,7 +126,7 @@ export default function OwnerDashboardPage() {
                   <h2 className="text-lg font-black">Mức tải nhân viên</h2>
                   <p className="mt-1 text-sm text-muted-foreground">Dữ liệu ước tính từ task đang mở, task vướng và task quá hạn.</p>
                 </div>
-                <Link href="/owner/analytics/workload" className="text-sm font-bold text-primary">Chi tiết</Link>
+                <Link href="/operations/workload" className="text-sm font-bold text-primary">Chi tiết</Link>
               </div>
               <div className="mt-4 grid gap-3">
                 {workload.length === 0 ? (
@@ -206,6 +209,7 @@ export default function OwnerDashboardPage() {
           </div>
         </div>
       ) : null}
+      <div className="mt-5"><AiSummaryCard eyebrow="TÓM TẮT VẬN HÀNH AI" title="Tóm tắt vận hành dành cho chủ workspace" description="Tổng hợp thực tế từ nhân viên, task, mức tải, gói dịch vụ và tín hiệu AI trong workspace." data={operationalSummary.data} loading={operationalSummary.isLoading} error={operationalSummary.error} onRetry={() => void operationalSummary.refetch()} /></div>
     </RequireRole>
   );
 }

@@ -107,12 +107,18 @@ export const customerInfoSchema = z.object({
 export const progressSchema = z.object({
   progressPercent: z.coerce.number().int().min(0).max(100).optional(),
   content: z.string().trim().min(1, "Vui lòng nhập nội dung cập nhật"),
-  updateType: z.enum(["PROGRESS", "BLOCKER", "COMPLETION"]),
+  updateType: z.enum(["PROGRESS", "BLOCKER"]),
   attachment: z.string().trim().optional(),
-}).superRefine((value, ctx) => {
-  if (value.updateType === "COMPLETION" && value.progressPercent !== undefined && value.progressPercent !== 100) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["progressPercent"], message: "Hoàn thành cần tiến độ 100%" });
-  }
+});
+
+export const submitCompletionSchema = z.object({
+  content: z.string().trim().min(1, "Vui lòng mô tả kết quả đã hoàn thành"),
+  attachment: z.string().trim().optional(),
+});
+
+export const returnTaskSchema = z.object({
+  reason: z.string().trim().min(1, "Vui lòng nhập lý do cần chỉnh sửa"),
+  attachment: z.string().trim().optional(),
 });
 
 export const extractTasksSchema = z.object({

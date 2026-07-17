@@ -29,10 +29,12 @@ export function ErrorState({
   title = "Không thể tải dữ liệu",
   error,
   onRetry,
+  guidance,
 }: {
   title?: string;
   error: ApiFailure | Error | unknown;
   onRetry?: () => void;
+  guidance?: string;
 }) {
   const failure = normalize(error);
   const details = failure.details ? JSON.stringify(failure.details, null, 2) : undefined;
@@ -40,6 +42,7 @@ export function ErrorState({
     <div className="rounded-card border border-amber-200 bg-amber-50 p-5 text-amber-950">
       <h3 className="font-bold">{title}</h3>
       <p className="mt-2 text-sm leading-6">{friendlyMessage(failure)}</p>
+      {guidance ? <p className="mt-2 text-sm leading-6 text-amber-900">{guidance}</p> : null}
       {failure.status ? <p className="mt-1 text-xs font-semibold">Mã lỗi: {failure.status}</p> : null}
       <div className="mt-4 flex flex-wrap items-center gap-3">
         {onRetry ? <Button variant="secondary" onClick={onRetry}>Thử lại</Button> : null}

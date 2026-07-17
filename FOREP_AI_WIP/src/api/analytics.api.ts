@@ -3,7 +3,7 @@ import { normalizeArray, unwrapApiResponse } from "./response";
 import type { MonthlyWorkload, OwnerDashboard, WorkloadRecord } from "@/types/domain";
 
 export async function getOwnerDashboard(): Promise<OwnerDashboard> {
-  const response = await apiClient.get("/analytics/owner-dashboard");
+  const response = await apiClient.get(workspacePath("/business-owner/dashboard"));
   return unwrapApiResponse<OwnerDashboard>(response.data);
 }
 
