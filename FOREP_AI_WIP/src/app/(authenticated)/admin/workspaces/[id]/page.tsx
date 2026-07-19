@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { createBusinessOwner, getAdminWorkspace, listAdminSubscriptionPlans, listBusinessOwners, resetBusinessOwnerPassword, updateAdminWorkspace, updateBusinessOwnerStatus } from "@/api/admin.api";
 import { getErrorMessage } from "@/api/errors";
-import { RequireRole } from "@/auth/require-role";
+import { RequirePermission } from "@/auth/require-permission";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import { Field, Select, TextArea } from "@/components/common/Field";
@@ -20,6 +20,10 @@ import { LoadingState } from "@/components/feedback/LoadingState";
 import { SecurePasswordDialog } from "@/components/forms/SecurePasswordDialog";
 import { adminWorkspaceSchema, businessOwnerSchema, cleanOptionalNumber, cleanOptionalText, workspaceStatuses } from "@/features/admin/schemas";
 import { queryKeys } from "@/lib/query-keys";
+import { invalidateAdminLifecycleQueries } from "@/lib/admin-invalidation";
+import { getCurrentSubscription } from "@/lib/subscriptions";
+import { formatMoney } from "@/lib/plans";
+import { formatDateTime } from "@/lib/tasks";
 import type { AdminBusinessOwner, UserStatus } from "@/types/domain";
 import type { z } from "zod";
 
@@ -36,11 +40,13 @@ export default function AdminWorkspaceDetailPage() {
   const workspace = useQuery({ queryKey: queryKeys.adminWorkspaceDetail(id), queryFn: () => getAdminWorkspace(id) });
   const owners = useQuery({ queryKey: queryKeys.adminBusinessOwners(id), queryFn: () => listBusinessOwners(id), enabled: Boolean(id) });
   const plans = useQuery({ queryKey: queryKeys.adminSubscriptionPlans, queryFn: listAdminSubscriptionPlans });
+  const subscription = workspace.data ? getCurrentSubscription(workspace.data) : null;
   const workspaceForm = useForm<WorkspaceInput, unknown, WorkspaceValues>({ resolver: zodResolver(adminWorkspaceSchema), defaultValues: { businessName: "", workspaceName: "", workspaceIdentifier: "AA", contactEmail: "", contactPhone: "", businessAddress: "", subscriptionPlanId: "", maxUsers: "", activationDate: "", expirationDate: "", status: "PENDING_PAYMENT" } });
   const ownerForm = useForm<OwnerInput, unknown, OwnerValues>({ resolver: zodResolver(businessOwnerSchema), defaultValues: { fullName: "", email: "", username: "", temporaryPassword: "", phone: "", status: "ACTIVE" } });
 
   useEffect(() => {
     if (!workspace.data) return;
+    const currentSubscription = getCurrentSubscription(workspace.data);
     workspaceForm.reset({
       businessName: workspace.data.businessName ?? "",
       workspaceName: workspace.data.workspaceName,
@@ -48,10 +54,10 @@ export default function AdminWorkspaceDetailPage() {
       contactEmail: workspace.data.contactEmail ?? "",
       contactPhone: workspace.data.contactPhone ?? "",
       businessAddress: workspace.data.businessAddress ?? "",
-      subscriptionPlanId: workspace.data.subscriptionPlanId ?? "",
-      maxUsers: workspace.data.maxUsers,
-      activationDate: workspace.data.activatedAt ?? "",
-      expirationDate: workspace.data.expiresAt ?? "",
+      subscriptionPlanId: currentSubscription.planId ?? "",
+      maxUsers: currentSubscription.maxUsers,
+      activationDate: currentSubscription.startDate ?? "",
+      expirationDate: currentSubscription.endDate ?? "",
       status: workspace.data.status,
     });
   }, [workspace.data, workspaceForm]);
@@ -71,9 +77,7 @@ export default function AdminWorkspaceDetailPage() {
     }),
     onSuccess: () => {
       toast.success("Đã cập nhật workspace");
-      void queryClient.invalidateQueries({ queryKey: queryKeys.adminWorkspaces });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.adminWorkspaceDetail(id) });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.adminMonitoring });
+      invalidateAdminLifecycleQueries(queryClient, id);
     },
   });
   const createOwnerMutation = useMutation({
@@ -106,14 +110,15 @@ export default function AdminWorkspaceDetailPage() {
   });
 
   return (
-    <RequireRole role="SYSTEM_ADMIN">
-      <PageHeader eyebrow="SYSTEM ADMIN" title="Chi tiết workspace" description="Cập nhật workspace và quản lý business owner." />
+    <RequirePermission permissions={["WORKSPACE_MANAGE"]}>
+      <PageHeader eyebrow="PLATFORM ADMIN" title="Chi tiết workspace" description="Cập nhật workspace và quản lý business owner." />
       {workspace.isLoading ? <LoadingState rows={4} /> : null}
       {workspace.error ? <ErrorState title="Không thể tải workspace" error={workspace.error} onRetry={() => void workspace.refetch()} /> : null}
       {workspace.data ? <div className="grid gap-5 xl:grid-cols-[1fr_1fr]">
         <Card className="grid gap-4">
           <div className="flex flex-wrap gap-2"><WorkspaceStatusBadge value={workspace.data.status} /><PaymentStatusBadge value={workspace.data.paymentStatus} /></div>
           <h2 className="text-2xl font-black">{workspace.data.workspaceName}</h2>
+          {subscription ? <div className="rounded-control border border-border bg-surface-muted p-4"><div className="flex flex-wrap items-center justify-between gap-2"><p className="font-black">Gói {subscription.planName}</p>{subscription.status ? <StatusBadge value={subscription.status} /> : null}</div><p className="mt-2 text-sm">{typeof subscription.price === "number" ? formatMoney(subscription.price) : "Chưa có giá"} · {formatDateTime(subscription.startDate ?? undefined)} → {formatDateTime(subscription.endDate ?? undefined)}</p><p className="mt-1 text-sm text-muted-foreground">Gia hạn: {formatDateTime(subscription.renewalDate ?? undefined)} · Owner tối đa {subscription.maxOwnerAccounts ?? "—"} · Employee tối đa {subscription.maxEmployeeAccounts ?? "—"}</p><p className="mt-2 text-xs font-semibold text-primary">{subscription.authoritative ? "Nguồn hiện hành: activeSubscription backend" : "Fallback dữ liệu workspace cũ vì backend chưa trả activeSubscription"}</p></div> : null}
           <p className="text-sm text-muted-foreground">{workspace.data.businessName ?? "Chưa có tên doanh nghiệp"}{typeof workspace.data.currentUsers === "number" && typeof workspace.data.maxUsers === "number" ? ` · ${workspace.data.currentUsers}/${workspace.data.maxUsers} người dùng` : ""}</p>
           <p className="mt-1 text-sm text-muted-foreground">{typeof workspace.data.currentOwnerAccounts === "number" && typeof workspace.data.maxOwnerAccounts === "number" ? `${workspace.data.currentOwnerAccounts}/${workspace.data.maxOwnerAccounts} Business Owner` : "Giới hạn Business Owner chưa được backend trả về"} · {typeof workspace.data.currentEmployeeAccounts === "number" && typeof workspace.data.maxEmployeeAccounts === "number" ? `${workspace.data.currentEmployeeAccounts}/${workspace.data.maxEmployeeAccounts} Employee` : "Giới hạn Employee chưa được backend trả về"}</p>
           {updateMutation.error ? <p className="rounded-control bg-red-50 px-3 py-2 text-sm font-semibold text-destructive">{getErrorMessage(updateMutation.error)}</p> : null}
@@ -147,7 +152,6 @@ export default function AdminWorkspaceDetailPage() {
         </Card>
       </div> : null}
       <SecurePasswordDialog credential={credential ? { title: "Mật khẩu tạm thời", fullName: credential.fullName, email: credential.email, username: credential.username, password: credential.temporaryPassword ?? credential.initialPassword } : null} onClose={() => setCredential(null)} />
-    </RequireRole>
+    </RequirePermission>
   );
 }
-

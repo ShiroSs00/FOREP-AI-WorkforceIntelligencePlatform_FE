@@ -1,4 +1,4 @@
-﻿
+
 export type CanonicalRole = "PLATFORM_ADMIN" | "BUSINESS_OWNER" | "HR" | "EXECUTIVE" | "MANAGER" | "EMPLOYEE" | "SYSTEM";
 export type Role = CanonicalRole | "SYSTEM_ADMIN" | "OWNER";
 export type PermissionGroup = "EMPLOYEE" | "MANAGER" | "EXECUTIVE";
@@ -18,7 +18,7 @@ export type AiSuggestionStatus = "GENERATED" | "ACCEPTED" | "REJECTED";
 export type WorkspaceStatus = "PENDING_PAYMENT" | "ACTIVE" | "INACTIVE" | "SUSPENDED" | "EXPIRED";
 export type PaymentMethod = "MOMO" | "BANK_TRANSFER";
 export type PaymentStatus = "PENDING" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "REFUNDED" | "MANUAL_REVIEW" | "CONFIRMED" | "REJECTED" | "CORRECTION_REQUESTED";
-export type RegistrationStatus = "PENDING_PLAN_SELECTION" | "PENDING_PAYMENT" | "PAYMENT_CONFIRMED" | "SUBMITTED" | "PAYMENT_PENDING" | "PAYMENT_SUBMITTED" | "APPROVED" | "REJECTED" | "CANCELLED" | "ACTIVE";
+export type RegistrationStatus = "PENDING_PLAN_SELECTION" | "PENDING_PAYMENT" | "PAYMENT_CONFIRMED" | "SUBMITTED" | "PAYMENT_PENDING" | "PAYMENT_SUBMITTED" | "APPROVED" | "REJECTED" | "CANCELLED" | "ACTIVE" | "ACTIVATED";
 export type SubscriptionPlanStatus = "ACTIVE" | "INACTIVE";
 export type RoleFit = "STRONG" | "PARTIAL" | "UNCERTAIN";
 
@@ -33,6 +33,7 @@ export type User = {
   employeeCode: string | null;
   initialPassword: string | null;
   role: Role;
+  permissions: string[];
   avatar: string | null;
   status: UserStatus;
   jobTitle: string | null;
@@ -193,6 +194,7 @@ export type PlatformWorkspace = {
   businessAddress: string | null;
   subscriptionPlanId: string | null;
   subscriptionPlan?: SubscriptionPlan | null;
+  activeSubscription?: ActiveSubscription | null;
   maxUsers?: number | null;
   maxOwnerAccounts?: number | null;
   maxEmployeeAccounts?: number | null;
@@ -206,6 +208,22 @@ export type PlatformWorkspace = {
   expiresAt: string | null;
   lastActivityAt: string | null;
   createdAt: string;
+};
+
+export type ActiveSubscription = {
+  id?: string | null;
+  plan?: SubscriptionPlan | null;
+  subscriptionPlan?: SubscriptionPlan | null;
+  planId?: string | null;
+  planName?: string | null;
+  status?: string | null;
+  price?: number | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  renewalDate?: string | null;
+  maxUsers?: number | null;
+  maxOwnerAccounts?: number | null;
+  maxEmployeeAccounts?: number | null;
 };
 
 export type AdminMonitoring = {
@@ -412,6 +430,143 @@ export type NotificationItem = {
   relatedEntityId?: string;
 };
 
+export type PaymentQrSetting = {
+  paymentMethod: PaymentMethod;
+  qrCodeUrl: string;
+  paymentUrl?: string | null;
+  deeplink?: string | null;
+  bankCode?: string | null;
+  bankName?: string | null;
+  bankAccountNumber?: string | null;
+  bankAccountName?: string | null;
+  transferContentPrefix?: string | null;
+  enabled: boolean;
+  updatedAt?: string | null;
+};
+
+export type UpdatePaymentQrSetting = {
+  qrCodeUrl: string;
+  paymentUrl?: string | null;
+  deeplink?: string | null;
+  bankCode?: string | null;
+  bankName?: string | null;
+  bankAccountNumber?: string | null;
+  bankAccountName?: string | null;
+  transferContentPrefix?: string | null;
+  enabled: boolean;
+};
+
+export type DashboardSeriesPoint = {
+  name?: string;
+  label?: string;
+  period?: string;
+  value?: number;
+  amount?: number;
+  count?: number;
+  [key: string]: unknown;
+};
+
+export type DashboardChart = {
+  title?: string | null;
+  series: DashboardSeriesPoint[];
+  total?: number | null;
+};
+
+export type DashboardOverviewPeriod = {
+  completed?: number;
+  active?: number;
+  overdue?: number;
+  blocked?: number;
+  submitted?: number;
+  missingDailyReports?: number;
+  missingDailyReport?: number;
+  overloadedEmployees?: number;
+  completionRate?: number;
+};
+
+export type DashboardEmployeeRef = {
+  id?: string;
+  employeeId?: string;
+  fullName?: string;
+  employeeName?: string;
+  departmentName?: string | null;
+};
+
+export type DashboardTaskRisk = {
+  id?: string;
+  taskId?: string;
+  title?: string;
+  taskTitle?: string;
+  assigneeName?: string | null;
+  deadline?: string | null;
+  status?: TaskStatus | string | null;
+  riskLevel?: string | null;
+  reason?: string | null;
+  blocker?: string | null;
+};
+
+export type BusinessOwnerDashboard = {
+  overviewCards?: {
+    today?: DashboardOverviewPeriod;
+    week?: DashboardOverviewPeriod;
+    month?: DashboardOverviewPeriod;
+  };
+  dailyReportInsight?: {
+    expected?: number;
+    received?: number;
+    missing?: number;
+    reviewed?: number;
+    missingEmployees?: DashboardEmployeeRef[];
+  };
+  workloadInsight?: {
+    idle?: DashboardEmployeeRef[];
+    light?: DashboardEmployeeRef[];
+    normal?: DashboardEmployeeRef[];
+    high?: DashboardEmployeeRef[];
+    overloaded?: DashboardEmployeeRef[];
+  };
+  deadlineRisks?: DashboardTaskRisk[];
+  blockedTasks?: DashboardTaskRisk[];
+  taskStatusChart?: DashboardChart;
+  workloadDistributionChart?: DashboardChart;
+  recommendedActions?: Array<string | { title?: string; description?: string; action?: string; priority?: string }>;
+  aiRecommendations?: AiSuggestion[];
+  metadata?: { dataSource?: string; generatedAt?: string; note?: string; emptyStateNote?: string };
+};
+
+export type AdminDashboardOverview = Record<string, unknown> & {
+  totalWorkspaces?: number;
+  activeWorkspaces?: number;
+  suspendedWorkspaces?: number;
+  expiredWorkspaces?: number;
+  newWorkspaces?: number;
+  totalUsers?: number;
+  revenue?: number;
+  totalRevenue?: number;
+  paymentSuccessRate?: number;
+  failedPayments?: number;
+  pendingManualPayments?: number;
+  feedbackAverage?: number;
+  aiUsage?: number;
+};
+
+export type AdminDashboardSeries = DashboardChart & { period?: string | null };
+export type AdminPaymentSummary = Record<string, unknown> & {
+  totalPayments?: number;
+  successfulPayments?: number;
+  failedPayments?: number;
+  pendingManualPayments?: number;
+  successRate?: number;
+  pendingManualPaymentItems?: PaymentTransaction[];
+  pendingPayments?: PaymentTransaction[];
+};
+export type AdminFeedbackSummary = Record<string, unknown> & {
+  averageRating?: number;
+  totalFeedback?: number;
+  ratingChart?: DashboardChart;
+  series?: DashboardSeriesPoint[];
+  recentFeedback?: BusinessFeedback[];
+};
 export type OwnerDashboard = {
   totalTasks?: number;
   activeTasks?: number;

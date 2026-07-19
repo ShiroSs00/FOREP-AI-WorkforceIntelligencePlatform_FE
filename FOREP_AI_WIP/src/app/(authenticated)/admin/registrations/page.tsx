@@ -18,6 +18,9 @@ import { OwnerCredentialsDialog } from "@/components/forms/OwnerCredentialsDialo
 import { paymentStatuses, registrationStatuses } from "@/features/admin/schemas";
 import { getPaymentIdFromRegistration } from "@/lib/payments";
 import { queryKeys } from "@/lib/query-keys";
+import { useAuthStore } from "@/auth/auth-store";
+import { hasPermission } from "@/lib/permissions";
+import { invalidateAdminLifecycleQueries } from "@/lib/admin-invalidation";
 import { formatDateTime } from "@/lib/tasks";
 import type { AdminBusinessOwner, WorkspaceActivationResult, WorkspaceRegistration } from "@/types/domain";
 
@@ -25,6 +28,9 @@ type Action = "confirm-payment" | "reject-payment" | "approve" | "activate" | "r
 
 export default function AdminRegistrationsPage() {
   const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user);
+  const canConfirmPayment = hasPermission(user, "PAYMENT_CONFIRM");
+  const canManageWorkspace = hasPermission(user, "WORKSPACE_MANAGE");
   const [search, setSearch] = useState("");
   const [registrationStatus, setRegistrationStatus] = useState("ALL");
   const [paymentStatus, setPaymentStatus] = useState("ALL");
@@ -55,12 +61,9 @@ export default function AdminRegistrationsPage() {
       }
       toast.success("Đã cập nhật hồ sơ đăng ký");
       const paymentId = getPaymentIdFromRegistration(variables.item);
-      void queryClient.invalidateQueries({ queryKey: queryKeys.adminWorkspaceRegistrations });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.adminPayments() });
+      invalidateAdminLifecycleQueries(queryClient);
       if (paymentId) void queryClient.invalidateQueries({ queryKey: queryKeys.adminPayment(paymentId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.workspaceRegistration(variables.item.id) });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.adminMonitoring });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.adminWorkspaces });
     },
   });
 
@@ -120,11 +123,19 @@ export default function AdminRegistrationsPage() {
                   <p className="mt-3 text-xs font-semibold text-muted-foreground">Tạo lúc {formatDateTime(item.createdAt)} · Duyệt lúc {formatDateTime(item.reviewedAt ?? undefined)}</p>
                   {item.reviewNote ? <p className="mt-2 rounded-control bg-surface-muted px-3 py-2 text-sm text-muted-foreground">Ghi chú: {item.reviewNote}</p> : null}
                   <div className="mt-4 flex flex-wrap gap-2">
-                    <Button variant="secondary" disabled={actionMutation.isPending || !paymentId || item.paymentStatus === "SUCCESS" || item.paymentStatus === "CONFIRMED"} onClick={() => runAction(item, "confirm-payment")}>Xác nhận thanh toán</Button>
-                    <Button variant="danger" disabled={actionMutation.isPending || !paymentId || item.paymentStatus === "FAILED" || item.paymentStatus === "REJECTED"} onClick={() => runAction(item, "reject-payment", true)}>Từ chối thanh toán</Button>
-                    <Button disabled={actionMutation.isPending || item.registrationStatus === "APPROVED" || item.registrationStatus === "ACTIVE"} onClick={() => runAction(item, "approve")}>Duyệt hồ sơ</Button>
-                    <Button variant="secondary" disabled={actionMutation.isPending || item.registrationStatus === "ACTIVE" || !["PAYMENT_CONFIRMED", "APPROVED"].includes(item.registrationStatus)} onClick={() => runAction(item, "activate")}>Kích hoạt workspace</Button>
-                    <Button variant="outline" disabled={actionMutation.isPending || item.registrationStatus === "REJECTED"} onClick={() => runAction(item, "reject-registration", true)}>Từ chối hồ sơ</Button>
+                    {canConfirmPayment ? (
+                      <>
+                        <Button variant="secondary" disabled={actionMutation.isPending || !paymentId || item.paymentStatus === "SUCCESS" || item.paymentStatus === "CONFIRMED"} onClick={() => runAction(item, "confirm-payment")}>Xác nhận thanh toán</Button>
+                        <Button variant="danger" disabled={actionMutation.isPending || !paymentId || item.paymentStatus === "FAILED" || item.paymentStatus === "REJECTED"} onClick={() => runAction(item, "reject-payment", true)}>Từ chối thanh toán</Button>
+                      </>
+                    ) : null}
+                    {canManageWorkspace ? (
+                      <>
+                        <Button disabled={actionMutation.isPending || item.registrationStatus === "APPROVED" || item.registrationStatus === "ACTIVE" || item.registrationStatus === "ACTIVATED"} onClick={() => runAction(item, "approve")}>Duyệt hồ sơ</Button>
+                        <Button variant="secondary" disabled={actionMutation.isPending || ["ACTIVE", "ACTIVATED"].includes(item.registrationStatus) || !["PAYMENT_CONFIRMED", "APPROVED"].includes(item.registrationStatus)} onClick={() => runAction(item, "activate")}>Kích hoạt workspace</Button>
+                        <Button variant="outline" disabled={actionMutation.isPending || item.registrationStatus === "REJECTED"} onClick={() => runAction(item, "reject-registration", true)}>Từ chối hồ sơ</Button>
+                      </>
+                    ) : null}
                   </div>
                 </Card>
               );

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell, FileText, LogOut, Menu, Plus, X } from "lucide-react";
@@ -14,6 +14,7 @@ import { Button } from "@/components/common/Button";
 import { Badge } from "@/components/common/Badge";
 import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/query-keys";
+import { hasPermission } from "@/lib/permissions";
 import { getHomeForRole, normalizeRole } from "@/lib/role";
 import { getNavigation } from "./nav";
 
@@ -43,12 +44,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const clearAuth = useAuthStore((state) => state.clearAuth);
   const [open, setOpen] = useState(false);
   const normalizedRole = user ? normalizeRole(user.role) : null;
-  const nav = useMemo(() => getNavigation(user?.role), [user?.role]);
+  const nav = useMemo(() => getNavigation(user), [user]);
   const currentPage = [...nav].reverse().find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
   const notificationsQuery = useQuery({
     queryKey: queryKeys.notifications,
     queryFn: listNotifications,
-    enabled: Boolean(user) && normalizedRole !== "PLATFORM_ADMIN" && normalizedRole !== "SYSTEM",
+    enabled: Boolean(user) && hasPermission(user, "NOTIFICATION_VIEW"),
   });
   const workspaceQuery = useQuery({
     queryKey: queryKeys.workspace,
@@ -57,16 +58,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   });
   const unread = notificationsQuery.data?.filter((item) => !item.read).length ?? 0;
   const homeHref = user ? getHomeForRole(user.role) : "/login";
-  const primaryAction =
-    normalizedRole === "PLATFORM_ADMIN" || normalizedRole === "SYSTEM"
-      ? { href: "/platform/registrations", label: "Duyệt hồ sơ", icon: FileText }
-      : normalizedRole === "BUSINESS_OWNER"
-        ? { href: "/owner/tasks/new", label: "Tạo task", icon: Plus }
-        : normalizedRole === "MANAGER" || normalizedRole === "EXECUTIVE"
-          ? { href: "/operations/tasks/new", label: "Tạo task", icon: Plus }
-        : normalizedRole === "HR"
-          ? { href: "/hr/employees", label: "Thêm nhân viên", icon: Plus }
-          : { href: "/daily-reports/new", label: "Gửi báo cáo", icon: FileText };
+  const primaryAction = hasPermission(user, "WORKSPACE_MANAGE")
+    ? { href: "/platform/registrations", label: "Duyệt hồ sơ", icon: FileText }
+    : hasPermission(user, "TASK_CREATE")
+      ? { href: normalizedRole === "BUSINESS_OWNER" ? "/owner/tasks/new" : "/operations/tasks/new", label: "Tạo task", icon: Plus }
+      : hasPermission(user, "EMPLOYEE_CREATE")
+        ? { href: normalizedRole === "HR" ? "/hr/employees" : "/owner/employees", label: "Thêm nhân viên", icon: Plus }
+        : hasPermission(user, "REPORT_SUBMIT")
+          ? { href: "/daily-reports/new", label: "Gửi báo cáo", icon: FileText }
+          : null;
+  const canSeeNotifications = hasPermission(user, "NOTIFICATION_VIEW");
 
   const logoutMutation = useMutation({
     mutationFn: logout,
@@ -162,14 +163,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Link
-              href={primaryAction.href}
-              className="focus-ring hidden min-h-10 items-center gap-2 rounded-control bg-primary px-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-teal-800 sm:inline-flex"
-            >
-              <primaryAction.icon className="h-4 w-4" aria-hidden="true" />
-              {primaryAction.label}
-            </Link>
-            {normalizedRole !== "PLATFORM_ADMIN" && normalizedRole !== "SYSTEM" ? (
+            {primaryAction ? (
+              <Link
+                href={primaryAction.href}
+                className="focus-ring hidden min-h-10 items-center gap-2 rounded-control bg-primary px-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-teal-800 sm:inline-flex"
+              >
+                <primaryAction.icon className="h-4 w-4" aria-hidden="true" />
+                {primaryAction.label}
+              </Link>
+            ) : null}
+            {canSeeNotifications ? (
               <Link href="/notifications" className="focus-ring relative rounded-control border border-border bg-surface p-2.5 text-muted-foreground hover:text-foreground" aria-label={`${unread} thông báo chưa đọc`}>
                 <Bell className="h-5 w-5" aria-hidden="true" />
                 {unread > 0 ? <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-destructive px-1 text-center text-xs font-bold text-white">{unread}</span> : null}
@@ -183,6 +186,3 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-
-
-

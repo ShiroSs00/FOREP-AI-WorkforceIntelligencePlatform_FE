@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -27,14 +27,21 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const token = useAuthStore((state) => state.token);
   const hydrated = useAuthStore((state) => state.hydrated);
-  const currentUser = useAuthStore((state) => state.user);
   const setToken = useAuthStore((state) => state.setToken);
   const setUser = useAuthStore((state) => state.setUser);
   const form = useForm<LoginValues>({ resolver: zodResolver(loginSchema), defaultValues: { identifier: "", password: "" } });
 
   useEffect(() => {
-    if (hydrated && token && currentUser) router.replace(getHomeForRole(currentUser.role));
-  }, [currentUser, hydrated, router, token]);
+    if (!hydrated || !token) return;
+    let active = true;
+    void getCurrentUser().then((currentUser) => {
+      if (!active) return;
+      const verifiedUser = { ...currentUser, permissions: Array.isArray(currentUser.permissions) ? currentUser.permissions : [] };
+      setUser(verifiedUser);
+      router.replace(getHomeForRole(verifiedUser.role));
+    }).catch(() => undefined);
+    return () => { active = false; };
+  }, [hydrated, router, setUser, token]);
 
   const mutation = useMutation({
     mutationFn: async (values: LoginValues) => {
@@ -42,7 +49,8 @@ function LoginForm() {
       const token = extractToken(result);
       if (!token) throw new Error("Backend chưa trả JWT token cho phiên đăng nhập.");
       setToken(token);
-      const user = await getCurrentUser();
+      const currentUser = await getCurrentUser();
+      const user = { ...currentUser, permissions: Array.isArray(currentUser.permissions) ? currentUser.permissions : [] };
       setUser(user);
       return user;
     },

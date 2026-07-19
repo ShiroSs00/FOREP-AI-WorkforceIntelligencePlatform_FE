@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -23,7 +23,7 @@ import { LoadingState } from "@/components/feedback/LoadingState";
 import { progressSchema } from "@/features/tasks/schemas";
 import { queryKeys } from "@/lib/query-keys";
 import { formatDateTime, isTaskOverdue, isTaskTerminal } from "@/lib/tasks";
-import { normalizeRole } from "@/lib/role";
+import { hasAnyPermission, hasPermission } from "@/lib/permissions";
 import { canAcceptTask, canApproveTaskCompletion, canEditTaskCustomerInfo, canReturnTask, canSubmitTaskCompletion, canUpdateTaskProgress, getTaskAssignmentType } from "@/lib/task-permissions";
 import type { z } from "zod";
 
@@ -54,10 +54,14 @@ export default function TaskDetailPage() {
   const params = useParams<{ id: string }>();
   const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
+  const canAssign = hasPermission(user, "TASK_ASSIGN");
+  const canEditTask = hasAnyPermission(user, ["TASK_CREATE", "TASK_ASSIGN"]);
+  const canCancel = hasPermission(user, "TASK_APPROVE");
+  const canUseAi = hasAnyPermission(user, ["AI_ANALYZE", "AI_RECOMMENDATION"]);
   const task = useQuery({ queryKey: queryKeys.task(params.id), queryFn: () => getWorkspaceTask(params.id) });
   const updates = useQuery({ queryKey: queryKeys.taskUpdates(params.id), queryFn: () => listTaskUpdates(params.id) });
   const attachments = useQuery({ queryKey: queryKeys.taskAttachments(params.id), queryFn: () => listTaskAttachments(params.id) });
-  const employees = useQuery({ queryKey: queryKeys.employees, queryFn: listEmployees });
+  const employees = useQuery({ queryKey: queryKeys.employees, queryFn: listEmployees, enabled: canAssign });
   const [attachment, setAttachment] = useState({ fileName: "", fileUrl: "", contentType: "", fileSize: "", attachmentType: "REFERENCE" as const });
   const [assignment, setAssignment] = useState({ type: "INDIVIDUAL" as "INDIVIDUAL" | "TEAM", individualId: "", leaderId: "", memberIds: [] as string[] });
   const [customerEditor, setCustomerEditor] = useState<{ customerPhone: string; customerEmail: string; customerDescription: string } | null>(null);
@@ -108,11 +112,7 @@ export default function TaskDetailPage() {
   const customerMutation = useMutation({ mutationFn: () => updateTaskCustomerInfo(params.id, { customerPhone: customerEditor?.customerPhone.trim() || undefined, customerEmail: customerEditor?.customerEmail.trim() || undefined, customerDescription: customerEditor?.customerDescription.trim() || undefined }), onSuccess: () => { toast.success("Đã cập nhật thông tin khách hàng"); setCustomerEditor(null); void queryClient.invalidateQueries({ queryKey: queryKeys.task(params.id) }); } });
   const currentTask = task.data;
   const terminal = currentTask ? isTaskTerminal(currentTask) : false;
-  const normalizedRole = user ? normalizeRole(user.role) : null;
-  const canManage =
-    normalizedRole === "BUSINESS_OWNER" ||
-    normalizedRole === "EXECUTIVE" ||
-    normalizedRole === "MANAGER";
+
   const canEditCustomer = canEditTaskCustomerInfo({ user, task: currentTask });
   const employeeName = (id?: string | null) => (employees.data ?? []).find((item) => item.id === id)?.fullName ?? id ?? "—";
   const assignmentType = currentTask ? getTaskAssignmentType(currentTask) : "INDIVIDUAL";
@@ -128,7 +128,7 @@ export default function TaskDetailPage() {
         eyebrow="Chi tiết task"
         title={currentTask?.title ?? "Task"}
         description="Theo dõi yêu cầu, tiến độ, người nhận và toàn bộ lịch sử cập nhật."
-        primaryAction={canManage && currentTask ? <Link className="focus-ring rounded-control bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground" href={`/tasks/${params.id}/edit`}>Chỉnh sửa task</Link> : undefined}
+        primaryAction={canEditTask && currentTask ? <Link className="focus-ring rounded-control bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground" href={`/tasks/${params.id}/edit`}>Chỉnh sửa task</Link> : undefined}
         secondaryAction={<Link className="focus-ring rounded-control border border-border px-4 py-2.5 text-sm font-semibold hover:bg-surface-muted" href="/tasks">Quay lại danh sách</Link>}
       />
       {task.isLoading ? <LoadingState rows={4} /> : null}
@@ -206,7 +206,7 @@ export default function TaskDetailPage() {
               {attachments.isLoading ? <LoadingState rows={2} /> : null}
               {attachments.error ? <ErrorState title="Không thể tải tệp đính kèm" error={attachments.error} onRetry={() => void attachments.refetch()} /> : null}
               {!attachments.isLoading && !attachments.error ? attachments.data?.length ? <div className="mt-4 grid gap-2">{attachments.data.map((item, index) => <a key={item.id ?? `${item.fileName}-${index}`} href={item.fileUrl} target="_blank" rel="noopener noreferrer" className="rounded-control border border-border p-3 hover:bg-surface-muted"><p className="font-bold">{item.fileName}</p><p className="mt-1 text-xs text-muted-foreground">{{ REQUIREMENT: "Tài liệu yêu cầu", REFERENCE: "Tài liệu tham khảo", RESULT: "Kết quả", OTHER: "Khác" }[item.attachmentType ?? "OTHER"]} · {item.contentType || "Không rõ định dạng"} · {typeof item.fileSize === "number" ? `${item.fileSize.toLocaleString("vi-VN")} bytes` : "Không rõ dung lượng"}</p><p className="mt-1 text-xs text-muted-foreground">Tải lên bởi {item.uploadedBy || "—"} · {formatDateTime(item.createdAt ?? undefined)}</p></a>)}</div> : <EmptyState title="Chưa có tệp đính kèm" description="Backend chưa trả tệp nào cho công việc này." /> : null}
-              {canManage ? <form className="mt-4 grid gap-3 rounded-control border border-border p-3" onSubmit={(event) => { event.preventDefault(); if (attachment.fileName.trim() && attachment.fileUrl.trim()) attachmentMutation.mutate(); }}><p className="font-bold">Thêm metadata tệp</p><Field label="Tên tệp" value={attachment.fileName} onChange={(event) => setAttachment({ ...attachment, fileName: event.target.value })} /><Field label="URL tệp" type="url" value={attachment.fileUrl} onChange={(event) => setAttachment({ ...attachment, fileUrl: event.target.value })} /><div className="grid gap-3 sm:grid-cols-2"><Field label="Content type" optional value={attachment.contentType} onChange={(event) => setAttachment({ ...attachment, contentType: event.target.value })} /><Field label="Dung lượng byte" type="number" optional value={attachment.fileSize} onChange={(event) => setAttachment({ ...attachment, fileSize: event.target.value })} /></div><Button type="submit" disabled={!attachment.fileName.trim() || !attachment.fileUrl.trim() || attachmentMutation.isPending}>{attachmentMutation.isPending ? "Đang thêm..." : "Thêm tệp"}</Button>{attachmentMutation.error ? <ErrorState title="Không thể thêm tệp" error={attachmentMutation.error} /> : null}</form> : null}
+              {canEditTask ? <form className="mt-4 grid gap-3 rounded-control border border-border p-3" onSubmit={(event) => { event.preventDefault(); if (attachment.fileName.trim() && attachment.fileUrl.trim()) attachmentMutation.mutate(); }}><p className="font-bold">Thêm metadata tệp</p><Field label="Tên tệp" value={attachment.fileName} onChange={(event) => setAttachment({ ...attachment, fileName: event.target.value })} /><Field label="URL tệp" type="url" value={attachment.fileUrl} onChange={(event) => setAttachment({ ...attachment, fileUrl: event.target.value })} /><div className="grid gap-3 sm:grid-cols-2"><Field label="Content type" optional value={attachment.contentType} onChange={(event) => setAttachment({ ...attachment, contentType: event.target.value })} /><Field label="Dung lượng byte" type="number" optional value={attachment.fileSize} onChange={(event) => setAttachment({ ...attachment, fileSize: event.target.value })} /></div><Button type="submit" disabled={!attachment.fileName.trim() || !attachment.fileUrl.trim() || attachmentMutation.isPending}>{attachmentMutation.isPending ? "Đang thêm..." : "Thêm tệp"}</Button>{attachmentMutation.error ? <ErrorState title="Không thể thêm tệp" error={attachmentMutation.error} /> : null}</form> : null}
             </Card>
 
             <Card>
@@ -264,7 +264,7 @@ export default function TaskDetailPage() {
 
             {mayApprove || mayReturn ? <Card><h2 className="text-lg font-black">Xác nhận kết quả</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">Kiểm tra nội dung và lịch sử trước khi xác nhận hoàn thành hoặc yêu cầu chỉnh sửa.</p>{mayApprove ? <Button className="mt-4 w-full" disabled={approveMutation.isPending} onClick={() => window.confirm("Xác nhận kết quả công việc này đạt yêu cầu và hoàn thành task?") ? approveMutation.mutate() : undefined}>{approveMutation.isPending ? "Đang xác nhận..." : "Xác nhận hoàn thành"}</Button> : null}<div className="mt-4 grid gap-3 border-t border-border pt-4"><TextArea label="Lý do cần chỉnh sửa" value={returnRequest.reason} onChange={(event) => setReturnRequest({ ...returnRequest, reason: event.target.value })} /><Field label="Tệp hoặc tài liệu đính kèm" optional value={returnRequest.attachment} onChange={(event) => setReturnRequest({ ...returnRequest, attachment: event.target.value })} /><Button variant="secondary" disabled={!returnRequest.reason.trim() || returnMutation.isPending} onClick={() => window.confirm("Gửi yêu cầu chỉnh sửa cho người thực hiện?") ? returnMutation.mutate() : undefined}>{returnMutation.isPending ? "Đang gửi..." : "Yêu cầu chỉnh sửa"}</Button></div>{approveMutation.error ? <div className="mt-4"><ErrorState title="Không thể xác nhận hoàn thành" error={approveMutation.error} /></div> : null}{returnMutation.error ? <div className="mt-4"><ErrorState title="Không thể yêu cầu chỉnh sửa" error={returnMutation.error} /></div> : null}</Card> : null}
 
-            {normalizedRole === "BUSINESS_OWNER" ? (
+            {canUseAi ? (
               <Card>
                 <h2 className="text-lg font-black">AI hỗ trợ task</h2>
                 <p className="mt-1 text-sm leading-6 text-muted-foreground">AI chỉ tạo gợi ý để owner xem xét. FOREP không tự tạo subtask hoặc tự đổi deadline.</p>
@@ -297,7 +297,7 @@ export default function TaskDetailPage() {
               </Card>
             ) : null}
 
-            {canManage ? (
+            {canAssign ? (
               <Card>
                 <h2 className="text-lg font-black">Quản lý task</h2>
                 <div className="mt-4 grid gap-3">
@@ -305,7 +305,7 @@ export default function TaskDetailPage() {
                   {assignment.type === "INDIVIDUAL" ? <Select label="Người nhận" value={assignment.individualId} onChange={(event) => setAssignment({ ...assignment, individualId: event.target.value })}><option value="">Chọn nhân viên</option>{(employees.data ?? []).filter((item) => item.status === "ACTIVE").map((item) => <option key={item.id} value={item.id}>{item.fullName}</option>)}</Select> : <><Select label="Trưởng nhóm" value={assignment.leaderId} onChange={(event) => setAssignment({ ...assignment, leaderId: event.target.value })}><option value="">Chọn trưởng nhóm</option>{(employees.data ?? []).filter((item) => item.status === "ACTIVE").map((item) => <option key={item.id} value={item.id}>{item.fullName}</option>)}</Select><div className="grid gap-2 rounded-control border border-border p-3"><p className="text-sm font-bold">Thành viên</p>{(employees.data ?? []).filter((item) => item.status === "ACTIVE" && item.id !== assignment.leaderId).map((item) => <label key={item.id} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={assignment.memberIds.includes(item.id)} onChange={(event) => setAssignment({ ...assignment, memberIds: event.target.checked ? [...assignment.memberIds, item.id] : assignment.memberIds.filter((id) => id !== item.id) })} />{item.fullName}</label>)}</div></>}
                   <Button variant="secondary" disabled={assignmentMutation.isPending || (assignment.type === "INDIVIDUAL" ? !assignment.individualId : !assignment.leaderId)} onClick={() => window.confirm("Xác nhận giao lại công việc?") ? assignmentMutation.mutate() : undefined}>{assignmentMutation.isPending ? "Đang giao việc..." : "Giao lại"}</Button>
                   {assignmentMutation.error ? <ErrorState title="Không thể giao việc" error={assignmentMutation.error} /> : null}
-                  {canManage ? <Button variant="danger" onClick={() => (window.confirm("Bạn chắc chắn muốn hủy task này?") ? cancelMutation.mutate() : undefined)} disabled={cancelMutation.isPending || currentTask.status === "CANCELLED"}>Hủy task</Button> : null}
+                  {canCancel ? <Button variant="danger" onClick={() => (window.confirm("Bạn chắc chắn muốn hủy task này?") ? cancelMutation.mutate() : undefined)} disabled={cancelMutation.isPending || currentTask.status === "CANCELLED"}>Hủy task</Button> : null}
                 </div>
               </Card>
             ) : null}

@@ -1,4 +1,4 @@
-﻿import type {
+import type {
   PaymentStatus,
   RegistrationStatus,
   RoleFit,
@@ -63,6 +63,7 @@ export const registrationStatusLabels: Record<RegistrationStatus, string> = {
   REJECTED: "Bị từ chối",
   CANCELLED: "Đã hủy",
   ACTIVE: "Đang hoạt động",
+  ACTIVATED: "Workspace đã được kích hoạt",
 };
 
 export const roleFitLabels: Record<RoleFit, string> = {

@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { createEmployee, listEmployees, resetEmployeePassword, updateEmployeeStatus } from "@/api/employees.api";
 import { listBusinessPositions, listDepartments } from "@/api/hr.api";
 import { RequireRole } from "@/auth/require-role";
+import { useAuthStore } from "@/auth/auth-store";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import { Field, Select } from "@/components/common/Field";
@@ -23,6 +24,7 @@ import { EmployeeCredentialsDialog } from "@/components/forms/EmployeeCredential
 import { employeeLevelOptions, employeeSchema, employmentTypeOptions, seniorityOptions, toEmployeePayload, workingStatusOptions } from "@/features/employees/schemas";
 import { seniorityLabel } from "@/lib/labels";
 import { queryKeys } from "@/lib/query-keys";
+import { hasPermission } from "@/lib/permissions";
 import { formatDate } from "@/lib/tasks";
 import type { Employee, UserStatus } from "@/types/domain";
 import type { z } from "zod";
@@ -55,6 +57,10 @@ const defaultValues: EmployeeInput = {
 
 export default function EmployeesPage() {
   const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user);
+  const canCreate = hasPermission(user, "EMPLOYEE_CREATE");
+  const canUpdate = hasPermission(user, "EMPLOYEE_UPDATE");
+  const canDeactivate = hasPermission(user, "EMPLOYEE_DEACTIVATE");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [seniority, setSeniority] = useState("");
@@ -136,12 +142,7 @@ export default function EmployeesPage() {
         eyebrow="Nhân viên"
         title="Quản lý nhân viên"
         description="Quản lý tài khoản, chức danh và trạng thái nhân viên trong workspace."
-        primaryAction={
-          <Button onClick={() => setCreateOpen(true)}>
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            Thêm nhân viên
-          </Button>
-        }
+        primaryAction={canCreate ? <Button onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4" aria-hidden="true" />Thêm nhân viên</Button> : undefined}
       />
 
       <Card className="mb-5">
@@ -230,8 +231,8 @@ export default function EmployeesPage() {
                         </summary>
                         <div className="absolute right-0 z-20 mt-2 grid w-48 gap-1 rounded-card border border-border bg-surface p-2 text-left shadow-xl">
                           <Link className="rounded-control px-3 py-2 text-sm font-semibold hover:bg-surface-muted" href={`/owner/employees/${employee.id}`}>Xem chi tiết</Link>
-                          <button className="rounded-control px-3 py-2 text-left text-sm font-semibold hover:bg-surface-muted" onClick={() => toggleStatus(employee)} disabled={statusMutation.isPending}>{employee.status === "ACTIVE" ? "Tạm ngưng" : "Kích hoạt"}</button>
-                          <button className="rounded-control px-3 py-2 text-left text-sm font-semibold hover:bg-surface-muted" onClick={() => window.confirm("Reset mật khẩu nhân viên này?") ? resetPasswordMutation.mutate(employee.id) : undefined} disabled={resetPasswordMutation.isPending}>Reset mật khẩu</button>
+                          {canDeactivate ? <button className="rounded-control px-3 py-2 text-left text-sm font-semibold hover:bg-surface-muted" onClick={() => toggleStatus(employee)} disabled={statusMutation.isPending}>{employee.status === "ACTIVE" ? "Tạm ngưng" : "Kích hoạt"}</button> : null}
+                          {canUpdate ? <button className="rounded-control px-3 py-2 text-left text-sm font-semibold hover:bg-surface-muted" onClick={() => window.confirm("Reset mật khẩu nhân viên này?") ? resetPasswordMutation.mutate(employee.id) : undefined} disabled={resetPasswordMutation.isPending}>Reset mật khẩu</button> : null}
                         </div>
                       </details>
                     </td>
@@ -249,7 +250,7 @@ export default function EmployeesPage() {
                   <StatusBadge value={employee.status} />
                 </div>
                 <p className="mt-3 text-sm text-muted-foreground">{employee.jobTitle || "Chưa cập nhật chức danh"} · {seniorityLabel(employee.seniorityLevel)}</p>
-                <div className="mt-4 flex flex-wrap gap-2"><Link className="focus-ring rounded-control border border-border px-3 py-2 text-sm font-semibold" href={`/owner/employees/${employee.id}`}>Chi tiết</Link><Button variant="secondary" className="min-h-9 px-3 py-2" onClick={() => toggleStatus(employee)}>{employee.status === "ACTIVE" ? "Tạm ngưng" : "Kích hoạt"}</Button></div>
+                <div className="mt-4 flex flex-wrap gap-2"><Link className="focus-ring rounded-control border border-border px-3 py-2 text-sm font-semibold" href={`/owner/employees/${employee.id}`}>Chi tiết</Link>{canDeactivate ? <Button variant="secondary" className="min-h-9 px-3 py-2" onClick={() => toggleStatus(employee)}>{employee.status === "ACTIVE" ? "Tạm ngưng" : "Kích hoạt"}</Button> : null}</div>
               </article>
             ))}
           </div>
@@ -258,7 +259,7 @@ export default function EmployeesPage() {
         </Card>
       ) : null}
 
-      {createOpen ? (
+      {createOpen && canCreate ? (
         <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-slate-950/55 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="create-employee-title" onMouseDown={(event) => event.target === event.currentTarget ? setCreateOpen(false) : undefined}>
           <Card className="my-auto w-full max-w-4xl p-0 shadow-2xl">
             <div className="flex items-start justify-between border-b border-border px-5 py-4">

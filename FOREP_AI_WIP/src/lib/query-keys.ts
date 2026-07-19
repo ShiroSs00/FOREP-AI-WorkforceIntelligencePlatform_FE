@@ -1,4 +1,4 @@
-﻿export const queryKeys = {
+export const queryKeys = {
   me: ["auth", "me"] as const,
   workspace: ["workspace"] as const,
   publicSubscriptionPlans: ["subscription-plans", "public"] as const,
@@ -10,6 +10,13 @@
   adminPayment: (paymentId: string) => ["admin", "payments", paymentId] as const,
   adminAuditLogs: (filters?: Record<string, unknown>) => ["admin", "audit-logs", filters ?? {}] as const,
   adminMonitoring: ["admin", "monitoring"] as const,
+  businessOwnerDashboard: ["workspace", "business-owner-dashboard"] as const,
+  adminDashboardOverview: ["admin", "dashboard", "overview"] as const,
+  adminRevenue: (period: "monthly" | "quarterly" | "yearly" | "by-plan") => ["admin", "dashboard", "revenue", period] as const,
+  adminWorkspaceCharts: (kind?: "status" | "plan") => ["admin", "dashboard", "workspaces", kind ?? "all"] as const,
+  adminPaymentSummary: ["admin", "dashboard", "payments"] as const,
+  adminFeedbackSummary: ["admin", "dashboard", "feedback"] as const,
+  adminPaymentQrSettings: ["admin", "payment-qr-settings"] as const,
   adminWorkspaces: ["admin", "workspaces"] as const,
   adminWorkspaceDetail: (id: string) => ["admin", "workspaces", id] as const,
   adminBusinessOwners: (workspaceId: string) => ["admin", "workspaces", workspaceId, "business-owners"] as const,
@@ -40,7 +47,8 @@
   groupRecommendations: ["ai", "recommendations", "group"] as const,
   reports: ["daily-reports"] as const,
   notifications: ["notifications"] as const,
-  ownerDashboard: ["analytics", "owner-dashboard"] as const,
+  // Legacy invalidation alias: task/report/employee mutations must refresh the production dashboard.
+  ownerDashboard: ["workspace", "business-owner-dashboard"] as const,
   workload: ["analytics", "workload"] as const,
   ai: ["ai"] as const,
   aiSection: (section: string) => ["ai", section] as const,

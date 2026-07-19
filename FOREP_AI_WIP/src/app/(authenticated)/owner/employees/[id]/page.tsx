@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { RequireRole } from "@/auth/require-role";
+import { useAuthStore } from "@/auth/auth-store";
 import { getEmployee, getEmployeeWorkload, resetEmployeePassword, updateEmployee } from "@/api/employees.api";
 import { listBusinessPositions, listDepartments } from "@/api/hr.api";
 import { Button } from "@/components/common/Button";
@@ -21,6 +22,7 @@ import { LoadingState } from "@/components/feedback/LoadingState";
 import { EmployeeCredentialsDialog } from "@/components/forms/EmployeeCredentialsDialog";
 import { employeeLevelOptions, employeeSchema, employmentTypeOptions, seniorityOptions, toEmployeePayload, workingStatusOptions } from "@/features/employees/schemas";
 import { ratingLabel, seniorityLabel } from "@/lib/labels";
+import { hasPermission } from "@/lib/permissions";
 import { queryKeys } from "@/lib/query-keys";
 import type { Employee } from "@/types/domain";
 import type { z } from "zod";
@@ -41,6 +43,9 @@ const emptyValues: EmployeeInput = {
 };
 
 export default function EmployeeDetailPage() {
+  const user = useAuthStore((state) => state.user);
+  const canUpdate = hasPermission(user, "EMPLOYEE_UPDATE");
+  const canDeactivate = hasPermission(user, "EMPLOYEE_DEACTIVATE");
   const [showInitialPassword, setShowInitialPassword] = useState(false);
   const [resetCredential, setResetCredential] = useState<Employee | null>(null);
   const params = useParams<{ id: string }>();
@@ -105,7 +110,7 @@ export default function EmployeeDetailPage() {
         eyebrow="Nhân viên"
         title={employeeQuery.data?.fullName ?? "Chi tiết nhân viên"}
         description="Cập nhật hồ sơ, năng lực chuyên môn và xem nhanh mức tải công việc cá nhân."
-        secondaryAction={<div className="flex flex-wrap gap-2"><Button variant="secondary" disabled={resetPasswordMutation.isPending || !employeeQuery.data?.id} onClick={() => employeeQuery.data?.id && window.confirm("Reset mật khẩu nhân viên này?") ? resetPasswordMutation.mutate(employeeQuery.data.id) : undefined}>Reset mật khẩu</Button><Link href="/owner/employees" className="focus-ring rounded-control border border-border px-4 py-2.5 text-sm font-semibold hover:bg-surface-muted">Quay lại</Link></div>}
+        secondaryAction={<div className="flex flex-wrap gap-2">{canUpdate ? <Button variant="secondary" disabled={resetPasswordMutation.isPending || !employeeQuery.data?.id} onClick={() => employeeQuery.data?.id && window.confirm("Reset mật khẩu nhân viên này?") ? resetPasswordMutation.mutate(employeeQuery.data.id) : undefined}>Reset mật khẩu</Button> : null}<Link href="/owner/employees" className="focus-ring rounded-control border border-border px-4 py-2.5 text-sm font-semibold hover:bg-surface-muted">Quay lại</Link></div>}
       />
       {employeeQuery.isLoading ? <LoadingState rows={4} /> : null}
       {employeeQuery.error ? <ErrorState title="Không thể tải nhân viên" error={employeeQuery.error} onRetry={() => void employeeQuery.refetch()} /> : null}
@@ -118,13 +123,14 @@ export default function EmployeeDetailPage() {
               <div><p className="text-xs font-bold tracking-[0.14em] text-muted-foreground">Mã nhân viên</p><p className="mt-1 font-bold text-foreground">{employeeQuery.data.employeeCode ?? "Chưa có"}</p></div>
               {employeeQuery.data.initialPassword ? <div><p className="text-xs font-bold tracking-[0.14em] text-muted-foreground">Mật khẩu ban đầu</p><button type="button" className="mt-1 font-bold text-primary" onClick={() => setShowInitialPassword((value) => !value)}>{showInitialPassword ? employeeQuery.data.initialPassword : "••••••••"}</button></div> : null}
             </div>
-            <form className="mt-4 grid gap-6" onSubmit={form.handleSubmit((values: Values) => mutation.mutate(values))}>
+            <form className="mt-4 grid gap-6" onSubmit={form.handleSubmit((values: Values) => { if (canUpdate) mutation.mutate(values); })}>
+              <fieldset className="contents" disabled={!canUpdate}>
               <section className="grid gap-4 md:grid-cols-2">
                 <div className="md:col-span-2"><h3 className="text-sm font-black text-foreground">Thông tin cơ bản</h3></div>
                 <Field label="Họ và tên" {...form.register("fullName")} error={form.formState.errors.fullName?.message} />
                 <Field label="Email" required {...form.register("email")} error={form.formState.errors.email?.message} />
                 <Field label="Số điện thoại" optional {...form.register("phone")} />
-                <Select label="Trạng thái" {...form.register("status")}>
+                <Select label="Trạng thái" disabled={!canDeactivate} {...form.register("status")}>
                   <option value="ACTIVE">Đang hoạt động</option>
                   <option value="INACTIVE">Tạm ngưng</option>
                   <option value="INVITED">Đã mời</option>
@@ -155,9 +161,10 @@ export default function EmployeeDetailPage() {
                 <Field label="Năng lực tháng (giờ)" type="number" min="1" {...form.register("monthlyWorkingCapacityHours")} />
               </section>
               <section className="grid gap-4 border-t border-border pt-5 md:grid-cols-2"><div className="md:col-span-2"><h3 className="text-sm font-black">Thông tin nhân sự</h3></div><Field label="Ngày sinh" type="date" {...form.register("dateOfBirth")} /><Select label="Giới tính" {...form.register("gender")}><option value="">Chưa chọn</option><option value="MALE">Nam</option><option value="FEMALE">Nữ</option><option value="OTHER">Khác</option></Select><Select label="Loại hình làm việc" {...form.register("employmentType")}><option value="">Chưa chọn</option>{employmentTypeOptions.map((option) => <option key={option} value={option}>{option}</option>)}</Select><Select label="Trạng thái làm việc" {...form.register("workingStatus")}>{workingStatusOptions.map((option) => <option key={option} value={option}>{option}</option>)}</Select><div className="md:col-span-2"><Field label="Địa chỉ" {...form.register("address")} /></div><div className="md:col-span-2"><TextArea label="Tóm tắt cá nhân" {...form.register("personalSummary")} /></div></section>
-              <div className="flex justify-end">
+              {canUpdate ? <div className="flex justify-end">
                 <Button type="submit" disabled={mutation.isPending}>{mutation.isPending ? "Đang lưu..." : "Lưu thay đổi"}</Button>
-              </div>
+              </div> : <p className="rounded-control bg-surface-muted p-3 text-sm text-muted-foreground">Bạn đang xem hồ sơ ở chế độ chỉ đọc.</p>}
+              </fieldset>
             </form>
             {mutation.error ? <div className="mt-4"><ErrorState title="Không thể lưu nhân viên" error={mutation.error} /></div> : null}
           </Card>

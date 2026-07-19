@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
@@ -14,12 +14,13 @@ import { EmptyState } from "@/components/feedback/EmptyState";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { LoadingState } from "@/components/feedback/LoadingState";
 import { queryKeys } from "@/lib/query-keys";
-import { normalizeRole } from "@/lib/role";
+import { hasPermission } from "@/lib/permissions";
 import { formatDate } from "@/lib/tasks";
 
 export default function DailyReportsPage() {
   const user = useAuthStore((state) => state.user);
-  const isOwner = user ? normalizeRole(user.role) === "BUSINESS_OWNER" : false;
+  const canReview = hasPermission(user, "REPORT_REVIEW");
+  const canSubmit = hasPermission(user, "REPORT_SUBMIT");
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [blockerFilter, setBlockerFilter] = useState("");
@@ -48,9 +49,9 @@ export default function DailyReportsPage() {
     <>
       <PageHeader
         eyebrow="Báo cáo ngày"
-        title={isOwner ? "Báo cáo công việc hằng ngày" : "Báo cáo của tôi"}
-        description={isOwner ? "Xem tiến độ mỗi ngày và phát hiện vướng mắc cần hỗ trợ." : "Theo dõi các báo cáo bạn đã gửi cho owner."}
-        primaryAction={<Link href="/daily-reports/new" className="focus-ring rounded-control bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-teal-800">Gửi báo cáo</Link>}
+        title={canReview ? "Báo cáo công việc hằng ngày" : "Báo cáo của tôi"}
+        description={canReview ? "Xem tiến độ mỗi ngày và phát hiện vướng mắc cần hỗ trợ." : "Theo dõi các báo cáo bạn đã gửi."}
+        primaryAction={canSubmit ? <Link href="/daily-reports/new" className="focus-ring rounded-control bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-teal-800">Gửi báo cáo</Link> : undefined}
       />
       <Card className="mb-5 grid gap-3 md:grid-cols-[1fr_220px]">
         <Field label="Tìm kiếm báo cáo" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Nhân viên, nội dung, vướng mắc" />
@@ -67,7 +68,7 @@ export default function DailyReportsPage() {
           <div className="grid gap-3">
             {rows.length === 0 ? (
               <EmptyState
-                title={(query.data ?? []).length === 0 ? (isOwner ? "Chưa có báo cáo ngày" : "Bạn chưa gửi báo cáo nào") : "Không tìm thấy báo cáo phù hợp"}
+                title={(query.data ?? []).length === 0 ? (canReview ? "Chưa có báo cáo ngày" : "Bạn chưa gửi báo cáo nào") : "Không tìm thấy báo cáo phù hợp"}
                 description={(query.data ?? []).length === 0 ? "Báo cáo sẽ xuất hiện sau khi nhân viên gửi dữ liệu trong ngày." : "Thử đổi bộ lọc hoặc từ khóa tìm kiếm."}
               />
             ) : null}
@@ -78,7 +79,7 @@ export default function DailyReportsPage() {
                     <p className="font-black text-foreground">{formatDate(report.reportDate)} · {report.employeeName ?? "Nhân viên"}</p>
                     <p className="mt-1 text-sm text-muted-foreground">Đang làm: {report.currentWork || "Chưa có nội dung"}</p>
                   </div>
-                  {isOwner && !report.reviewed ? (
+                  {canReview && !report.reviewed ? (
                     <Button variant="secondary" onClick={() => review.mutate(report.id)} disabled={review.isPending}>Đánh dấu đã xem</Button>
                   ) : null}
                 </div>

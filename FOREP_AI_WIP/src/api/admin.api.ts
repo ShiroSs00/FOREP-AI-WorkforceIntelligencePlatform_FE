@@ -1,6 +1,6 @@
-﻿import { adminPath, apiClient } from "./client";
-import { normalizeArray, normalizeObject, unwrapApiResponse } from "./response";
-import type { AdminBusinessOwner, AdminMonitoring, AiResult, AuditLog, BusinessFeedback, PaymentTransaction, PlatformWorkspace, SubscriptionPlan, UserStatus, WorkspaceActivationResult, WorkspaceRegistration, WorkspaceStatus } from "@/types/domain";
+import { adminPath, apiClient } from "./client";
+import { isRecord, normalizeArray, normalizeObject, unwrapApiResponse } from "./response";
+import type { AdminBusinessOwner, AdminDashboardOverview, AdminDashboardSeries, AdminFeedbackSummary, AdminMonitoring, AdminPaymentSummary, AiResult, AuditLog, BusinessFeedback, PaymentMethod, PaymentQrSetting, PaymentTransaction, PlatformWorkspace, SubscriptionPlan, UpdatePaymentQrSetting, UserStatus, WorkspaceActivationResult, WorkspaceRegistration, WorkspaceStatus } from "@/types/domain";
 import type {
   AdminCreateWorkspaceRequest,
   AdminUpdateWorkspaceRequest,
@@ -151,4 +151,50 @@ export async function listBusinessFeedback(): Promise<BusinessFeedback[]> {
 export async function reviewBusinessFeedback(id: string, payload: ReviewBusinessFeedbackRequest): Promise<BusinessFeedback> {
   const response = await apiClient.patch(adminPath(`/business-feedback/${id}/mark-reviewed`), payload);
   return unwrapApiResponse<BusinessFeedback>(response.data);
+}
+export async function getAdminDashboardOverview(): Promise<AdminDashboardOverview> {
+  const response = await apiClient.get(adminPath("/dashboard/overview"));
+  return unwrapApiResponse<AdminDashboardOverview>(response.data);
+}
+
+async function getAdminDashboardSeries(path: string): Promise<AdminDashboardSeries> {
+  const response = await apiClient.get(adminPath(path));
+  return unwrapApiResponse<AdminDashboardSeries>(response.data);
+}
+
+export const getAdminRevenueMonthly = () => getAdminDashboardSeries("/dashboard/revenue/monthly");
+export const getAdminRevenueQuarterly = () => getAdminDashboardSeries("/dashboard/revenue/quarterly");
+export const getAdminRevenueYearly = () => getAdminDashboardSeries("/dashboard/revenue/yearly");
+export const getAdminRevenueByPlan = () => getAdminDashboardSeries("/dashboard/revenue/by-plan");
+export const getAdminWorkspacesByStatus = () => getAdminDashboardSeries("/dashboard/workspaces/by-status");
+export const getAdminWorkspacesByPlan = () => getAdminDashboardSeries("/dashboard/workspaces/by-plan");
+
+export async function getAdminPaymentSummary(): Promise<AdminPaymentSummary> {
+  const response = await apiClient.get(adminPath("/dashboard/payments/summary"));
+  return unwrapApiResponse<AdminPaymentSummary>(response.data);
+}
+
+export async function getAdminFeedbackSummary(): Promise<AdminFeedbackSummary> {
+  const response = await apiClient.get(adminPath("/dashboard/feedback/summary"));
+  return unwrapApiResponse<AdminFeedbackSummary>(response.data);
+}
+
+export async function listPaymentQrSettings(): Promise<PaymentQrSetting[]> {
+  const response = await apiClient.get(adminPath("/payment-qr-settings"));
+  const array = normalizeArray<PaymentQrSetting>(response.data);
+  if (array.length > 0) return array;
+
+  const value = unwrapApiResponse<unknown>(response.data);
+  if (!isRecord(value)) return [];
+  if (typeof value.paymentMethod === "string") return [value as PaymentQrSetting];
+  const settings = isRecord(value.settings) ? value.settings : value;
+  return (["MOMO", "BANK_TRANSFER"] as const).flatMap((paymentMethod) => {
+    const setting = settings[paymentMethod];
+    return isRecord(setting) ? [{ ...setting, paymentMethod } as PaymentQrSetting] : [];
+  });
+}
+
+export async function updatePaymentQrSetting(paymentMethod: PaymentMethod, payload: UpdatePaymentQrSetting): Promise<PaymentQrSetting> {
+  const response = await apiClient.put(adminPath(`/payment-qr-settings/${paymentMethod}`), payload);
+  return unwrapApiResponse<PaymentQrSetting>(response.data);
 }

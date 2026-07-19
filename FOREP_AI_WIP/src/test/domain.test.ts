@@ -1,9 +1,10 @@
-﻿import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { paymentStatusLabel, registrationStatusLabel, roleFitLabel, seniorityLabel, workspaceStatusLabel } from "@/lib/labels";
 import { canAccessEmployee, canAccessOwner, canAccessSystemAdmin, getHomeForRole, hasRole, normalizeRole } from "@/lib/role";
+import { canAccessRoute } from "@/lib/route-permissions";
 import { isTaskOverdue } from "@/lib/tasks";
 import { canAcceptTask, canApproveTaskCompletion, canEditTaskCustomerInfo, canReturnTask, canSubmitTaskCompletion, canUpdateTaskProgress } from "@/lib/task-permissions";
-import { can } from "@/lib/permissions";
+import { hasAnyPermission, hasPermission } from "@/lib/permissions";
 import type { Task, User } from "@/types/domain";
 
 describe("domain helpers", () => {
@@ -30,14 +31,22 @@ describe("domain helpers", () => {
     expect(canAccessEmployee("EMPLOYEE")).toBe(true);
   });
 
-  it("applies task permissions consistently for operational roles", () => {
-    expect(can("OWNER", "tasks:manage")).toBe(true);
-    expect(can("EXECUTIVE", "tasks:manage")).toBe(true);
-    expect(can("MANAGER", "tasks:manage")).toBe(true);
-    expect(can("HR", "tasks:manage")).toBe(false);
-    expect(can("EMPLOYEE", "tasks:progress")).toBe(true);
+  it("uses backend permissions instead of role-derived capabilities", () => {
+    const permissions = ["TASK_VIEW", "TASK_ASSIGN", "TASK_APPROVE"];
+    expect(hasPermission(permissions, "TASK_ASSIGN")).toBe(true);
+    expect(hasAnyPermission(permissions, ["TASK_CREATE", "TASK_APPROVE"])).toBe(true);
+    expect(hasPermission([], "TASK_UPDATE_OWN")).toBe(false);
   });
 
+  it("guards route aliases and edit routes with backend permissions", () => {
+    expect(canAccessRoute("/platform/dashboard", ["REVENUE_VIEW"])).toBe(true);
+    expect(canAccessRoute("/platform/payment-qr-settings", ["REVENUE_VIEW"])).toBe(false);
+    expect(canAccessRoute("/operations/tasks", ["TASK_VIEW"])).toBe(true);
+    expect(canAccessRoute("/tasks/task-1/edit", ["TASK_VIEW"])).toBe(false);
+    expect(canAccessRoute("/tasks/task-1/edit", ["TASK_ASSIGN"])).toBe(true);
+    expect(canAccessRoute("/daily-reports", ["REPORT_SUBMIT"])).toBe(true);
+    expect(canAccessRoute("/notifications", [])).toBe(false);
+  });
   it("maps status labels", () => {
     expect(seniorityLabel("INTERN")).toBe("Thực tập sinh");
     expect(seniorityLabel(null)).toBe("Chưa cập nhật");
@@ -45,6 +54,7 @@ describe("domain helpers", () => {
     expect(paymentStatusLabel("CORRECTION_REQUESTED")).toBe("Cần bổ sung");
     expect(registrationStatusLabel("APPROVED")).toBe("Đã duyệt");
     expect(registrationStatusLabel("PAYMENT_CONFIRMED")).toBe("Đã xác nhận thanh toán");
+    expect(registrationStatusLabel("ACTIVATED")).toBe("Workspace đã được kích hoạt");
     expect(paymentStatusLabel("CANCELLED")).toBe("Đã hủy");
     expect(roleFitLabel("STRONG")).toBe("Phù hợp cao");
   });
@@ -57,19 +67,19 @@ describe("domain helpers", () => {
   });
 
   it("limits customer information editing to owners, managers, assignees and team leaders", () => {
-    const user = { id: "employee-1", role: "EMPLOYEE" } as User;
+    const user = { id: "employee-1", role: "EMPLOYEE", permissions: ["TASK_UPDATE_OWN"] } as User;
     const individual = { id: "task-1", title: "A", requirements: "R", assigneeId: "employee-1", assignmentType: "INDIVIDUAL" } as Task;
     const team = { id: "task-2", title: "B", requirements: "R", assignmentType: "TEAM", participants: [{ id: "p-1", taskId: "task-2", employeeId: "employee-1", participantRole: "LEADER", leader: true, allocatedHours: 4, createdAt: "2026-01-01" }] } as Task;
     expect(canEditTaskCustomerInfo({ user, task: individual })).toBe(true);
     expect(canEditTaskCustomerInfo({ user, task: team })).toBe(true);
     expect(canEditTaskCustomerInfo({ user: { ...user, id: "member-2" }, task: team })).toBe(false);
-    expect(canEditTaskCustomerInfo({ user: { ...user, role: "MANAGER" }, task: individual })).toBe(true);
+    expect(canEditTaskCustomerInfo({ user: { ...user, role: "MANAGER", permissions: ["TASK_ASSIGN"] }, task: individual })).toBe(true);
   });
 
   it("enforces the production task workflow by participant and role", () => {
-    const employee = { id: "user-1", employeeId: "employee-1", role: "EMPLOYEE" } as User;
-    const manager = { id: "manager-1", role: "MANAGER" } as User;
-    const hr = { id: "hr-1", role: "HR" } as User;
+    const employee = { id: "user-1", employeeId: "employee-1", role: "EMPLOYEE", permissions: ["TASK_UPDATE_OWN"] } as User;
+    const manager = { id: "manager-1", role: "MANAGER", permissions: ["TASK_ASSIGN", "TASK_APPROVE"] } as User;
+    const hr = { id: "hr-1", role: "HR", permissions: [] as string[] } as User;
     const individual = { id: "task-1", title: "A", requirements: "R", assigneeId: "employee-1", assignmentType: "INDIVIDUAL", status: "ASSIGNED" } as Task;
     expect(canAcceptTask(employee, individual)).toBe(true);
     expect(canAcceptTask({ ...employee, employeeId: "other" }, individual)).toBe(false);
@@ -83,8 +93,8 @@ describe("domain helpers", () => {
   });
 
   it("allows only a team leader to submit completion for a team task", () => {
-    const leader = { id: "u-1", employeeId: "leader-1", role: "EMPLOYEE" } as User;
-    const member = { id: "u-2", employeeId: "member-1", role: "EMPLOYEE" } as User;
+    const leader = { id: "u-1", employeeId: "leader-1", role: "EMPLOYEE", permissions: ["TASK_UPDATE_OWN"] } as User;
+    const member = { id: "u-2", employeeId: "member-1", role: "EMPLOYEE", permissions: ["TASK_UPDATE_OWN"] } as User;
     const teamTask = { id: "task-2", title: "B", requirements: "R", assignmentType: "TEAM", status: "IN_PROGRESS", participants: [
       { id: "p-1", taskId: "task-2", employeeId: "leader-1", participantRole: "LEADER", leader: true, allocatedHours: 8, createdAt: "2026-01-01" },
       { id: "p-2", taskId: "task-2", employeeId: "member-1", participantRole: "MEMBER", leader: false, allocatedHours: 4, createdAt: "2026-01-01" },

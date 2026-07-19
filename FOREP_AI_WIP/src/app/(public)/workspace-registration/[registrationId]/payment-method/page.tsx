@@ -5,6 +5,7 @@ import { CreditCard, Smartphone } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createRegistrationPayment, getWorkspaceRegistration } from "@/api/public.api";
 import { getErrorMessage } from "@/api/errors";
 import { Button } from "@/components/common/Button";
@@ -26,6 +27,10 @@ export default function PaymentMethodPage() {
   const queryClient = useQueryClient();
   const registrationId = routeId(useParams<{ registrationId: string }>().registrationId);
   const session = useRegistrationToken(registrationId);
+  const [lastMethod, setLastMethod] = useState<PaymentMethod | null>(null);
+  const [retryReady, setRetryReady] = useState(true);
+  const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (retryTimer.current) clearTimeout(retryTimer.current); }, []);
   const registration = useQuery({
     queryKey: queryKeys.workspaceRegistration(registrationId),
     queryFn: () => getWorkspaceRegistration(registrationId ?? "", session.token ?? ""),
@@ -33,6 +38,13 @@ export default function PaymentMethodPage() {
   });
 
   const createPayment = useMutation({
+    retry: false,
+    onMutate: (paymentMethod: PaymentMethod) => {
+      setLastMethod(paymentMethod);
+      setRetryReady(false);
+      if (retryTimer.current) clearTimeout(retryTimer.current);
+      retryTimer.current = setTimeout(() => setRetryReady(true), 5000);
+    },
     mutationFn: (paymentMethod: PaymentMethod) => createRegistrationPayment(registrationId ?? "", paymentMethod, session.token ?? ""),
     onSuccess: (payment) => {
       toast.success("Đã tạo giao dịch thanh toán.");
@@ -61,7 +73,7 @@ export default function PaymentMethodPage() {
         </div>
         {registration.isLoading ? <LoadingState rows={3} /> : null}
         {registration.error ? <ErrorState title="Không thể tải hồ sơ đăng ký" error={registration.error} onRetry={() => void registration.refetch()} /> : null}
-        {createPayment.error ? <p className="mb-4 rounded-control bg-red-50 px-3 py-2 text-sm font-semibold text-destructive">{getErrorMessage(createPayment.error)}</p> : null}
+        {createPayment.error ? <Card className="mb-4 border-amber-200 bg-amber-50"><h2 className="font-black text-amber-950">Chưa thể tạo hướng dẫn thanh toán</h2><p className="mt-2 text-sm leading-6 text-amber-900">{getErrorMessage(createPayment.error)}</p><p className="mt-2 text-sm text-amber-900">Hồ sơ và mã phiên đăng ký vẫn được giữ nguyên. Hệ thống chưa tạo giao dịch thất bại hoặc QR thay thế.</p>{lastMethod ? <Button className="mt-4" variant="secondary" disabled={createPayment.isPending || !retryReady} onClick={() => createPayment.mutate(lastMethod)}>{createPayment.isPending ? "Đang thử lại..." : retryReady ? "Thử tạo lại hướng dẫn" : "Có thể thử lại sau 5 giây"}</Button> : null}</Card> : null}
         {!registration.isLoading && !registration.error ? (
           <div className="grid gap-4 md:grid-cols-2">
             {methods.map((method) => (
@@ -74,7 +86,7 @@ export default function PaymentMethodPage() {
                   </div>
                 </div>
                 <p className="flex-1 text-sm leading-6 text-muted-foreground">{method.description}</p>
-                <Button disabled={createPayment.isPending} onClick={() => createPayment.mutate(method.value)}>
+                <Button disabled={createPayment.isPending || !retryReady} onClick={() => createPayment.mutate(method.value)}>
                   {createPayment.isPending ? "Đang tạo giao dịch..." : "Tạo giao dịch"}
                 </Button>
               </Card>

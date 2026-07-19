@@ -19,7 +19,7 @@ import { EmptyState } from "@/components/feedback/EmptyState";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { LoadingState } from "@/components/feedback/LoadingState";
 import { queryKeys } from "@/lib/query-keys";
-import { can } from "@/lib/permissions";
+import { hasAnyPermission, hasPermission } from "@/lib/permissions";
 import { normalizeRole } from "@/lib/role";
 import { formatDateTime, isTaskOverdue } from "@/lib/tasks";
 import { getTaskAssignmentType } from "@/lib/task-permissions";
@@ -77,8 +77,9 @@ function TasksContent() {
   const [overdueOnly, setOverdueOnly] = useState(() => params.get("overdue") === "true");
   const [page, setPage] = useState(1);
   const query = useQuery({ queryKey: queryKeys.tasks, queryFn: listWorkspaceTasks });
-  const canViewAssignees = can(user?.role, "tasks:manage");
-  const canManageTasks = can(user?.role, "tasks:manage");
+  const canViewAssignees = hasAnyPermission(user, ["TASK_ASSIGN", "TASK_APPROVE"]);
+  const canManageTasks = hasAnyPermission(user, ["TASK_ASSIGN", "TASK_APPROVE"]);
+  const canCreateTask = hasPermission(user, "TASK_CREATE");
   const normalizedRole = user ? normalizeRole(user.role) : null;
   const employeesQuery = useQuery({ queryKey: queryKeys.employees, queryFn: listEmployees, enabled: canViewAssignees });
   const tasks = useMemo(() => query.data ?? [], [query.data]);
@@ -140,7 +141,7 @@ function TasksContent() {
         title={canManageTasks ? "Quản lý công việc" : normalizedRole === "HR" ? "Công việc workspace" : "Việc của tôi"}
         description={canManageTasks ? "Theo dõi tiến độ, người nhận, phòng ban, vị trí và task cần xử lý trong workspace." : normalizedRole === "HR" ? "Theo dõi công việc trong phạm vi backend cho phép." : "Xem task được giao và cập nhật tiến độ nhanh."}
         primaryAction={
-          canManageTasks ? (
+          canCreateTask ? (
             <Link className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-control bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-teal-800" href={normalizedRole === "BUSINESS_OWNER" ? "/owner/tasks/new" : "/operations/tasks/new"}>
               <Plus className="h-4 w-4" aria-hidden="true" />
               Tạo task
@@ -254,7 +255,7 @@ function TasksContent() {
               <EmptyState
                 title={tasks.length === 0 ? (canManageTasks ? "Chưa có công việc nào" : "Hiện chưa có việc được giao") : "Không có công việc phù hợp"}
                 description={tasks.length === 0 ? (canManageTasks ? "Tạo task đầu tiên để bắt đầu theo dõi tiến độ." : "Các công việc mới sẽ xuất hiện tại đây.") : "Thử xóa bớt bộ lọc để xem nhiều kết quả hơn."}
-                action={canManageTasks && tasks.length === 0 ? <Link className="focus-ring rounded-control bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground" href={normalizedRole === "BUSINESS_OWNER" ? "/owner/tasks/new" : "/operations/tasks/new"}>Tạo task</Link> : undefined}
+                action={canCreateTask && tasks.length === 0 ? <Link className="focus-ring rounded-control bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground" href={normalizedRole === "BUSINESS_OWNER" ? "/owner/tasks/new" : "/operations/tasks/new"}>Tạo task</Link> : undefined}
               />
             </div>
           ) : null}

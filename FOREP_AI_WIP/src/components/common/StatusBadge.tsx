@@ -1,4 +1,4 @@
-﻿import type { PaymentStatus, RegistrationStatus, RoleFit, TaskPriority, TaskStatus, UserStatus, WorkloadLevel, WorkspaceStatus } from "@/types/domain";
+import type { PaymentStatus, RegistrationStatus, RoleFit, TaskPriority, TaskStatus, UserStatus, WorkloadLevel, WorkspaceStatus } from "@/types/domain";
 import { paymentStatusLabels, registrationStatusLabels, roleFitLabels, workspaceStatusLabels } from "@/lib/labels";
 import { Badge } from "./Badge";
 
@@ -69,6 +69,7 @@ const registrationTone: Record<RegistrationStatus, Tone> = {
   REJECTED: "red",
   CANCELLED: "neutral",
   ACTIVE: "green",
+  ACTIVATED: "green",
 };
 
 const roleFitTone: Record<RoleFit, Tone> = {

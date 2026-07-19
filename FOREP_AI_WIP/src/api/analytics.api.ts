@@ -1,10 +1,10 @@
-﻿import { apiClient, workspacePath } from "./client";
+import { apiClient, workspacePath } from "./client";
 import { normalizeArray, unwrapApiResponse } from "./response";
-import type { MonthlyWorkload, OwnerDashboard, WorkloadRecord } from "@/types/domain";
+import type { BusinessOwnerDashboard, MonthlyWorkload, WorkloadRecord } from "@/types/domain";
 
-export async function getOwnerDashboard(): Promise<OwnerDashboard> {
+export async function getOwnerDashboard(): Promise<BusinessOwnerDashboard> {
   const response = await apiClient.get(workspacePath("/business-owner/dashboard"));
-  return unwrapApiResponse<OwnerDashboard>(response.data);
+  return unwrapApiResponse<BusinessOwnerDashboard>(response.data);
 }
 
 export async function getWorkspaceWorkload(): Promise<WorkloadRecord[]> {
@@ -16,5 +16,3 @@ export async function getMonthlyWorkload(year: number, month: number): Promise<M
   const response = await apiClient.get(workspacePath("/workload/monthly"), { params: { year, month } });
   return normalizeArray<MonthlyWorkload>(response.data);
 }
-
-

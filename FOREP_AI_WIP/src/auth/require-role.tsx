@@ -1,24 +1,12 @@
-﻿"use client";
+"use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import type { Role } from "@/types/domain";
-import { hasRole } from "@/lib/role";
-import { useAuthStore } from "./auth-store";
 
-export function RequireRole({ role, allowedRoles, children }: { role?: Role; allowedRoles?: Role[]; children: React.ReactNode }) {
-  const router = useRouter();
-  const userRole = useAuthStore((state) => state.user?.role);
-
-  const configuredRoles = allowedRoles ?? (role ? [role] : []);
-  const allowed = hasRole(userRole, configuredRoles);
-
-  useEffect(() => {
-    if (userRole && !allowed) router.replace("/forbidden");
-  }, [allowed, router, userRole]);
-
-  if (!userRole || !allowed) return null;
+/**
+ * Legacy composition wrapper. Runtime authorization is enforced centrally by
+ * RequireAuth + route-permissions and by permission-aware action checks.
+ * Role props remain only so legacy page composition can migrate incrementally.
+ */
+export function RequireRole({ children }: { role?: Role; allowedRoles?: Role[]; children: React.ReactNode }) {
   return <>{children}</>;
 }
-
-

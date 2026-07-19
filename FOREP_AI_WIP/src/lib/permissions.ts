@@ -1,36 +1,62 @@
-import type { CanonicalRole, Role } from "@/types/domain";
-import { normalizeRole } from "./role";
+import type { User } from "@/types/domain";
 
 export type Permission =
-  | "platform:manage"
-  | "workspace:manage"
-  | "employees:read"
-  | "employees:manage"
-  | "hr-master:read"
-  | "hr-master:manage"
-  | "tasks:read"
-  | "tasks:manage"
-  | "tasks:progress"
-  | "workload:read"
-  | "ai:read"
-  | "ai:history"
-  | "reports:read"
-  | "reports:write"
-  | "notifications:read";
+  | "REVENUE_VIEW"
+  | "PACKAGE_MANAGE"
+  | "WORKSPACE_MANAGE"
+  | "PAYMENT_HISTORY_VIEW"
+  | "PAYMENT_CONFIRM"
+  | "PAYMENT_QR_MANAGE"
+  | "FEEDBACK_MANAGE"
+  | "AUDIT_LOG_VIEW"
+  | "AI_SUMMARY"
+  | "WORKSPACE_UPDATE"
+  | "SUBSCRIPTION_VIEW"
+  | "SUBSCRIPTION_UPGRADE"
+  | "SUBSCRIPTION_RENEW"
+  | "EMPLOYEE_VIEW"
+  | "EMPLOYEE_CREATE"
+  | "EMPLOYEE_UPDATE"
+  | "EMPLOYEE_DEACTIVATE"
+  | "DEPARTMENT_VIEW"
+  | "DEPARTMENT_MANAGE"
+  | "POSITION_VIEW"
+  | "POSITION_MANAGE"
+  | "TASK_VIEW"
+  | "TASK_CREATE"
+  | "TASK_ASSIGN"
+  | "TASK_APPROVE"
+  | "TASK_UPDATE_OWN"
+  | "AI_ANALYZE"
+  | "AI_RECOMMENDATION"
+  | "AI_HISTORY"
+  | "REPORT_VIEW"
+  | "REPORT_SUBMIT"
+  | "REPORT_REVIEW"
+  | "NOTIFICATION_VIEW";
 
-const matrix: Record<CanonicalRole, ReadonlySet<Permission>> = {
-  PLATFORM_ADMIN: new Set(["platform:manage"]),
-  SYSTEM: new Set(["platform:manage"]),
-  BUSINESS_OWNER: new Set(["workspace:manage", "employees:read", "employees:manage", "hr-master:read", "tasks:read", "tasks:manage", "tasks:progress", "workload:read", "ai:read", "ai:history", "reports:read", "notifications:read"]),
-  HR: new Set(["employees:read", "employees:manage", "hr-master:read", "hr-master:manage", "tasks:read", "ai:read", "ai:history", "reports:read", "notifications:read"]),
-  EXECUTIVE: new Set(["employees:read", "tasks:read", "tasks:manage", "tasks:progress", "workload:read", "ai:read", "ai:history", "reports:read", "notifications:read"]),
-  MANAGER: new Set(["employees:read", "tasks:read", "tasks:manage", "tasks:progress", "workload:read", "ai:read", "ai:history", "reports:read", "notifications:read"]),
-  EMPLOYEE: new Set(["tasks:read", "tasks:progress", "reports:write", "notifications:read"]),
-};
+type PermissionSource = Pick<User, "permissions"> | readonly string[] | null | undefined;
 
-export function can(role: Role | null | undefined, permission: Permission): boolean {
-  return Boolean(role && matrix[normalizeRole(role)].has(permission));
+function permissionSet(source: PermissionSource): ReadonlySet<string> {
+  const values: readonly string[] = source == null
+    ? []
+    : Array.isArray(source)
+      ? source
+      : (source as Pick<User, "permissions">).permissions;
+  return new Set(values.filter((value) => typeof value === "string" && value.length > 0));
 }
 
-export const taskManagerRoles: Role[] = ["BUSINESS_OWNER", "EXECUTIVE", "MANAGER"];
-export const aiHistoryRoles: Role[] = ["BUSINESS_OWNER", "HR", "EXECUTIVE", "MANAGER"];
+export function hasPermission(source: PermissionSource, permission: Permission | string): boolean {
+  return permissionSet(source).has(permission);
+}
+
+export function hasAnyPermission(source: PermissionSource, permissions: readonly (Permission | string)[]): boolean {
+  if (permissions.length === 0) return true;
+  const available = permissionSet(source);
+  return permissions.some((permission) => available.has(permission));
+}
+
+export function hasAllPermissions(source: PermissionSource, permissions: readonly (Permission | string)[]): boolean {
+  const available = permissionSet(source);
+  return permissions.every((permission) => available.has(permission));
+}
