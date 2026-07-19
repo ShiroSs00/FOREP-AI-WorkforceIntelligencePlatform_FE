@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
-import { createRegistrationPayment, getWorkspaceRegistration } from "@/api/public.api";
+import { createOrReuseRegistrationPayment, getWorkspaceRegistration } from "@/api/public.api";
 import { getErrorMessage } from "@/api/errors";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
@@ -45,7 +45,7 @@ export default function PaymentMethodPage() {
       if (retryTimer.current) clearTimeout(retryTimer.current);
       retryTimer.current = setTimeout(() => setRetryReady(true), 5000);
     },
-    mutationFn: (paymentMethod: PaymentMethod) => createRegistrationPayment(registrationId ?? "", paymentMethod, session.token ?? ""),
+    mutationFn: (paymentMethod: PaymentMethod) => createOrReuseRegistrationPayment(registrationId ?? "", paymentMethod, session.token ?? ""),
     onSuccess: (payment) => {
       toast.success("Đã tạo giao dịch thanh toán.");
       queryClient.setQueryData(queryKeys.publicPaymentStatus(payment.paymentCode), payment);

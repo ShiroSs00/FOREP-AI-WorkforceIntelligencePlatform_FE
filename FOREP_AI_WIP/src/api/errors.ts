@@ -1,6 +1,6 @@
-﻿import axios from "axios";
+import axios from "axios";
 import type { ApiFailure } from "@/types/api";
-import { isRecord } from "./response";
+import { extractRequestId, isRecord } from "./response";
 
 function extractBackendMessage(data: unknown): string | null {
   if (!isRecord(data)) return null;
@@ -40,7 +40,7 @@ function parseRetryAfter(value: unknown): number | undefined {
 export function normalizeApiError(error: unknown): ApiFailure {
   if (axios.isAxiosError(error)) {
     if (error.code === "ECONNABORTED") {
-      return { message: "Backend đang khởi động hoặc chưa phản hồi kịp. Vui lòng thử lại.", details: error.message };
+      return { kind: "network", message: "Backend đang khởi động hoặc chưa phản hồi kịp. Vui lòng thử lại." };
     }
     const status = error.response?.status;
     const backendMessage = extractBackendMessage(error.response?.data);
@@ -48,16 +48,22 @@ export function normalizeApiError(error: unknown): ApiFailure {
     const fieldErrors = extractFieldErrors(details);
     const code = extractCode(details);
     const retryAfter = parseRetryAfter(error.response?.headers?.["retry-after"]);
-    if (status === 401) return { status, message: backendMessage ?? "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", details, fieldErrors, code };
-    if (status === 403) return { status, message: backendMessage ?? "Bạn không có quyền thực hiện thao tác này.", details, fieldErrors, code };
-    if (status === 429 || code === "AI_RATE_LIMITED") return { status, message: "Hệ thống AI đang xử lý nhiều yêu cầu. Vui lòng thử lại sau.", details, fieldErrors, code: code ?? "AI_RATE_LIMITED", retryAfter };
-    if (status === 404) return { status, message: backendMessage ?? "Chức năng này chưa có trên backend.", details, fieldErrors, code };
-    if (status && status >= 500) return { status, message: backendMessage ?? "Backend đang lỗi. Vui lòng kiểm tra lại sau.", details, fieldErrors, code };
-    if (status) return { status, message: backendMessage ?? "Yêu cầu không hợp lệ.", details, fieldErrors, code };
-    return { message: "Không thể kết nối backend. Vui lòng kiểm tra mạng, CORS hoặc trạng thái server.", details: error.message };
+    const headerRequestId = error.response?.headers?.["x-request-id"] ?? error.response?.headers?.["request-id"];
+    const requestId = typeof headerRequestId === "string" && headerRequestId.trim() ? headerRequestId : extractRequestId(details);
+    const common = { status, fieldErrors, code, requestId };
+    if (status === 401) return { ...common, kind: "unauthenticated", message: backendMessage ?? "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại." };
+    if (status === 403) return { ...common, kind: "forbidden", message: backendMessage ?? "Bạn không có quyền thực hiện thao tác này." };
+    if (status === 404) return { ...common, kind: "not-found", message: backendMessage ?? "Không tìm thấy dữ liệu được yêu cầu." };
+    if (status === 409) return { ...common, kind: "conflict", message: backendMessage ?? "Thao tác có thể đã được một tiến trình khác hoàn tất. Vui lòng tải lại dữ liệu." };
+    if (status === 422 || code === "BUSINESS_RULE_ERROR") return { ...common, kind: "business-rule", message: backendMessage ?? "Không thể hoàn tất do quy tắc nghiệp vụ." };
+    if (status === 429 || code === "AI_RATE_LIMITED") return { ...common, kind: "rate-limited", message: backendMessage ?? "Hệ thống đang xử lý nhiều yêu cầu. Vui lòng thử lại sau.", code: code ?? "AI_RATE_LIMITED", retryAfter };
+    if (status === 400) return { ...common, kind: "validation", message: backendMessage ?? "Dữ liệu chưa hợp lệ. Vui lòng kiểm tra các trường được đánh dấu." };
+    if (status && status >= 500) return { ...common, kind: "server", message: backendMessage ?? "Backend đang lỗi. Vui lòng kiểm tra lại sau." };
+    if (status) return { ...common, kind: "unknown", message: backendMessage ?? "Yêu cầu không hợp lệ." };
+    return { kind: "network", message: "Không thể kết nối backend. Vui lòng kiểm tra mạng hoặc trạng thái server." };
   }
-  if (error instanceof Error) return { message: error.message };
-  return { message: "Đã xảy ra lỗi không xác định.", details: error };
+  if (error instanceof Error) return { kind: "unknown", message: error.message };
+  return { kind: "unknown", message: "Đã xảy ra lỗi không xác định." };
 }
 
 export function getErrorMessage(error: unknown): string {

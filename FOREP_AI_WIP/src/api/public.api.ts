@@ -59,6 +59,34 @@ export async function createRegistrationPayment(id: string, paymentMethod: Payme
   });
 }
 
+const replaceablePaymentStatuses = new Set(["FAILED", "EXPIRED", "CANCELLED", "REJECTED", "REFUNDED"]);
+
+function existingPaymentCode(registration: WorkspaceRegistration, method: PaymentMethod): string | null {
+  const payment = registration.latestPayment ?? registration.payment;
+  if (!payment?.paymentCode || payment.paymentMethod !== method || replaceablePaymentStatuses.has(String(payment.status))) return null;
+  return payment.paymentCode;
+}
+
+async function findExistingRegistrationPayment(id: string, method: PaymentMethod, registrationToken: string): Promise<PublicPaymentStatus | null> {
+  const registration = await getWorkspaceRegistration(id, registrationToken);
+  const paymentCode = existingPaymentCode(registration, method);
+  return paymentCode ? getPublicPaymentStatus(paymentCode, registrationToken, id) : null;
+}
+
+export async function createOrReuseRegistrationPayment(id: string, paymentMethod: PaymentMethod, registrationToken: string): Promise<PublicPaymentStatus> {
+  const existing = await findExistingRegistrationPayment(id, paymentMethod, registrationToken);
+  if (existing) return existing;
+  try {
+    return await createRegistrationPayment(id, paymentMethod, registrationToken);
+  } catch (error) {
+    const status = typeof error === "object" && error !== null && "status" in error ? Number(error.status) : undefined;
+    if (!status || status === 409 || status >= 500) {
+      const recovered = await findExistingRegistrationPayment(id, paymentMethod, registrationToken);
+      if (recovered) return recovered;
+    }
+    throw error;
+  }
+}
 export async function getPublicPaymentStatus(paymentCode: string, registrationToken: string, registrationId?: string): Promise<PublicPaymentStatus> {
   const request = async () => {
     const response = await apiClient.get(publicApiPaths.paymentStatus(paymentCode), { params: { token: registrationToken } });

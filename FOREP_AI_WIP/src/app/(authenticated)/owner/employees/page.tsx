@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { MoreHorizontal, Plus, X } from "lucide-react";
+import { FileSpreadsheet, MoreHorizontal, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -25,6 +25,7 @@ import { employeeLevelOptions, employeeSchema, employmentTypeOptions, seniorityO
 import { seniorityLabel } from "@/lib/labels";
 import { queryKeys } from "@/lib/query-keys";
 import { hasPermission } from "@/lib/permissions";
+import { normalizeRole } from "@/lib/role";
 import { formatDate } from "@/lib/tasks";
 import type { Employee, UserStatus } from "@/types/domain";
 import type { z } from "zod";
@@ -59,6 +60,7 @@ export default function EmployeesPage() {
   const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
   const canCreate = hasPermission(user, "EMPLOYEE_CREATE");
+  const employeeBasePath = user && normalizeRole(user.role) === "HR" ? "/hr/employees" : "/owner/employees";
   const canUpdate = hasPermission(user, "EMPLOYEE_UPDATE");
   const canDeactivate = hasPermission(user, "EMPLOYEE_DEACTIVATE");
   const [search, setSearch] = useState("");
@@ -142,7 +144,7 @@ export default function EmployeesPage() {
         eyebrow="Nhân viên"
         title="Quản lý nhân viên"
         description="Quản lý tài khoản, chức danh và trạng thái nhân viên trong workspace."
-        primaryAction={canCreate ? <Button onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4" aria-hidden="true" />Thêm nhân viên</Button> : undefined}
+        primaryAction={canCreate ? <div className="flex flex-wrap gap-2"><Link className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-control border border-border bg-surface px-4 py-2.5 text-sm font-semibold hover:bg-surface-muted" href={`${employeeBasePath}/imports`}><FileSpreadsheet className="h-4 w-4" aria-hidden="true" />Nhập Excel</Link><Button onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4" aria-hidden="true" />Thêm nhân viên</Button></div> : undefined}
       />
 
       <Card className="mb-5">
@@ -205,7 +207,7 @@ export default function EmployeesPage() {
                 {pagedRows.map((employee) => (
                   <tr key={employee.id} className="border-b border-border/70 align-middle last:border-0 hover:bg-surface-subtle/60">
                     <td className="px-5 py-4">
-                      <Link href={`/owner/employees/${employee.id}`} className="font-bold text-foreground hover:text-primary">{employee.fullName}</Link>
+                      <Link href={`${employeeBasePath}/${employee.id}`} className="font-bold text-foreground hover:text-primary">{employee.fullName}</Link>
                       <p className="mt-1 truncate text-xs text-muted-foreground">{employee.email || "Chưa có email"}</p>
                     </td>
                     <td className="px-5 py-4 text-muted-foreground">
@@ -230,7 +232,7 @@ export default function EmployeesPage() {
                           <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
                         </summary>
                         <div className="absolute right-0 z-20 mt-2 grid w-48 gap-1 rounded-card border border-border bg-surface p-2 text-left shadow-xl">
-                          <Link className="rounded-control px-3 py-2 text-sm font-semibold hover:bg-surface-muted" href={`/owner/employees/${employee.id}`}>Xem chi tiết</Link>
+                          <Link className="rounded-control px-3 py-2 text-sm font-semibold hover:bg-surface-muted" href={`${employeeBasePath}/${employee.id}`}>Xem chi tiết</Link>
                           {canDeactivate ? <button className="rounded-control px-3 py-2 text-left text-sm font-semibold hover:bg-surface-muted" onClick={() => toggleStatus(employee)} disabled={statusMutation.isPending}>{employee.status === "ACTIVE" ? "Tạm ngưng" : "Kích hoạt"}</button> : null}
                           {canUpdate ? <button className="rounded-control px-3 py-2 text-left text-sm font-semibold hover:bg-surface-muted" onClick={() => window.confirm("Reset mật khẩu nhân viên này?") ? resetPasswordMutation.mutate(employee.id) : undefined} disabled={resetPasswordMutation.isPending}>Reset mật khẩu</button> : null}
                         </div>
@@ -250,7 +252,7 @@ export default function EmployeesPage() {
                   <StatusBadge value={employee.status} />
                 </div>
                 <p className="mt-3 text-sm text-muted-foreground">{employee.jobTitle || "Chưa cập nhật chức danh"} · {seniorityLabel(employee.seniorityLevel)}</p>
-                <div className="mt-4 flex flex-wrap gap-2"><Link className="focus-ring rounded-control border border-border px-3 py-2 text-sm font-semibold" href={`/owner/employees/${employee.id}`}>Chi tiết</Link>{canDeactivate ? <Button variant="secondary" className="min-h-9 px-3 py-2" onClick={() => toggleStatus(employee)}>{employee.status === "ACTIVE" ? "Tạm ngưng" : "Kích hoạt"}</Button> : null}</div>
+                <div className="mt-4 flex flex-wrap gap-2"><Link className="focus-ring rounded-control border border-border px-3 py-2 text-sm font-semibold" href={`${employeeBasePath}/${employee.id}`}>Chi tiết</Link>{canDeactivate ? <Button variant="secondary" className="min-h-9 px-3 py-2" onClick={() => toggleStatus(employee)}>{employee.status === "ACTIVE" ? "Tạm ngưng" : "Kích hoạt"}</Button> : null}</div>
               </article>
             ))}
           </div>

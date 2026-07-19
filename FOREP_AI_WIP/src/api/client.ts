@@ -19,12 +19,13 @@ export const publicPath = (path: string) => join(API_PREFIX.public, path);
 export const adminPath = (path: string) => join(API_PREFIX.admin, path);
 export const workspacePath = (path: string) => join(API_PREFIX.workspace, path);
 
-export const apiClient = axios.create({ baseURL: getApiOrigin(), timeout: 15000, headers: { "Content-Type": "application/json" } });
+export const apiClient = axios.create({ baseURL: getApiOrigin(), timeout: 15000, headers: { Accept: "application/json", "Content-Type": "application/json" } });
 
 apiClient.interceptors.request.use((config) => {
   const originalUrl = config.url ?? "";
   config.url = originalUrl.startsWith("/api/") ? originalUrl : authenticatedPath(originalUrl);
   const publicRequest = config.url.startsWith(API_PREFIX.public);
+  if (typeof FormData !== "undefined" && config.data instanceof FormData) delete config.headers["Content-Type"];
   const token = typeof window === "undefined" || publicRequest ? null : getAuthToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
   else delete config.headers.Authorization;
@@ -38,7 +39,10 @@ apiClient.interceptors.response.use(
     const requestUrl = axios.isAxiosError(error) ? error.config?.url ?? "" : "";
     if (normalized.status === 401 && typeof window !== "undefined" && !requestUrl.startsWith(API_PREFIX.public)) {
       clearAuthState();
-      if (!window.location.pathname.startsWith("/login")) window.location.assign("/login?reason=session-expired");
+      if (!window.location.pathname.startsWith("/login")) {
+        const returnTo = `${window.location.pathname}${window.location.search}`;
+        window.location.assign(`/login?reason=session-expired&next=${encodeURIComponent(returnTo)}`);
+      }
     }
     return Promise.reject(normalized);
   },

@@ -275,6 +275,8 @@ export type AuditLog = {
   entityId?: string | null;
   result?: string | null;
   ipAddress?: string | null;
+  userAgent?: string | null;
+  requestId?: string | null;
   metadata?: unknown;
 };
 
@@ -432,7 +434,7 @@ export type NotificationItem = {
 
 export type PaymentQrSetting = {
   paymentMethod: PaymentMethod;
-  qrCodeUrl: string;
+  qrCodeUrl?: string | null;
   paymentUrl?: string | null;
   deeplink?: string | null;
   bankCode?: string | null;
@@ -445,7 +447,7 @@ export type PaymentQrSetting = {
 };
 
 export type UpdatePaymentQrSetting = {
-  qrCodeUrl: string;
+  qrCodeUrl?: string | null;
   paymentUrl?: string | null;
   deeplink?: string | null;
   bankCode?: string | null;
@@ -661,7 +663,7 @@ export type AiTaskAnalysis = AiFallbackMetadata & {
   summary?: string | null;
 };
 
-export type AiHistoryStatus = "SUCCESS" | "FAILED" | "PROCESSING" | "CANCELLED";
+export type AiHistoryStatus = "SUCCESS" | "FAILED" | "FALLBACK" | "PROCESSING" | "CANCELLED";
 
 export type AiHistoryItem = {
   id?: string;
@@ -751,3 +753,36 @@ export type TaskSplitSuggestion = {
   description?: string;
   estimatedHours?: number;
 };
+export type EmployeeImportRowError = {
+  code?: string | null;
+  field?: string | null;
+  message: string;
+};
+
+export type EmployeeImportRow = {
+  rowNumber?: number | null;
+  valid: boolean;
+  status?: string | null;
+  fullName?: string | null;
+  email?: string | null;
+  employeeCode?: string | null;
+  departmentName?: string | null;
+  businessPositionName?: string | null;
+  errors: EmployeeImportRowError[];
+};
+
+export type EmployeeImportBatch = {
+  id: string;
+  fileName?: string | null;
+  status?: string | null;
+  totalRows?: number | null;
+  validRows?: number | null;
+  invalidRows?: number | null;
+  successCount?: number | null;
+  failureCount?: number | null;
+  rows: EmployeeImportRow[];
+  createdAt?: string | null;
+  completedAt?: string | null;
+};
+
+export type FileDownload = { blob: Blob; fileName: string };

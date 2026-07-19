@@ -40,7 +40,7 @@ export default function PaymentInstructionPage() {
     enabled: !!paymentCode && session.ready && !!session.token,
     refetchInterval: (query) => paymentPollingInterval(query.state.data?.status),
     refetchIntervalInBackground: false,
-    retry: (count, error) => { const status = typeof error === "object" && error && "status" in error ? Number(error.status) : undefined; return status ? status >= 500 && count < 2 : count < 2; },
+    retry: (count, error) => { const status = typeof error === "object" && error && "status" in error ? Number(error.status) : undefined; return status ? status >= 500 && count < 1 : count < 1; },
   });
 
   useEffect(() => {

@@ -194,6 +194,21 @@ export async function listPaymentQrSettings(): Promise<PaymentQrSetting[]> {
   });
 }
 
+export async function uploadPaymentQrImage(paymentMethod: PaymentMethod, file: File, onProgress?: (percent: number) => void): Promise<PaymentQrSetting> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const response = await apiClient.post(adminPath(`/payment-qr-settings/${paymentMethod}/qr-image`), formData, {
+    onUploadProgress: (event) => {
+      if (event.total && onProgress) onProgress(Math.round((event.loaded / event.total) * 100));
+    },
+  });
+  return unwrapApiResponse<PaymentQrSetting>(response.data);
+}
+
+export async function removePaymentQrImage(paymentMethod: PaymentMethod): Promise<PaymentQrSetting> {
+  const response = await apiClient.delete(adminPath(`/payment-qr-settings/${paymentMethod}/qr-image`));
+  return unwrapApiResponse<PaymentQrSetting>(response.data);
+}
 export async function updatePaymentQrSetting(paymentMethod: PaymentMethod, payload: UpdatePaymentQrSetting): Promise<PaymentQrSetting> {
   const response = await apiClient.put(adminPath(`/payment-qr-settings/${paymentMethod}`), payload);
   return unwrapApiResponse<PaymentQrSetting>(response.data);

@@ -1,4 +1,4 @@
-﻿import type { ApiResponse, PageResult } from "@/types/api";
+import type { ApiResponse, PageResult } from "@/types/api";
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -23,15 +23,24 @@ export function unwrapApiResponse<T>(payload: unknown): T {
 }
 
 export function normalizeApiResponse<T>(payload: unknown): ApiResponse<T> {
-  if (isRecord(payload) && ("data" in payload || "errors" in payload || "meta" in payload)) {
+  if (isRecord(payload) && ("data" in payload || "errors" in payload || "meta" in payload || "metadata" in payload)) {
+    const meta = isRecord(payload.meta) ? payload.meta : isRecord(payload.metadata) ? payload.metadata : {};
     return {
       data: "data" in payload ? (payload.data as T | null) : null,
-      meta: isRecord(payload.meta) ? payload.meta : {},
+      meta,
       errors: Array.isArray(payload.errors) ? payload.errors : [],
+      requestId: typeof meta.requestId === "string" ? meta.requestId : undefined,
     };
   }
 
   return { data: payload as T, meta: {}, errors: [] };
+}
+
+export function extractRequestId(payload: unknown): string | undefined {
+  if (!isRecord(payload)) return undefined;
+  const meta = isRecord(payload.meta) ? payload.meta : isRecord(payload.metadata) ? payload.metadata : undefined;
+  if (typeof meta?.requestId === "string" && meta.requestId.trim()) return meta.requestId;
+  return typeof payload.requestId === "string" && payload.requestId.trim() ? payload.requestId : undefined;
 }
 
 export function normalizeArray<T>(payload: unknown): T[] {

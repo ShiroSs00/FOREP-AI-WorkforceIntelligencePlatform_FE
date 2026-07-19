@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { createRegistrationPayment, getPublicPaymentStatus, getWorkspaceRegistration } from "@/api/public.api";
+import { createOrReuseRegistrationPayment, getPublicPaymentStatus, getWorkspaceRegistration } from "@/api/public.api";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import { PaymentStatusBadge, RegistrationStatusBadge } from "@/components/common/StatusBadge";
@@ -25,9 +25,9 @@ export default function PaymentResultPage() {
   const params = useParams<{ registrationId: string; paymentCode: string }>();
   const registrationId = routeId(params.registrationId); const paymentCode = routeId(params.paymentCode);
   const session = useRegistrationToken(registrationId);
-  const payment = useQuery({ queryKey: paymentCode ? queryKeys.publicPaymentStatus(paymentCode) : ["public", "payments", "missing"], queryFn: () => getPublicPaymentStatus(paymentCode ?? "", session.token ?? "", registrationId), enabled: !!paymentCode && session.ready && !!session.token, refetchInterval: (query) => paymentPollingInterval(query.state.data?.status) });
-  const registration = useQuery({ queryKey: queryKeys.workspaceRegistration(registrationId), queryFn: () => getWorkspaceRegistration(registrationId ?? "", session.token ?? ""), enabled: !!registrationId && session.ready && !!session.token, refetchInterval: (query) => ["ACTIVATED", "ACTIVE", "REJECTED", "CANCELLED"].includes(String(query.state.data?.registrationStatus)) ? false : 5000 });
-  const retryPayment = useMutation({ mutationFn: (method: PaymentMethod) => createRegistrationPayment(registrationId ?? "", method, session.token ?? ""), onSuccess: (next) => { toast.success(next.status === "PENDING" || next.status === "PROCESSING" ? "Đang tiếp tục giao dịch thanh toán." : "Đã tạo giao dịch thanh toán."); client.setQueryData(queryKeys.publicPaymentStatus(next.paymentCode), next); router.replace(`/workspace-registration/${registrationId}/payments/${next.paymentCode}`); } });
+  const payment = useQuery({ queryKey: paymentCode ? queryKeys.publicPaymentStatus(paymentCode) : ["public", "payments", "missing"], queryFn: () => getPublicPaymentStatus(paymentCode ?? "", session.token ?? "", registrationId), enabled: !!paymentCode && session.ready && !!session.token, refetchInterval: (query) => paymentPollingInterval(query.state.data?.status), refetchIntervalInBackground: false });
+  const registration = useQuery({ queryKey: queryKeys.workspaceRegistration(registrationId), queryFn: () => getWorkspaceRegistration(registrationId ?? "", session.token ?? ""), enabled: !!registrationId && session.ready && !!session.token, refetchInterval: (query) => ["ACTIVATED", "ACTIVE", "REJECTED", "CANCELLED"].includes(String(query.state.data?.registrationStatus)) ? false : 5000, refetchIntervalInBackground: false });
+  const retryPayment = useMutation({ mutationFn: (method: PaymentMethod) => createOrReuseRegistrationPayment(registrationId ?? "", method, session.token ?? ""), onSuccess: (next) => { toast.success(next.status === "PENDING" || next.status === "PROCESSING" ? "Đang tiếp tục giao dịch thanh toán." : "Đã tạo giao dịch thanh toán."); client.setQueryData(queryKeys.publicPaymentStatus(next.paymentCode), next); router.replace(`/workspace-registration/${registrationId}/payments/${next.paymentCode}`); } });
 
   if (!registrationId || !paymentCode) return <main className="min-h-screen bg-background px-4 py-10"><EmptyState title="Liên kết kết quả không hợp lệ" description="URL thiếu mã hồ sơ hoặc mã thanh toán." /></main>;
   if (!session.ready) return <main className="min-h-screen bg-background px-4 py-10"><LoadingState rows={3} /></main>;

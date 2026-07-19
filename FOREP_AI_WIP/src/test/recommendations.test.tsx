@@ -48,7 +48,7 @@ describe("AI recommendation presentation", () => {
 
     expect(screen.getByText("Phan Thanh Duc")).toBeInTheDocument();
     expect(screen.getByText("29 điểm")).toBeInTheDocument();
-    expect(screen.getByText("Đã chọn cho task")).toBeInTheDocument();
+    expect(screen.getByText("Đã chọn tạm thời")).toBeInTheDocument();
     expect(screen.getByText("Dữ liệu năng lực hạn chế")).toBeInTheDocument();
     expect(screen.queryByText("Hồ sơ hiện chưa có tín hiệu chuyên môn khớp với nội dung task.")).not.toBeInTheDocument();
     expect(screen.getAllByText(/xếp hạng theo quy tắc nghiệp vụ/i)).toHaveLength(1);

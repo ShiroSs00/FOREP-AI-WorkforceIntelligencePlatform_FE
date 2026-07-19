@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePathname, useRouter } from "next/navigation";
@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { getCurrentUser } from "@/api/auth.api";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { LoadingState } from "@/components/feedback/LoadingState";
-import { queryKeys } from "@/lib/query-keys";
+import { queryKeys, removeProtectedQueries } from "@/lib/query-keys";
 import { canAccessRoute } from "@/lib/route-permissions";
 import { useAuthStore } from "./auth-store";
 
@@ -39,7 +39,7 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
     const status = errorStatus(meQuery.error);
     if (status === 401) {
       clearAuth();
-      queryClient.clear();
+      removeProtectedQueries(queryClient);
       router.replace("/login?reason=session-expired");
     } else if (status === 403) {
       router.replace("/forbidden");

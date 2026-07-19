@@ -52,7 +52,7 @@ function splitOptions(value?: string | null): string[] {
   return (value ?? "").split(/[,;|\n]/).map((item) => item.trim()).filter(Boolean);
 }
 
-export function RecommendationResults({ kind, items, selectedIds, onSelect }: { kind: RecommendationKind; items?: AssigneeRecommendation[]; selectedIds: string[]; onSelect: (item: AssigneeRecommendation) => void }) {
+export function RecommendationResults({ kind, items, selectedIds, onSelect, stale = false, onRefresh, onConfirm }: { kind: RecommendationKind; items?: AssigneeRecommendation[]; selectedIds: string[]; onSelect: (item: AssigneeRecommendation) => void; stale?: boolean; onRefresh?: () => void; onConfirm?: () => void }) {
   if (!items) return null;
   if (items.length === 0) return <EmptyState title="Chưa có gợi ý phù hợp" description="Hãy bổ sung yêu cầu công việc hoặc dữ liệu năng lực nhân viên." />;
   const label = kind === "individual" ? "Cá nhân" : kind === "leader" ? "Trưởng nhóm" : "Thành viên nhóm";
@@ -64,7 +64,8 @@ export function RecommendationResults({ kind, items, selectedIds, onSelect }: { 
       <p className="text-xs font-black tracking-[0.16em] text-teal-300">GỢI Ý {label.toUpperCase()}</p>
       <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-bold text-slate-300">{rankedItems.length} ứng viên</span>
     </div>
-    {usesFallback ? <div className="flex items-start gap-2 rounded-control border border-amber-300/20 bg-amber-300/10 p-2.5 text-xs leading-5 text-amber-100"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" /><span>AI chưa sẵn sàng cho một số kết quả. FOREP đang hiển thị xếp hạng theo quy tắc nghiệp vụ và dữ liệu hiện có.</span></div> : null}
+    {usesFallback ? <div className="flex items-start gap-2 rounded-control border border-amber-300/20 bg-amber-300/10 p-2.5 text-xs leading-5 text-amber-100"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /><span>Đã dùng phân tích quy tắc vì phần giải thích AI tạm thời không khả dụng.</span></div> : null}
+    {stale ? <div className="rounded-control border border-amber-300/30 bg-amber-300/10 p-3 text-sm text-amber-100" role="status"><p className="font-bold">Ngữ cảnh task đã thay đổi</p><p className="mt-1 text-xs leading-5">Xếp hạng này đã cũ và không thể áp dụng cho đến khi bạn chủ động làm mới.</p>{onRefresh ? <Button type="button" variant="secondary" className="mt-3" onClick={onRefresh}>Làm mới gợi ý</Button> : null}</div> : null}
     <ol className="grid gap-2.5">
       {rankedItems.map((item, index) => {
         const presentation = getRecommendationPresentation(item);
@@ -83,6 +84,7 @@ export function RecommendationResults({ kind, items, selectedIds, onSelect }: { 
           </div>
 
           <div className="mt-3 flex flex-wrap gap-2">
+            {presentation.isFallback ? <span className="rounded-full border border-amber-300/20 bg-amber-300/10 px-2.5 py-1 text-xs font-semibold text-amber-200">Xếp hạng theo quy tắc nghiệp vụ</span> : null}
             {item.workloadLevel ? <WorkloadBadge value={item.workloadLevel} /> : null}
             {item.roleFit ? <RoleFitBadge value={item.roleFit} /> : presentation.hasLimitedProfileData ? <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-semibold text-slate-300">Dữ liệu năng lực hạn chế</span> : null}
             {item.departmentName ? <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-semibold text-slate-300">{item.departmentName}</span> : null}
@@ -94,7 +96,7 @@ export function RecommendationResults({ kind, items, selectedIds, onSelect }: { 
             <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-xs font-bold text-slate-300">Xem phân tích thêm<ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" /></summary>
             <ul className="mt-2 grid gap-1.5 border-t border-white/10 pt-2 text-xs leading-5 text-slate-400">{presentation.details.map((detail) => <li key={detail}>• {detail}</li>)}</ul>
           </details> : null}
-          {selected ? <div className="mt-3 flex min-h-11 items-center justify-center gap-2 rounded-control border border-teal-300/30 bg-teal-300/15 px-4 py-2.5 text-sm font-bold text-teal-100"><CheckCircle2 className="h-4 w-4" />Đã chọn cho task</div> : <Button type="button" className="mt-3 w-full" disabled={!item.employeeId} onClick={() => onSelect(item)}>Chọn ứng viên</Button>}
+          {selected ? <div className="mt-3 grid gap-2"><div className="flex min-h-11 items-center justify-center gap-2 rounded-control border border-teal-300/30 bg-teal-300/15 px-4 py-2.5 text-sm font-bold text-teal-100"><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Đã chọn tạm thời</div>{onConfirm ? <Button type="button" variant="secondary" className="w-full" onClick={onConfirm}>Xác nhận lựa chọn này</Button> : null}</div> : <Button type="button" className="mt-3 w-full" disabled={stale || !item.employeeId} onClick={() => onSelect(item)}>Chọn ứng viên</Button>}
         </li>;
       })}
     </ol>
@@ -146,11 +148,14 @@ export function TaskForm({ initialValues, onSubmit, submitLabel, pending, wizard
   const [individualSignature, setIndividualSignature] = useState("");
   const [leaderSignature, setLeaderSignature] = useState("");
   const [memberSignature, setMemberSignature] = useState("");
+  const [draftIndividualId, setDraftIndividualId] = useState(initialValues?.assigneeId ?? "");
+  const [draftLeaderId, setDraftLeaderId] = useState(initialValues?.teamLeaderId ?? "");
+  const [draftMemberIds, setDraftMemberIds] = useState<string[]>(initialValues?.teamMemberIds ?? []);
   const individual = useMutation({ mutationFn: recommendIndividuals });
   const leader = useMutation({ mutationFn: recommendTeamLeaders });
   const member = useMutation({ mutationFn: recommendTeamMembers });
   const analysis = useMutation({ mutationFn: analyzeWorkspaceTask });
-  const invalidateAiHistory = () => void queryClient.invalidateQueries({ queryKey: ["ai", "history"] });
+  const invalidateAiHistory = () => void queryClient.invalidateQueries({ queryKey: queryKeys.aiHistoryRoot });
   const estimatedHours = useMutation({ mutationFn: estimateTaskHours, onSuccess: invalidateAiHistory });
   const rankingExplanation = useMutation({ mutationFn: explainRecommendationRanking, onSuccess: invalidateAiHistory });
   const selectionExplanation = useMutation({ mutationFn: explainRecommendationResult, onSuccess: invalidateAiHistory });
@@ -210,18 +215,21 @@ export function TaskForm({ initialValues, onSubmit, submitLabel, pending, wizard
   };
 
   const runRecommendation = (kind: RecommendationKind) => {
-    if (kind === "individual") { setIndividualSignature(signature); individual.mutate(recommendationInput); }
-    if (kind === "leader") { setLeaderSignature(signature); leader.mutate(recommendationInput); }
-    if (kind === "member") { setMemberSignature(signature); member.mutate(recommendationInput); }
+    if (kind === "individual") { setIndividualSignature(signature); setDraftIndividualId(values.assigneeId ?? ""); individual.mutate(recommendationInput); }
+    if (kind === "leader") { setLeaderSignature(signature); setDraftLeaderId(values.teamLeaderId ?? ""); leader.mutate(recommendationInput); }
+    if (kind === "member") { setMemberSignature(signature); setDraftMemberIds(values.teamMemberIds ?? []); member.mutate(recommendationInput); }
   };
   const selectRecommendation = (kind: RecommendationKind, item: AssigneeRecommendation) => {
     if (!item.employeeId) return;
-    if (kind === "individual") form.setValue("assigneeId", item.employeeId, { shouldValidate: true });
-    if (kind === "leader") {
-      form.setValue("teamLeaderId", item.employeeId, { shouldValidate: true });
-      form.setValue("teamMemberIds", (values.teamMemberIds ?? []).filter((id) => id !== item.employeeId), { shouldValidate: true });
-    }
-    if (kind === "member" && item.employeeId !== values.teamLeaderId && !(values.teamMemberIds ?? []).includes(item.employeeId)) form.setValue("teamMemberIds", [...(values.teamMemberIds ?? []), item.employeeId], { shouldValidate: true });
+    if (kind === "individual") setDraftIndividualId(item.employeeId);
+    if (kind === "leader") { setDraftLeaderId(item.employeeId); setDraftMemberIds((current) => current.filter((id) => id !== item.employeeId)); }
+    if (kind === "member" && item.employeeId !== draftLeaderId) setDraftMemberIds((current) => current.includes(item.employeeId ?? "") ? current.filter((id) => id !== item.employeeId) : [...current, item.employeeId as string]);
+  };
+  const applyRecommendation = (kind: RecommendationKind) => {
+    if (kind === "individual" && draftIndividualId) form.setValue("assigneeId", draftIndividualId, { shouldDirty: true, shouldValidate: true });
+    if (kind === "leader" && draftLeaderId) { form.setValue("teamLeaderId", draftLeaderId, { shouldDirty: true, shouldValidate: true }); form.setValue("teamMemberIds", (values.teamMemberIds ?? []).filter((id) => id !== draftLeaderId), { shouldDirty: true, shouldValidate: true }); }
+    if (kind === "member") form.setValue("teamMemberIds", draftMemberIds.filter((id) => id !== (values.teamLeaderId ?? draftLeaderId)), { shouldDirty: true, shouldValidate: true });
+    toast.success("Đã đưa lựa chọn vào form; task chưa được lưu.");
   };
   const recommendationError = individual.error ?? leader.error ?? member.error;
   const normalizedError = recommendationError as ApiFailure | null;
@@ -290,7 +298,7 @@ export function TaskForm({ initialValues, onSubmit, submitLabel, pending, wizard
 
         <Card className="overflow-hidden border-slate-800 bg-slate-950 p-0 text-white"><div className="border-b border-white/10 bg-white/[0.03] p-4"><div className="flex items-start gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-control bg-teal-300/10 text-teal-300"><Sparkles className="h-5 w-5" /></span><div><p className="text-xs font-bold tracking-[0.18em] text-teal-300">AI RECOMMENDATION</p><h2 className="mt-1 text-lg font-black">Gợi ý phân công</h2></div></div><div className="mt-3 flex items-start gap-2 rounded-control border border-white/10 bg-black/10 p-2.5"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-teal-300" /><p className="text-xs leading-5 text-slate-300"><strong className="text-white">Bạn luôn là người quyết định.</strong> AI chỉ xếp hạng ứng viên và không tự động giao việc.</p></div></div>
           {recommendationError ? <div className="mt-4"><ErrorState title={normalizedError?.code === "AI_RATE_LIMITED" || normalizedError?.status === 429 ? "AI đang quá tải" : "Không thể lấy gợi ý"} error={recommendationError} /></div> : null}
-          <div className="grid gap-5 p-4 lg:max-h-[720px] lg:overflow-y-auto"><RecommendationResults kind="individual" items={individualSignature === signature ? individual.data : undefined} selectedIds={[values.assigneeId ?? ""]} onSelect={(item) => selectRecommendation("individual", item)} /><RecommendationResults kind="leader" items={leaderSignature === signature ? leader.data : undefined} selectedIds={[values.teamLeaderId ?? ""]} onSelect={(item) => selectRecommendation("leader", item)} /><RecommendationResults kind="member" items={memberSignature === signature ? member.data : undefined} selectedIds={values.teamMemberIds ?? []} onSelect={(item) => selectRecommendation("member", item)} /></div>
+          <div className="grid gap-5 p-4 lg:max-h-[720px] lg:overflow-y-auto"><RecommendationResults kind="individual" items={individual.data} selectedIds={[draftIndividualId].filter(Boolean)} stale={Boolean(individual.data && individualSignature !== signature)} onRefresh={() => runRecommendation("individual")} onSelect={(item) => selectRecommendation("individual", item)} onConfirm={() => applyRecommendation("individual")} /><RecommendationResults kind="leader" items={leader.data} selectedIds={[draftLeaderId].filter(Boolean)} stale={Boolean(leader.data && leaderSignature !== signature)} onRefresh={() => runRecommendation("leader")} onSelect={(item) => selectRecommendation("leader", item)} onConfirm={() => applyRecommendation("leader")} /><RecommendationResults kind="member" items={member.data} selectedIds={draftMemberIds} stale={Boolean(member.data && memberSignature !== signature)} onRefresh={() => runRecommendation("member")} onSelect={(item) => selectRecommendation("member", item)} onConfirm={() => applyRecommendation("member")} /></div>
           {recommendationData?.length ? <div className="grid gap-3 border-t border-white/10 p-4"><Button type="button" variant="secondary" disabled={rankingExplanation.isPending} onClick={() => rankingExplanation.mutate({ recommendationType: recommendationKind, task: aiTaskContext, candidates: recommendationData.map((item) => ({ ...item })) })}>{rankingExplanation.isPending ? "Đang giải thích..." : "Vì sao có thứ hạng này?"}</Button>{renderAiResult("GIẢI THÍCH THỨ HẠNG", rankingExplanation.data)}</div> : null}
           {selectedEmployees.length ? <div className="grid gap-3 border-t border-white/10 p-4"><Button type="button" variant="secondary" disabled={selectionExplanation.isPending} onClick={() => selectionExplanation.mutate({ task: aiTaskContext, selectedAssigneeOrTeam: { assignmentType, employees: selectedEmployees.map((employee) => ({ id: employee.id, fullName: employee.fullName, jobPositionName: employee.jobPositionName })) }, rankingData: recommendationData?.map((item) => ({ ...item })) })}>{selectionExplanation.isPending ? "Đang giải thích..." : "Giải thích lựa chọn"}</Button>{renderAiResult("GIẢI THÍCH LỰA CHỌN", selectionExplanation.data)}{primarySelected && primaryWorkload ? <Button type="button" variant="secondary" disabled={workloadRisk.isPending} onClick={() => workloadRisk.mutate({ employeeName: primarySelected.fullName, monthlyCapacityHours: primaryWorkload.capacityHours ?? primarySelected.monthlyWorkingCapacityHours ?? 168, monthlyWorkloadEvaluation: [{ ...primaryWorkload }], backendOverallRisk: primaryWorkload.workloadLevel })}>{workloadRisk.isPending ? "Đang kiểm tra rủi ro..." : "Kiểm tra rủi ro mức tải"}</Button> : null}{renderAiResult("PHÂN TÍCH RỦI RO MỨC TẢI", workloadRisk.data)}<p className="text-xs leading-5 text-slate-400">Các kết quả trên chỉ để tham khảo, không tự giao việc hoặc thay đổi dữ liệu mức tải.</p></div> : null}
           {rankingExplanation.error ? <div className="p-4"><ErrorState title="Không thể giải thích thứ hạng" error={rankingExplanation.error} /></div> : null}

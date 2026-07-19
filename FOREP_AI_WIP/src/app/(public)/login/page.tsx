@@ -15,6 +15,8 @@ import { Button } from "@/components/common/Button";
 import { Field } from "@/components/common/Field";
 import { loginSchema, toLoginPayload } from "@/features/auth/schemas";
 import { getHomeForRole } from "@/lib/role";
+import { removeProtectedQueries } from "@/lib/query-keys";
+import { getSafeReturnTo } from "@/lib/safe-return-to";
 import { useAuthStore } from "@/auth/auth-store";
 import type { z } from "zod";
 
@@ -55,9 +57,9 @@ function LoginForm() {
       return user;
     },
     onSuccess: (user) => {
-      queryClient.clear();
+      removeProtectedQueries(queryClient);
       toast.success("Đăng nhập thành công");
-      router.replace(params.get("next") ?? getHomeForRole(user.role));
+      router.replace(getSafeReturnTo(params.get("next")) ?? getHomeForRole(user.role));
     },
   });
 
