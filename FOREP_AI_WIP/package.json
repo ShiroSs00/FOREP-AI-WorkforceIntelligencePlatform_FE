@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "latest",
+    "@next/third-parties": "^16.2.11",
     "@tanstack/react-query": "latest",
     "axios": "latest",
     "clsx": "latest",

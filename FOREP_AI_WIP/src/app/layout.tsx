@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Be_Vietnam_Pro } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 const appFont = Be_Vietnam_Pro({
   subsets: ["latin", "vietnamese"],
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className={appFont.variable}>
         <Providers>{children}</Providers>
       </body>
+      <GoogleAnalytics gaId="G-4E9Q8VEV2T" />
     </html>
   );
 }
